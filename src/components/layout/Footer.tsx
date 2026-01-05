@@ -14,7 +14,7 @@ export default function Footer() {
     <footer className="border-t bg-secondary">
       <div className="container mx-auto px-6 py-8">
         <div className="flex flex-col items-center text-center">
-          <Logo />
+          <Logo className="bg-transparent backdrop-blur-none" />
           <div className="my-4 flex flex-wrap justify-center gap-x-6 gap-y-2">
             <Link href="/shop" className="text-sm text-muted-foreground hover:text-foreground">
               {t('nav.shop')}

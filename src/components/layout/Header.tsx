@@ -50,10 +50,10 @@ export default function Header() {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="w-full max-w-sm p-0">
-                <SheetTitle className="sr-only">Menu principal</SheetTitle>
+                <SheetTitle className="sr-only">Menu</SheetTitle>
                 <div className="p-4">
                   <Link href="/">
-                      <Logo />
+                      <Logo className="h-16 w-auto bg-transparent backdrop-blur-none"/>
                   </Link>
                 </div>
                 <Separator />
@@ -78,7 +78,7 @@ export default function Header() {
 
         <div className="ml-4 hidden md:flex">
           <Link href="/" className="mr-6">
-            <Logo />
+            <Logo className="h-16 w-auto bg-transparent backdrop-blur-none" />
           </Link>
           <nav className="flex items-center space-x-1 text-sm font-medium">
             <NavLinks />
