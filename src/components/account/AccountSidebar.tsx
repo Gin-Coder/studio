@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { User, ShoppingBag, Star, Heart, LogOut } from 'lucide-react';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 const navItems = [
   { href: '/account', label: 'My Profile', icon: User },
@@ -17,25 +18,28 @@ export function AccountSidebar() {
 
   return (
     <aside className="w-full md:w-64 md:pr-8">
-      <nav className="flex flex-row gap-2 md:flex-col md:gap-1">
-        {navItems.map((item) => (
-          <Button
-            key={item.href}
-            variant={pathname === item.href ? 'default' : 'ghost'}
-            className="justify-start"
-            asChild
-          >
-            <Link href={item.href}>
-              <item.icon className="mr-2 h-4 w-4" />
-              <span className="truncate">{item.label}</span>
-            </Link>
+      <ScrollArea className="w-full whitespace-nowrap md:whitespace-normal">
+        <nav className="flex flex-row gap-2 md:flex-col md:gap-1">
+          {navItems.map((item) => (
+            <Button
+              key={item.href}
+              variant={pathname === item.href ? 'default' : 'ghost'}
+              className="justify-start shrink-0"
+              asChild
+            >
+              <Link href={item.href}>
+                <item.icon className="mr-2 h-4 w-4" />
+                <span className="truncate">{item.label}</span>
+              </Link>
+            </Button>
+          ))}
+          <Button variant="ghost" className="justify-start text-destructive hover:text-destructive shrink-0">
+            <LogOut className="mr-2 h-4 w-4" />
+            Sign Out
           </Button>
-        ))}
-        <Button variant="ghost" className="justify-start text-destructive hover:text-destructive">
-          <LogOut className="mr-2 h-4 w-4" />
-          Sign Out
-        </Button>
-      </nav>
+        </nav>
+        <ScrollBar orientation="horizontal" className="md:hidden" />
+      </ScrollArea>
     </aside>
   );
 }
