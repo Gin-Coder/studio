@@ -2,17 +2,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { HeartOff } from "lucide-react";
 import Image from "next/image";
+import { PlaceHolderImages } from "@/lib/placeholder-images";
 
 // Mock data
 const savedOutfits = [
     { id: 'o1', name: 'Summer Brunch Look', date: '2023-09-01', items: [
-        { name: 'Elegant White Summer Dress', imageUrl: 'https://picsum.photos/seed/prod-1/100/100' },
-        { name: 'Stylish Sunglasses', imageUrl: 'https://picsum.photos/seed/prod-13/100/100' },
+        { name: 'Elegant White Summer Dress', imageId: 'prod-1' },
+        { name: 'Stylish Sunglasses', imageId: 'prod-13' },
     ]},
     { id: 'o2', name: 'City Night Out', date: '2023-09-05', items: [
-        { name: 'Classic Black Leather Jacket', imageUrl: 'https://picsum.photos/seed/prod-2/100/100' },
-        { name: 'Blue Denim Jeans', imageUrl: 'https://picsum.photos/seed/prod-3/100/100' },
-        { name: 'Brown Leather Boots', imageUrl: 'https://picsum.photos/seed/prod-8/100/100' },
+        { name: 'Classic Black Leather Jacket', imageId: 'prod-2' },
+        { name: 'Blue Denim Jeans', imageId: 'prod-3' },
+        { name: 'Brown Leather Boots', imageId: 'prod-8' },
     ]},
 ];
 
@@ -37,11 +38,13 @@ export default function SavedOutfitsPage() {
                             </div>
                         </div>
                         <div className="flex gap-2 mt-4">
-                            {outfit.items.map(item => (
+                            {outfit.items.map(item => {
+                                const image = PlaceHolderImages.find(p => p.id === item.imageId);
+                                return (
                                 <div key={item.name} className="relative h-16 w-16" title={item.name}>
-                                    <Image src={item.imageUrl} alt={item.name} layout="fill" className="rounded-md object-cover" data-ai-hint="clothing item" />
+                                    {image && <Image src={image.imageUrl} alt={item.name} layout="fill" className="rounded-md object-cover" data-ai-hint="clothing item" />}
                                 </div>
-                            ))}
+                            )})}
                         </div>
                     </div>
                 ))}

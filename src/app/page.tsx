@@ -16,14 +16,12 @@ import { products, categories, reviews } from '@/lib/mock-data';
 import ProductCard from '@/components/ProductCard';
 import { useLanguage } from '@/hooks/use-language';
 import { Logo } from '@/components/ui/logo';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
+
 
 export default function Home() {
     const { t } = useLanguage();
-  const heroImage = {
-    src: 'https://picsum.photos/seed/hero/1920/1080',
-    alt: 'Fashion model posing in a stylish outfit',
-    hint: 'fashion model',
-  };
+  const heroImage = PlaceHolderImages.find(p => p.id === 'hero-main') || { src: '', alt: '', hint: '' };
 
   const bestSellers = products.slice(0, 8);
   const newArrivals = products.slice(8, 16);
@@ -33,12 +31,12 @@ export default function Home() {
       {/* Hero Section */}
       <section className="relative h-[60vh] min-h-[400px] w-full text-white">
         <Image
-          src={heroImage.src}
-          alt={heroImage.alt}
+          src={heroImage.imageUrl}
+          alt={heroImage.description}
           fill
           className="object-cover"
           priority
-          data-ai-hint={heroImage.hint}
+          data-ai-hint={heroImage.imageHint}
         />
         <div className="absolute inset-0 bg-black/50" />
         <div className="relative z-10 flex h-full flex-col items-center justify-center text-center">

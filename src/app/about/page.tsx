@@ -2,9 +2,13 @@
 'use client';
 import Image from "next/image";
 import { useLanguage } from "@/hooks/use-language";
+import { PlaceHolderImages } from "@/lib/placeholder-images";
 
 export default function AboutPage() {
     const { t } = useLanguage();
+    const aboutImg1 = PlaceHolderImages.find(p => p.id === 'about-1');
+    const aboutImg2 = PlaceHolderImages.find(p => p.id === 'about-2');
+
   return (
     <div className="bg-background">
       <div className="container mx-auto px-4 py-16">
@@ -19,14 +23,14 @@ export default function AboutPage() {
 
         <div className="my-16 grid grid-cols-1 gap-8 md:grid-cols-2">
           <div className="relative aspect-square">
-            <Image
-              src="https://picsum.photos/seed/about1/800/800"
-              alt="Stylish clothing display"
+            {aboutImg1 && <Image
+              src={aboutImg1.imageUrl}
+              alt={aboutImg1.description}
               layout="fill"
               objectFit="cover"
               className="rounded-lg shadow-lg"
-              data-ai-hint="fashion boutique"
-            />
+              data-ai-hint={aboutImg1.imageHint}
+            />}
           </div>
           <div className="flex flex-col justify-center">
             <h2 className="font-headline text-3xl font-bold">{t('about.mission.title')}</h2>
@@ -50,14 +54,14 @@ export default function AboutPage() {
             </p>
           </div>
           <div className="relative aspect-square md:order-1">
-            <Image
-              src="https://picsum.photos/seed/about2/800/800"
-              alt="Person using a phone for shopping"
+            {aboutImg2 && <Image
+              src={aboutImg2.imageUrl}
+              alt={aboutImg2.description}
               layout="fill"
               objectFit="cover"
               className="rounded-lg shadow-lg"
-              data-ai-hint="virtual try on"
-            />
+              data-ai-hint={aboutImg2.imageHint}
+            />}
           </div>
         </div>
       </div>

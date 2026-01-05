@@ -173,6 +173,24 @@
       "description": "Reviewer avatar 3",
       "imageUrl": "https://images.unsplash.com/photo-1542353436-312f0e1f67ff?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxwZXJzb24lMjBoYXBweXxlbnwwfHx8fDE3Njc0ODc0MjF8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "person happy"
+    },
+    {
+      "id": "hero-main",
+      "description": "Main hero image",
+      "imageUrl": "https://images.unsplash.com/photo-1627577279497-4b24bf1021b6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxmYXNoaW9uJTIwbW9kZWx8ZW58MHx8fHwxNzY3NTIwMjk2fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "fashion model"
+    },
+    {
+      "id": "about-1",
+      "description": "About page image 1",
+      "imageUrl": "https://images.unsplash.com/photo-1761090617068-f1b3257d27ad?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8ZmFzaGlvbiUyMGJvdXRpcXVlfGVufDB8fHx8MTc2NzU4MzM3M3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "fashion boutique"
+    },
+    {
+      "id": "about-2",
+      "description": "About page image 2",
+      "imageUrl": "https://images.unsplash.com/photo-1459550532302-ba13832edcdf?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHx2aXJ0dWFsJTIwdHJ5JTIwb258ZW58MHx8fHwxNzY3NTg0MDk4fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "virtual try on"
     }
   ]
 }

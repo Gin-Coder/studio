@@ -271,5 +271,5 @@ export const avatars: Avatar[] = [
   { id: 'avatar-1', description: 'Slender build, female', imageUrl: getImage('avatar-1').url, imageHint: getImage('avatar-1').hint },
   { id: 'avatar-2', description: 'Athletic build, male', imageUrl: getImage('avatar-2').url, imageHint: getImage('avatar-2').hint },
   { id: 'avatar-3', description: 'Curvy build, female', imageUrl: getImage('avatar-3').url, imageHint: getImage('avatar-3').hint },
-  { id: 'avatar-4', description: 'Broad build, male', imageUrl: getImage('avatar-4').hint, imageHint: getImage('avatar-4').hint },
+  { id: 'avatar-4', description: 'Broad build, male', imageUrl: getImage('avatar-4').url, imageHint: getImage('avatar-4').hint },
 ];

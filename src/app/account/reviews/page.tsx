@@ -8,11 +8,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { PlaceHolderImages } from "@/lib/placeholder-images";
 
 // Mock data
 const userReviews = [
-    { id: 'r1', product: 'Elegant White Summer Dress', imageUrl: 'https://picsum.photos/seed/prod-1/200/200', rating: 5, text: 'Absolutely beautiful! The fabric is so light and comfortable.', date: '2023-08-15' },
-    { id: 'r2', product: 'White Leather Sneakers', imageUrl: 'https://picsum.photos/seed/prod-7/200/200', rating: 4, text: 'Really love these sneakers. Very comfortable for walking around all day.', date: '2023-08-22' },
+    { id: 'r1', product: 'Elegant White Summer Dress', imageId: 'prod-1', rating: 5, text: 'Absolutely beautiful! The fabric is so light and comfortable.', date: '2023-08-15' },
+    { id: 'r2', product: 'White Leather Sneakers', imageId: 'prod-7', rating: 4, text: 'Really love these sneakers. Very comfortable for walking around all day.', date: '2023-08-22' },
 ];
 
 export default function AccountReviewsPage() {
@@ -23,9 +24,11 @@ export default function AccountReviewsPage() {
                 <CardDescription>Manage the reviews you have submitted.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-                {userReviews.map(review => (
+                {userReviews.map(review => {
+                    const image = PlaceHolderImages.find(p => p.id === review.imageId);
+                    return (
                     <div key={review.id} className="flex gap-4 rounded-lg border p-4">
-                        <Image src={review.imageUrl} alt={review.product} width={80} height={80} className="rounded-md object-cover" data-ai-hint="clothing item"/>
+                        {image && <Image src={image.imageUrl} alt={review.product} width={80} height={80} className="rounded-md object-cover" data-ai-hint="clothing item"/>}
                         <div className="flex-grow">
                             <div className="flex justify-between">
                                 <h3 className="font-semibold">{review.product}</h3>
@@ -49,7 +52,7 @@ export default function AccountReviewsPage() {
                             <p className="mt-2 text-xs text-muted-foreground">{review.date}</p>
                         </div>
                     </div>
-                ))}
+                )})}
 
                  {userReviews.length === 0 && (
                     <div className="text-center py-16">
