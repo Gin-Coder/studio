@@ -20,7 +20,7 @@ export function LanguageSwitcher() {
   }, []);
 
   if (!mounted) {
-    return <div className="h-10 w-10" />;
+    return null;
   }
 
   return (

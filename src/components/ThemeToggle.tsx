@@ -21,8 +21,7 @@ export function ThemeToggle() {
   }, [])
 
   if (!mounted) {
-    // return a placeholder or null to avoid server-client mismatch
-    return <div className="h-10 w-10" /> 
+    return null; 
   }
 
   return (
