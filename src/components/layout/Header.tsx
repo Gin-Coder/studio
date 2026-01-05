@@ -1,9 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { Menu, Search, ShoppingCart, Heart, User } from 'lucide-react';
+import { Menu, Search, ShoppingCart, Heart, User, Sparkles } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Logo } from '@/components/ui/logo';
@@ -41,89 +41,92 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center">
-        <div className="mr-4 hidden md:flex">
+        <div className="md:hidden">
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <Menu className="h-6 w-6" />
+                <span className="sr-only">Ouvrir le menu</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-full max-w-sm p-0">
+                <div className="p-4">
+                  <Link href="/">
+                      <Logo />
+                  </Link>
+                </div>
+                <Separator />
+                <div className="flex flex-col space-y-2 p-4">
+                  <NavLinks />
+                </div>
+                <Separator />
+                <div className="p-4 space-y-4">
+                  <p className="text-sm font-medium text-muted-foreground">Paramètres</p>
+                  <div className="flex items-center justify-between">
+                    <p>Langue</p>
+                    <LanguageSwitcher />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <p>Thème</p>
+                    <ThemeToggle />
+                  </div>
+                </div>
+            </SheetContent>
+          </Sheet>
+        </div>
+
+        <div className="ml-4 hidden md:flex">
           <Link href="/" className="mr-6">
             <Logo />
           </Link>
-          <nav className="flex items-center space-x-6 text-sm font-medium">
+          <nav className="flex items-center space-x-1 text-sm font-medium">
             <NavLinks />
           </nav>
         </div>
 
-        <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
-           <div className="md:hidden">
-              <Sheet>
-                <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon">
-                    <Menu className="h-6 w-6" />
-                    <span className="sr-only">Toggle navigation menu</span>
-                  </Button>
-                </SheetTrigger>
-                <SheetContent side="left" className="w-full max-w-sm">
-                  <SheetTitle className="sr-only">Menu</SheetTitle>
-                  <SheetDescription className="sr-only">Main navigation menu</SheetDescription>
-                  <div className="p-4">
-                    <Link href="/" className="mb-4">
-                      <Logo />
-                    </Link>
-                  </div>
-                  <Separator />
-                  <div className="flex flex-col space-y-2 p-4">
-                    <NavLinks />
-                  </div>
-                  <Separator />
-                   <div className="p-4 space-y-4">
-                     <p className="text-sm font-medium text-muted-foreground">Settings</p>
-                    <div className="flex items-center justify-between">
-                       <p>Language</p>
-                       <LanguageSwitcher />
-                    </div>
-                     <div className="flex items-center justify-between">
-                       <p>Theme</p>
-                       <ThemeToggle />
-                    </div>
-                  </div>
-                </SheetContent>
-              </Sheet>
-          </div>
-
-          <div className="w-full flex-1 md:w-auto md:flex-none">
+        <div className="flex flex-1 items-center justify-end space-x-2 md:space-x-4">
+          <div className="hidden w-full flex-1 md:w-auto md:flex-none lg:block">
             <form>
               <div className="relative">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="search"
-                  placeholder="Search products..."
+                  placeholder="Rechercher des produits..."
                   className="w-full rounded-lg bg-secondary pl-8 md:w-[200px] lg:w-[320px]"
                 />
               </div>
             </form>
           </div>
           <div className="flex items-center">
-            <div className="hidden md:flex md:items-center md:gap-2">
-                <ThemeToggle />
-                <LanguageSwitcher />
-            </div>
+             <Button variant="ghost" size="icon" asChild>
+                <Link href="#">
+                    <Sparkles />
+                    <span className="sr-only">Virtual Try-On</span>
+                </Link>
+            </Button>
             <Button variant="ghost" size="icon" asChild>
               <Link href="/account">
                 <User />
-                <span className="sr-only">Account</span>
+                <span className="sr-only">Compte</span>
               </Link>
             </Button>
-             <Button variant="ghost" size="icon" asChild className="relative">
+            <Button variant="ghost" size="icon" asChild className="relative">
               <Link href="/wishlist">
                 <Heart />
-                {wishlistCount > 0 && <Badge variant="destructive" className="absolute -right-2 -top-2 h-5 w-5 justify-center rounded-full p-0">{wishlistCount}</Badge>}
-                <span className="sr-only">Wishlist</span>
+                {wishlistCount > 0 && <Badge variant="destructive" className="absolute -right-1 -top-1 h-4 w-4 justify-center rounded-full p-0 text-xs">{wishlistCount}</Badge>}
+                <span className="sr-only">Liste de souhaits</span>
               </Link>
             </Button>
             <Button variant="ghost" size="icon" asChild className="relative">
               <Link href="/cart">
                 <ShoppingCart />
-                {cartCount > 0 && <Badge variant="destructive" className="absolute -right-2 -top-2 h-5 w-5 justify-center rounded-full p-0">{cartCount}</Badge>}
-                <span className="sr-only">Cart</span>
+                {cartCount > 0 && <Badge variant="destructive" className="absolute -right-1 -top-1 h-4 w-4 justify-center rounded-full p-0 text-xs">{cartCount}</Badge>}
+                <span className="sr-only">Panier</span>
               </Link>
             </Button>
+             <div className="hidden md:flex">
+               <ThemeToggle />
+            </div>
           </div>
         </div>
       </div>

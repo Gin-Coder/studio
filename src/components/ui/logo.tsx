@@ -11,6 +11,7 @@ export function Logo({ className }: { className?: string }) {
           alt="Danny Store Logo"
           fill
           style={{ objectFit: 'contain' }}
+          unoptimized
         />
       </div>
       {/* Dark mode logo */}
@@ -20,6 +21,7 @@ export function Logo({ className }: { className?: string }) {
           alt="Danny Store Logo"
           fill
           style={{ objectFit: 'contain' }}
+          unoptimized
         />
       </div>
     </div>
