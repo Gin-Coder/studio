@@ -9,7 +9,7 @@ export type Product = {
   images: string[];
   imageHints: string[];
   price: number;
-  category: 'clothing' | 'shoes' | 'accessories' | 'tech-style';
+  category: 'clothing' | 'shoes' | 'accessories' | 'tech';
   tags: string[];
   variants: Variant[];
   rating: number;

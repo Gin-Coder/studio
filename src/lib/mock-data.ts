@@ -91,7 +91,7 @@ export const products: Product[] = [
     images: [getImage('prod-15').url],
     imageHints: [getImage('prod-15').hint],
     price: 199.99,
-    category: 'tech-style',
+    category: 'tech',
     tags: ['headphones', 'tech', 'black'],
     variants: [
       { id: '15-std-black', color: '#000000', colorName: 'Black', size: 'One Size', stock: 30 },
@@ -165,7 +165,7 @@ export const products: Product[] = [
     images: [getImage('prod-16').url],
     imageHints: [getImage('prod-16').hint],
     price: 99.99,
-    category: 'tech-style',
+    category: 'tech',
     tags: ['earbuds', 'tech', 'white'],
     variants: [
       { id: '16-std', color: '#FFFFFF', colorName: 'White', size: 'One Size', stock: 40 },
@@ -234,7 +234,7 @@ export const categories: Category[] = [
   { id: 'clothing', name: 'Clothing', imageUrl: getImage('cat-clothes').url, imageHint: getImage('cat-clothes').hint },
   { id: 'shoes', name: 'Shoes', imageUrl: getImage('cat-shoes').url, imageHint: getImage('cat-shoes').hint },
   { id: 'accessories', name: 'Accessories', imageUrl: getImage('cat-accessories').url, imageHint: getImage('cat-accessories').hint },
-  { id: 'tech-style', name: 'Tech', imageUrl: getImage('cat-tech').url, imageHint: getImage('cat-tech').hint },
+  { id: 'tech', name: 'Tech', imageUrl: getImage('cat-tech').url, imageHint: getImage('cat-tech').hint },
 ];
 
 export const reviews: Review[] = [

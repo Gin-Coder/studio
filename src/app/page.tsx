@@ -1,3 +1,5 @@
+
+'use client';
 import Image from 'next/image';
 import Link from 'next/link';
 import {
@@ -12,8 +14,10 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight, Star, Truck, ShieldCheck, Gem } from 'lucide-react';
 import { products, categories, reviews } from '@/lib/mock-data';
 import ProductCard from '@/components/ProductCard';
+import { useLanguage } from '@/hooks/use-language';
 
 export default function Home() {
+    const { t } = useLanguage();
   const heroImage = {
     src: 'https://picsum.photos/seed/hero/1920/1080',
     alt: 'Fashion model posing in a stylish outfit',
@@ -38,14 +42,14 @@ export default function Home() {
         <div className="absolute inset-0 bg-black/50" />
         <div className="relative z-10 flex h-full flex-col items-center justify-center text-center">
           <h1 className="font-headline text-4xl font-bold md:text-6xl lg:text-7xl">
-            Style Redefined.
+            {t('home.hero.title')}
           </h1>
           <p className="mt-4 max-w-xl text-lg md:text-xl">
-            Discover premium lifestyle collections. Vêtements, accessoires et plus encore.
+            {t('home.hero.subtitle')}
           </p>
           <Button asChild className="mt-8" size="lg">
             <Link href="/shop">
-              Shop Now <ArrowRight className="ml-2" />
+              {t('home.hero.button')} <ArrowRight className="ml-2" />
             </Link>
           </Button>
         </div>
@@ -55,7 +59,7 @@ export default function Home() {
       <section className="py-12 md:py-20">
         <div className="container mx-auto px-4">
           <h2 className="mb-8 text-center font-headline text-3xl font-bold md:mb-12 md:text-4xl">
-            Shop by Category
+            {t('home.categories.title')}
           </h2>
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:gap-8">
             {categories.map((category) => (
@@ -71,7 +75,7 @@ export default function Home() {
                     />
                     <div className="absolute inset-0 bg-black/30" />
                     <h3 className="absolute bottom-4 left-4 font-headline text-xl font-semibold text-white md:text-2xl">
-                      {category.name}
+                      {t(`filter.${category.id}`)}
                     </h3>
                   </CardContent>
                 </Card>
@@ -85,7 +89,7 @@ export default function Home() {
       <section className="bg-secondary py-12 md:py-20">
         <div className="container mx-auto px-4">
           <h2 className="mb-8 text-center font-headline text-3xl font-bold md:mb-12 md:text-4xl">
-            Best Sellers
+            {t('home.bestsellers.title')}
           </h2>
           <Carousel
             opts={{
@@ -113,7 +117,7 @@ export default function Home() {
       <section className="py-12 md:py-20">
         <div className="container mx-auto px-4">
           <h2 className="mb-8 text-center font-headline text-3xl font-bold md:mb-12 md:text-4xl">
-            New Arrivals
+            {t('home.newarrivals.title')}
           </h2>
            <Carousel
             opts={{
@@ -141,7 +145,7 @@ export default function Home() {
       <section className="bg-secondary py-12 md:py-20">
         <div className="container mx-auto px-4">
           <h2 className="mb-8 text-center font-headline text-3xl font-bold md:mb-12 md:text-4xl">
-            Why Danny Store?
+            {t('home.why_us.title')}
           </h2>
           <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
             <div className="text-center">
@@ -149,10 +153,10 @@ export default function Home() {
                 <Gem size={32} />
               </div>
               <h3 className="mb-2 font-headline text-xl font-semibold">
-                Premium Quality
+                {t('home.why_us.quality.title')}
               </h3>
               <p className="text-muted-foreground">
-                Curated selection of high-quality products from trusted brands.
+                {t('home.why_us.quality.description')}
               </p>
             </div>
             <div className="text-center">
@@ -160,10 +164,10 @@ export default function Home() {
                 <Truck size={32} />
               </div>
               <h3 className="mb-2 font-headline text-xl font-semibold">
-                WhatsApp Concierge
+                {t('home.why_us.concierge.title')}
               </h3>
               <p className="text-muted-foreground">
-                Finalize your order and confirm delivery easily via WhatsApp.
+                {t('home.why_us.concierge.description')}
               </p>
             </div>
             <div className="text-center">
@@ -171,10 +175,10 @@ export default function Home() {
                 <ShieldCheck size={32} />
               </div>
               <h3 className="mb-2 font-headline text-xl font-semibold">
-                Virtual Try-On
+                {t('home.why_us.try_on.title')}
               </h3>
               <p className="text-muted-foreground">
-                Visualize your look before you buy with our futuristic virtual fitting room.
+                {t('home.why_us.try_on.description')}
               </p>
             </div>
           </div>
@@ -185,7 +189,7 @@ export default function Home() {
       <section className="py-12 md:py-20">
         <div className="container mx-auto px-4">
           <h2 className="mb-8 text-center font-headline text-3xl font-bold md:mb-12 md:text-4xl">
-            From Our Community
+            {t('home.reviews.title')}
           </h2>
           <Carousel
             opts={{ align: 'start', loop: true }}

@@ -42,7 +42,7 @@ const Filters = () => {
                                     htmlFor={`cat-${category.id}`}
                                     className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                                 >
-                                    {category.name}
+                                    {t(`filter.${category.id}`)}
                                 </label>
                             </div>
                         ))}
@@ -101,7 +101,7 @@ export default function ShopPage() {
   const categoryParam = searchParams.get('category');
   const pageTitle = categoryParam 
     ? categories.find(c => c.id === categoryParam)?.name || t('shop.title')
-    : t('shop.title');
+    : t('shop.all_products');
 
   const sortedProducts = useMemo(() => {
     let sorted = [...filteredProducts];
@@ -119,7 +119,7 @@ export default function ShopPage() {
     <div className="container mx-auto py-8">
       <div className="mb-8">
         <h1 className="text-4xl font-headline font-bold">{pageTitle}</h1>
-        <p className="text-muted-foreground">Browse our curated collection of lifestyle products.</p>
+        <p className="text-muted-foreground">{t('shop.browse_collection')}</p>
       </div>
       <div className="flex">
         <aside className="hidden w-64 pr-8 lg:block">
@@ -162,7 +162,7 @@ export default function ShopPage() {
             ))}
           </div>
           <div className="mt-8 flex justify-center">
-            <Button variant="outline">Load More</Button>
+            <Button variant="outline">{t('shop.load_more')}</Button>
           </div>
         </main>
       </div>

@@ -1,15 +1,19 @@
+
+'use client';
 import Image from "next/image";
+import { useLanguage } from "@/hooks/use-language";
 
 export default function AboutPage() {
+    const { t } = useLanguage();
   return (
     <div className="bg-background">
       <div className="container mx-auto px-4 py-16">
         <div className="mx-auto max-w-4xl text-center">
           <h1 className="font-headline text-4xl font-bold text-primary md:text-6xl">
-            About Danny Store
+            {t('about.title')}
           </h1>
           <p className="mt-4 text-lg text-muted-foreground md:text-xl">
-            Redefining style with a touch of premium elegance, accessible to everyone, everywhere.
+            {t('about.subtitle')}
           </p>
         </div>
 
@@ -25,24 +29,24 @@ export default function AboutPage() {
             />
           </div>
           <div className="flex flex-col justify-center">
-            <h2 className="font-headline text-3xl font-bold">Our Mission</h2>
+            <h2 className="font-headline text-3xl font-bold">{t('about.mission.title')}</h2>
             <p className="mt-4 text-muted-foreground">
-              At Danny Store, our mission is to bring world-class fashion and lifestyle products to Haiti and the global community. We believe in the power of style as a form of self-expression. We meticulously curate our collections to ensure they represent the pinnacle of quality, craftsmanship, and modern design.
+              {t('about.mission.p1')}
             </p>
             <p className="mt-4 text-muted-foreground">
-              We are more than just a marketplace; we are a destination for inspiration, a community for style enthusiasts, and a platform that bridges local talent with global trends.
+              {t('about.mission.p2')}
             </p>
           </div>
         </div>
 
         <div className="my-16 grid grid-cols-1 gap-8 md:grid-cols-2">
            <div className="flex flex-col justify-center md:order-2">
-            <h2 className="font-headline text-3xl font-bold">The Future of Shopping</h2>
+            <h2 className="font-headline text-3xl font-bold">{t('about.future.title')}</h2>
             <p className="mt-4 text-muted-foreground">
-              Innovation is at the heart of the Danny Store experience. We are pioneering a new way to shop online with our Virtual Try-On technology, allowing you to visualize your look with confidence before making a purchase. Our seamless WhatsApp checkout process provides a personal, concierge-like service that is both modern and convenient.
+              {t('about.future.p1')}
             </p>
             <p className="mt-4 text-muted-foreground">
-              We are committed to creating a shopping experience that is not only transactional but also transformational, empowering you to discover and define your unique style.
+             {t('about.future.p2')}
             </p>
           </div>
           <div className="relative aspect-square md:order-1">
@@ -54,3 +58,9 @@ export default function AboutPage() {
               className="rounded-lg shadow-lg"
               data-ai-hint="virtual try on"
             />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
