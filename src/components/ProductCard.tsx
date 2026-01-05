@@ -1,0 +1,96 @@
+'use client';
+
+import Image from 'next/image';
+import Link from 'next/link';
+import { Heart, ShoppingCart } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import type { Product } from '@/lib/types';
+import { useCart } from '@/hooks/use-cart';
+import { useWishlist } from '@/hooks/use-wishlist';
+import { useToast } from '@/hooks/use-toast';
+
+interface ProductCardProps {
+  product: Product;
+}
+
+export default function ProductCard({ product }: ProductCardProps) {
+  const { addToCart } = useCart();
+  const { addToWishlist, isInWishlist, removeFromWishlist } = useWishlist();
+  const { toast } = useToast();
+
+  const handleAddToCart = () => {
+    // For simplicity, add the first variant
+    const firstVariant = product.variants[0];
+    if (firstVariant) {
+      addToCart(product, firstVariant, 1);
+      toast({
+        title: "Added to cart",
+        description: `${product.name} has been added to your cart.`,
+      });
+    }
+  };
+  
+  const isWishlisted = isInWishlist(product.id);
+
+  const handleWishlistToggle = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if(isWishlisted) {
+      removeFromWishlist(product.id);
+      toast({
+        title: "Removed from wishlist",
+        description: `${product.name} has been removed from your wishlist.`,
+      });
+    } else {
+      addToWishlist(product.id);
+      toast({
+        title: "Added to wishlist",
+        description: `${product.name} has been added to your wishlist.`,
+      });
+    }
+  };
+
+  return (
+    <Card className="group w-full overflow-hidden">
+      <Link href={`/shop/${product.slug}`}>
+        <CardContent className="relative aspect-[3/4] p-0">
+          <Image
+            src={product.images[0]}
+            alt={product.name}
+            fill
+            sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
+            data-ai-hint={product.imageHints[0]}
+          />
+          <div className="absolute bottom-0 left-0 right-0 flex translate-y-full items-center justify-center gap-2 bg-background/80 p-2 transition-transform duration-300 group-hover:translate-y-0">
+            <Button
+              size="sm"
+              className="flex-1"
+              onClick={(e) => {
+                e.preventDefault();
+                handleAddToCart();
+              }}
+            >
+              <ShoppingCart className="mr-2 h-4 w-4" /> Add to Cart
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleWishlistToggle}
+            >
+              <Heart className={`h-4 w-4 ${isWishlisted ? 'fill-destructive text-destructive' : ''}`} />
+            </Button>
+          </div>
+          <Badge variant="secondary" className="absolute top-2 left-2">{product.category}</Badge>
+        </CardContent>
+      </Link>
+      <div className="p-4">
+        <h3 className="truncate font-headline text-lg font-semibold">{product.name}</h3>
+        <p className="text-sm text-muted-foreground">{product.description}</p>
+        <p className="mt-2 font-semibold">${product.price.toFixed(2)}</p>
+      </div>
+    </Card>
+  );
+}

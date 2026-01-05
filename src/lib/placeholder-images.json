@@ -1,3 +1,178 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "prod-1",
+      "description": "Elegant white summer dress",
+      "imageUrl": "https://images.unsplash.com/photo-1530136163523-12e48a0a192c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHx3aGl0ZSUyMGRyZXNzfGVufDB8fHx8MTc2NzUzNDkwN3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "white dress"
+    },
+    {
+      "id": "prod-2",
+      "description": "Classic black leather jacket",
+      "imageUrl": "https://images.unsplash.com/photo-1623854156816-4c4fc355ffc7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxsZWF0aGVyJTIwamFja2V0fGVufDB8fHx8MTc2NzQ4NDgxN3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "leather jacket"
+    },
+    {
+      "id": "prod-3",
+      "description": "Blue denim jeans",
+      "imageUrl": "https://images.unsplash.com/photo-1604176354204-9268737828e4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxkZW5pbSUyMGplYW5zfGVufDB8fHx8MTc2NzUyMDg5NHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "denim jeans"
+    },
+    {
+      "id": "prod-4",
+      "description": "Slim fit gray t-shirt",
+      "imageUrl": "https://images.unsplash.com/photo-1609360075696-72d2fb9da98e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8Z3JheSUyMHRzaGlydHxlbnwwfHx8fDE3Njc1Nzg4NzZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "gray tshirt"
+    },
+    {
+      "id": "prod-5",
+      "description": "Formal navy blue suit",
+      "imageUrl": "https://images.unsplash.com/photo-1743574325034-0bf72377d9a6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxibHVlJTIwc3VpdHxlbnwwfHx8fDE3Njc1Nzg4NzZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "blue suit"
+    },
+    {
+      "id": "prod-6",
+      "description": "Beige trench coat",
+      "imageUrl": "https://images.unsplash.com/photo-1573545289441-827c028f7a3b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHx0cmVuY2glMjBjb2F0fGVufDB8fHx8MTc2NzQ3MzU1MXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "trench coat"
+    },
+    {
+      "id": "prod-7",
+      "description": "White leather sneakers",
+      "imageUrl": "https://images.unsplash.com/photo-1544441892-794166f1e3be?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHx3aGl0ZSUyMHNuZWFrZXJzfGVufDB8fHx8MTc2NzQ4OTgyN3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "white sneakers"
+    },
+    {
+      "id": "prod-8",
+      "description": "Brown leather boots",
+      "imageUrl": "https://images.unsplash.com/photo-1639270602419-6392f0723174?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxsZWF0aGVyJTIwYm9vdHN8ZW58MHx8fHwxNzY3NDk1NTY3fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "leather boots"
+    },
+    {
+      "id": "prod-9",
+      "description": "Black high heels",
+      "imageUrl": "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxoaWdoJTIwaGVlbHN8ZW58MHx8fHwxNzY3NTUwNjk5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "high heels"
+    },
+    {
+      "id": "prod-10",
+      "description": "Leather loafers",
+      "imageUrl": "https://images.unsplash.com/photo-1765871903745-804b6d83324c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxsZWF0aGVyJTIwbG9hZmVyc3xlbnwwfHx8fDE3Njc0NjkwMzZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "leather loafers"
+    },
+    {
+      "id": "prod-11",
+      "description": "Gold analog watch",
+      "imageUrl": "https://images.unsplash.com/photo-1541778480-fc1752bbc2a9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxnb2xkJTIwd2F0Y2h8ZW58MHx8fHwxNzY3NDYyNDMxfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "gold watch"
+    },
+    {
+      "id": "prod-12",
+      "description": "Black leather handbag",
+      "imageUrl": "https://images.unsplash.com/photo-1598099947145-e85739e7ca28?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxsZWF0aGVyJTIwaGFuZGJhZ3xlbnwwfHx8fDE3Njc1MjA4OTR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "leather handbag"
+    },
+    {
+      "id": "prod-13",
+      "description": "Stylish sunglasses",
+      "imageUrl": "https://images.unsplash.com/photo-1651378635695-d307d874b5ec?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxzdW5nbGFzc2VzJTIwbW9kZWx8ZW58MHx8fHwxNzY3NTc4ODc2fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "sunglasses model"
+    },
+    {
+      "id": "prod-14",
+      "description": "Silk scarf",
+      "imageUrl": "https://images.unsplash.com/photo-1677478863154-55ecce8c7536?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxzaWxrJTIwc2NhcmZ8ZW58MHx8fHwxNzY3NTc4ODc3fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "silk scarf"
+    },
+    {
+      "id": "prod-15",
+      "description": "Wireless over-ear headphones in black",
+      "imageUrl": "https://images.unsplash.com/photo-1598331668826-20cecc596b86?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8d2lyZWxlc3MlMjBoZWFkcGhvbmVzfGVufDB8fHx8MTc2NzU1NDM5NXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "wireless headphones"
+    },
+    {
+      "id": "prod-16",
+      "description": "Sleek white earbuds",
+      "imageUrl": "https://images.unsplash.com/photo-1621570551241-f78662d22ad9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHx3aGl0ZSUyMGVhcmJ1ZHN8ZW58MHx8fHwxNzY3NTQ2Nzc2fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "white earbuds"
+    },
+    {
+      "id": "prod-17",
+      "description": "Smartwatch with a black band",
+      "imageUrl": "https://images.unsplash.com/photo-1758525747606-bd5d801ca87b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxzbWFydHdhdGNoJTIwZGlzcGxheXxlbnwwfHx8fDE3Njc1Nzg4NzZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "smartwatch display"
+    },
+    {
+      "id": "prod-18",
+      "description": "Portable bluetooth speaker",
+      "imageUrl": "https://images.unsplash.com/photo-1529359744902-86b2ab9edaea?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxibHVldG9vdGglMjBzcGVha2VyfGVufDB8fHx8MTc2NzU0MTc0M3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "bluetooth speaker"
+    },
+    {
+      "id": "avatar-1",
+      "description": "Avatar with a slender build, female",
+      "imageUrl": "https://images.unsplash.com/photo-1562572159-4efc207f5aff?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxmYXNoaW9uJTIwbW9kZWx8ZW58MHx8fHwxNzY3NTIwMjk2fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "fashion model"
+    },
+    {
+      "id": "avatar-2",
+      "description": "Avatar with an athletic build, male",
+      "imageUrl": "https://images.unsplash.com/photo-1475403614135-5f1aa0eb5015?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxtYWxlJTIwbW9kZWx8ZW58MHx8fHwxNzY3NDczNTUxfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "male model"
+    },
+    {
+      "id": "avatar-3",
+      "description": "Avatar with a curvy build, female",
+      "imageUrl": "https://images.unsplash.com/photo-1615843644216-14d9b92a02ce?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxwbHVzJTIwc2l6ZSUyMG1vZGVsfGVufDB8fHx8MTc2NzU3ODg3Nnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "plus size model"
+    },
+    {
+      "id": "avatar-4",
+      "description": "Avatar with a broad build, male",
+      "imageUrl": "https://images.unsplash.com/photo-1689395218980-2b3ef140d77e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8YXRobGV0aWMlMjBtYW58ZW58MHx8fHwxNzY3NTc4ODc2fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "athletic man"
+    },
+    {
+      "id": "cat-clothes",
+      "description": "Category image for clothes",
+      "imageUrl": "https://images.unsplash.com/photo-1517502166878-35c93a0072f0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxjbG90aGluZyUyMHJhY2t8ZW58MHx8fHwxNzY3NTc4ODc2fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "clothing rack"
+    },
+    {
+      "id": "cat-shoes",
+      "description": "Category image for shoes",
+      "imageUrl": "https://images.unsplash.com/photo-1449505278894-297fdb3edbc1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxzdHlsaXNoJTIwc2hvZXN8ZW58MHx8fHwxNzY3NTc4ODc2fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "stylish shoes"
+    },
+    {
+      "id": "cat-accessories",
+      "description": "Category image for accessories",
+      "imageUrl": "https://images.unsplash.com/photo-1652766540048-de0a878a3266?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxmYXNoaW9uJTIwYWNjZXNzb3JpZXN8ZW58MHx8fHwxNzY3NTM2MjA3fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "fashion accessories"
+    },
+    {
+      "id": "cat-tech",
+      "description": "Category image for tech style",
+      "imageUrl": "https://images.unsplash.com/photo-1634891392987-e91db6bf9557?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxtb2Rlcm4lMjBnYWRnZXRzfGVufDB8fHx8MTc2NzUxODkwMXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "modern gadgets"
+    },
+    {
+      "id": "review-avatar-1",
+      "description": "Reviewer avatar 1",
+      "imageUrl": "https://images.unsplash.com/photo-1711645169736-53327e726205?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHx3b21hbiUyMHNtaWxpbmd8ZW58MHx8fHwxNzY3NTI2NTExfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "woman smiling"
+    },
+    {
+      "id": "review-avatar-2",
+      "description": "Reviewer avatar 2",
+      "imageUrl": "https://images.unsplash.com/photo-1636377985931-898218afd306?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxtYW4lMjBwb3J0cmFpdHxlbnwwfHx8fDE3Njc1NjE3NDZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "man portrait"
+    },
+    {
+      "id": "review-avatar-3",
+      "description": "Reviewer avatar 3",
+      "imageUrl": "https://images.unsplash.com/photo-1542353436-312f0e1f67ff?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxwZXJzb24lMjBoYXBweXxlbnwwfHx8fDE3Njc0ODc0MjF8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "person happy"
+    }
+  ]
 }
