@@ -21,6 +21,7 @@ import { Sparkles, Upload, Trash2, Heart, Layers, Shirt } from 'lucide-react';
 import type { Product, Avatar } from '@/lib/types';
 import { Separator } from '@/components/ui/separator';
 import { useCart } from '@/hooks/use-cart';
+import { Badge } from '@/components/ui/badge';
 
 export default function VirtualTryOnPage() {
   const { cartItems } = useCart();
