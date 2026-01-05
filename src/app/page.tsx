@@ -60,7 +60,7 @@ export default function Home() {
       </section>
 
       {/* Categories Section */}
-      <section className="bg-background py-12 md:py-20">
+      <section className="bg-secondary py-12 md:py-20">
         <div className="container mx-auto px-4">
           <h2 className="mb-8 text-center font-headline text-3xl font-bold md:mb-12 md:text-4xl">
             {t('home.categories.title')}
@@ -90,7 +90,7 @@ export default function Home() {
       </section>
 
       {/* Best Sellers Section */}
-      <section className="bg-secondary py-12 md:py-20">
+      <section className="bg-background py-12 md:py-20">
         <div className="container mx-auto px-4">
           <h2 className="mb-8 text-center font-headline text-3xl font-bold md:mb-12 md:text-4xl">
             {t('home.bestsellers.title')}
