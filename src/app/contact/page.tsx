@@ -30,7 +30,7 @@ export default function ContactPage() {
                 {t('contact.whatsapp.description')}
             </p>
             <Button className="mt-4 w-full" asChild>
-                <a href="https://wa.me/15551234567" target="_blank" rel="noopener noreferrer">
+                <a href="https://wa.me/50933377934" target="_blank" rel="noopener noreferrer">
                     <Phone className="mr-2 h-4 w-4"/> {t('contact.whatsapp.button')}
                 </a>
             </Button>
