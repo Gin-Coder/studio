@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -21,7 +22,7 @@ export function ThemeToggle() {
   }, [])
 
   if (!mounted) {
-    return null
+    return null;
   }
 
   return (
