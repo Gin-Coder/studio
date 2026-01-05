@@ -11,6 +11,8 @@ import { useLanguage } from "@/hooks/use-language";
 
 export default function ContactPage() {
     const { t } = useLanguage();
+    const prefilledMessage = encodeURIComponent(t('contact.whatsapp.prefilled_message'));
+
   return (
     <div className="container mx-auto max-w-4xl py-16">
       <div className="text-center">
@@ -30,7 +32,7 @@ export default function ContactPage() {
                 {t('contact.whatsapp.description')}
             </p>
             <Button className="mt-4 w-full" asChild>
-                <a href="https://wa.me/50933377934" target="_blank" rel="noopener noreferrer">
+                <a href={`https://wa.me/50933377934?text=${prefilledMessage}`} target="_blank" rel="noopener noreferrer">
                     <Phone className="mr-2 h-4 w-4"/> {t('contact.whatsapp.button')}
                 </a>
             </Button>
