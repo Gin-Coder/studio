@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import {
   Card,
@@ -31,12 +31,16 @@ export default function VirtualTryOnPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
 
-  const cartProducts = products.filter(p => cartItems.some(ci => ci.productId === p.id && p.category === 'clothing'));
+  const cartProducts = useMemo(() => {
+    return cartItems
+      .map(cartItem => products.find(p => p.id === cartItem.productId))
+      .filter((p): p is Product => p !== undefined);
+  }, [cartItems]);
 
   useEffect(() => {
     // Pre-select all clothing items from the cart by default
-    setSelectedItems(cartProducts);
-  }, [cartItems]); // Dependency on cartItems is implicitly handled by cartProducts
+    setSelectedItems(cartProducts.filter(p => p.category === 'clothing'));
+  }, [cartProducts]);
 
   const handleItemToggle = (product: Product, checked: boolean) => {
     setSelectedItems((prev) =>
@@ -116,17 +120,19 @@ export default function VirtualTryOnPage() {
                         id={`item-${product.id}`}
                         checked={selectedItems.some(item => item.id === product.id)}
                         onCheckedChange={(checked) => handleItemToggle(product, !!checked)}
+                        disabled={product.category !== 'clothing'}
                       />
                       <label
                         htmlFor={`item-${product.id}`}
-                        className="flex items-center gap-2 text-sm font-medium leading-none cursor-pointer"
+                        className="flex items-center gap-2 text-sm font-medium leading-none cursor-pointer peer-disabled:cursor-not-allowed peer-disabled:opacity-50"
                       >
                           <Image src={product.images[0]} alt={product.name} width={40} height={40} className="rounded-md object-cover"/>
-                          <span>{product.name}</span>
+                          <span className="truncate">{product.name}</span>
+                           {product.category !== 'clothing' && <Badge variant="outline">Not Tryable</Badge>}
                       </label>
                     </div>
                   )) : (
-                    <p className="text-sm text-muted-foreground text-center py-10">No clothing items in your cart to try on.</p>
+                    <p className="text-sm text-muted-foreground text-center py-10">No items in your cart to try on.</p>
                   )}
                 </div>
               </ScrollArea>
@@ -198,7 +204,7 @@ export default function VirtualTryOnPage() {
                              <Image
                                 src={generatedImage}
                                 alt="Generated try-on look"
-                                layout="fill"
+                                fill
                                 className="object-contain rounded-lg"
                               />
                         )}
