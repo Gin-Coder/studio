@@ -1,9 +1,17 @@
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 export function Logo({ className }: { className?: string }) {
   return (
-    <div className={cn("font-headline text-2xl font-bold tracking-tight", className)}>
-      Danny<span className="text-primary">Store</span>
+    <div className={cn("relative h-12 w-28", className)}>
+      <Image 
+        src="/logo.png" 
+        alt="Danny Store Logo"
+        fill
+        sizes="112px"
+        className="object-contain"
+        priority
+      />
     </div>
   );
 }
