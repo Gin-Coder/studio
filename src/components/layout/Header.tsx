@@ -86,7 +86,7 @@ export default function Header() {
         </div>
 
         <div className="flex flex-1 items-center justify-end space-x-2 md:space-x-4">
-          <div className="hidden w-full flex-1 md:w-auto md:flex-none lg:block">
+          <div className="hidden sm:block w-full flex-1 md:w-auto md:flex-none lg:block">
             <form>
               <div className="relative">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />

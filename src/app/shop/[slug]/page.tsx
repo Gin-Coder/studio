@@ -31,7 +31,7 @@ export default function ProductDetailPage({ params }: { params: { slug: string }
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:gap-16">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-16">
         {/* Product Gallery */}
         <div className="aspect-[3/4] relative">
            <Image

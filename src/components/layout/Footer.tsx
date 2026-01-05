@@ -37,10 +37,10 @@ export default function Footer() {
         <hr className="my-6 border-border" />
 
         <div className="flex flex-col items-center sm:flex-row sm:justify-between">
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground mb-4 sm:mb-0">
             &copy; {new Date().getFullYear()} Danny Store. {t('footer.rights')}
           </p>
-          <div className="mt-4 flex items-center gap-x-4 sm:mt-0">
+          <div className="flex items-center gap-x-2">
             <LanguageSwitcher />
             <Button variant="ghost" size="icon" asChild>
                 <a href="#" target="_blank" rel="noopener noreferrer"><Twitter /></a>

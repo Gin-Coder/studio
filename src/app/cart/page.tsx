@@ -137,7 +137,7 @@ export default function CartPage() {
             </Card>
           ))}
         </div>
-        <div className="lg:col-span-1">
+        <div className="lg:col-span-1 space-y-4">
           <Card>
             <CardHeader>
               <CardTitle>Order Summary</CardTitle>
