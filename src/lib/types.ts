@@ -70,3 +70,11 @@ export type Avatar = {
   imageUrl: string;
   imageHint: string;
 };
+
+export type SavedOutfit = {
+  id: string;
+  name: string;
+  date: string;
+  items: Product[];
+  imageUrl: string;
+};

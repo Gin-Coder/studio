@@ -1,9 +1,21 @@
 'use client';
 
 import Link from 'next/link';
-import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import {
+  Sheet,
+  SheetContent,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { Menu, Search, ShoppingCart, Heart, User, Sparkles } from 'lucide-react';
+import {
+  Menu,
+  Search,
+  ShoppingCart,
+  Heart,
+  User,
+  Sparkles,
+} from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Logo } from '@/components/ui/logo';
@@ -37,7 +49,7 @@ const NavLinks = () => {
 export default function Header() {
   const { cartCount } = useCart();
   const { wishlistCount } = useWishlist();
-  
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center">
@@ -50,28 +62,30 @@ export default function Header() {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="w-full max-w-sm p-0">
-                <SheetTitle className="sr-only">Menu</SheetTitle>
-                <div className="p-4">
-                  <Link href="/">
-                      <Logo />
-                  </Link>
+              <SheetTitle className="sr-only">Menu</SheetTitle>
+              <div className="p-4">
+                <Link href="/">
+                  <Logo />
+                </Link>
+              </div>
+              <Separator />
+              <div className="flex flex-col space-y-2 p-4">
+                <NavLinks />
+              </div>
+              <Separator />
+              <div className="p-4 space-y-4">
+                <p className="text-sm font-medium text-muted-foreground">
+                  Paramètres
+                </p>
+                <div className="flex items-center justify-between">
+                  <p>Langue</p>
+                  <LanguageSwitcher />
                 </div>
-                <Separator />
-                <div className="flex flex-col space-y-2 p-4">
-                  <NavLinks />
+                <div className="flex items-center justify-between">
+                  <p>Thème</p>
+                  <ThemeToggle />
                 </div>
-                <Separator />
-                <div className="p-4 space-y-4">
-                  <p className="text-sm font-medium text-muted-foreground">Paramètres</p>
-                  <div className="flex items-center justify-between">
-                    <p>Langue</p>
-                    <LanguageSwitcher />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <p>Thème</p>
-                    <ThemeToggle />
-                  </div>
-                </div>
+              </div>
             </SheetContent>
           </Sheet>
         </div>
@@ -99,11 +113,11 @@ export default function Header() {
             </form>
           </div>
           <div className="flex items-center">
-             <Button variant="ghost" size="icon" asChild>
-                <Link href="#">
-                    <Sparkles />
-                    <span className="sr-only">Virtual Try-On</span>
-                </Link>
+            <Button variant="ghost" size="icon" asChild>
+              <Link href="/virtual-try-on">
+                <Sparkles />
+                <span className="sr-only">Virtual Try-On</span>
+              </Link>
             </Button>
             <Button variant="ghost" size="icon" asChild>
               <Link href="/account">
@@ -114,19 +128,33 @@ export default function Header() {
             <Button variant="ghost" size="icon" asChild className="relative">
               <Link href="/wishlist">
                 <Heart />
-                {wishlistCount > 0 && <Badge variant="destructive" className="absolute -right-1 -top-1 h-4 w-4 justify-center rounded-full p-0 text-xs">{wishlistCount}</Badge>}
+                {wishlistCount > 0 && (
+                  <Badge
+                    variant="destructive"
+                    className="absolute -right-1 -top-1 h-4 w-4 justify-center rounded-full p-0 text-xs"
+                  >
+                    {wishlistCount}
+                  </Badge>
+                )}
                 <span className="sr-only">Liste de souhaits</span>
               </Link>
             </Button>
             <Button variant="ghost" size="icon" asChild className="relative">
               <Link href="/cart">
                 <ShoppingCart />
-                {cartCount > 0 && <Badge variant="destructive" className="absolute -right-1 -top-1 h-4 w-4 justify-center rounded-full p-0 text-xs">{cartCount}</Badge>}
+                {cartCount > 0 && (
+                  <Badge
+                    variant="destructive"
+                    className="absolute -right-1 -top-1 h-4 w-4 justify-center rounded-full p-0 text-xs"
+                  >
+                    {cartCount}
+                  </Badge>
+                )}
                 <span className="sr-only">Panier</span>
               </Link>
             </Button>
-             <div className="hidden md:flex">
-               <ThemeToggle />
+            <div className="hidden md:flex">
+              <ThemeToggle />
             </div>
           </div>
         </div>

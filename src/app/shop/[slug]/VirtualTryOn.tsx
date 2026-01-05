@@ -2,8 +2,10 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Button } from '@/components/ui/button';
 import type { Product, Avatar } from '@/lib/types';
 import { avatars } from '@/lib/mock-data';
 
@@ -69,6 +71,11 @@ export default function VirtualTryOn({ product }: VirtualTryOnProps) {
             </CardContent>
           </Card>
         </div>
+      </div>
+      <div className="text-center mt-8">
+        <Button asChild>
+            <Link href="/virtual-try-on">Create a full outfit</Link>
+        </Button>
       </div>
     </div>
   );

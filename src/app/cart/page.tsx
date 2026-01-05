@@ -169,7 +169,9 @@ export default function CartPage() {
               <Sparkles className="mx-auto h-8 w-8 text-primary" />
               <h3 className="mt-2 font-headline font-semibold">Try on your full outfit!</h3>
               <p className="text-muted-foreground text-sm mt-1 mb-4">See how your selected items look together before you buy.</p>
-              <Button>Virtual Try-On</Button>
+              <Button asChild>
+                <Link href="/virtual-try-on">Virtual Try-On</Link>
+              </Button>
             </CardContent>
           </Card>
         </div>
