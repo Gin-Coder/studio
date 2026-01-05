@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import {
   Card,
@@ -20,14 +20,23 @@ import { useToast } from '@/hooks/use-toast';
 import { Sparkles, Upload, Trash2, Heart, Layers, Shirt } from 'lucide-react';
 import type { Product, Avatar } from '@/lib/types';
 import { Separator } from '@/components/ui/separator';
+import { useCart } from '@/hooks/use-cart';
 
 export default function VirtualTryOnPage() {
+  const { cartItems } = useCart();
   const [selectedItems, setSelectedItems] = useState<Product[]>([]);
   const [selectedAvatar, setSelectedAvatar] = useState<Avatar | null>(avatars[0]);
   const [userImage, setUserImage] = useState<string | null>(null);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
+
+  const cartProducts = products.filter(p => cartItems.some(ci => ci.productId === p.id && p.category === 'clothing'));
+
+  useEffect(() => {
+    // Pre-select all clothing items from the cart by default
+    setSelectedItems(cartProducts);
+  }, [cartItems]); // Dependency on cartItems is implicitly handled by cartProducts
 
   const handleItemToggle = (product: Product, checked: boolean) => {
     setSelectedItems((prev) =>
@@ -95,16 +104,17 @@ export default function VirtualTryOnPage() {
           {/* Item Selection */}
           <Card>
             <CardHeader>
-              <CardTitle>1. Select Items</CardTitle>
-              <CardDescription>Choose clothing from our collection.</CardDescription>
+              <CardTitle>1. Select Items from Cart</CardTitle>
+              <CardDescription>Choose clothing from your shopping cart.</CardDescription>
             </CardHeader>
             <CardContent>
               <ScrollArea className="h-64">
                 <div className="space-y-4">
-                  {products.filter(p => p.category === 'clothing').map((product) => (
+                  {cartProducts.length > 0 ? cartProducts.map((product) => (
                     <div key={product.id} className="flex items-center space-x-2">
                       <Checkbox
                         id={`item-${product.id}`}
+                        checked={selectedItems.some(item => item.id === product.id)}
                         onCheckedChange={(checked) => handleItemToggle(product, !!checked)}
                       />
                       <label
@@ -115,7 +125,9 @@ export default function VirtualTryOnPage() {
                           <span>{product.name}</span>
                       </label>
                     </div>
-                  ))}
+                  )) : (
+                    <p className="text-sm text-muted-foreground text-center py-10">No clothing items in your cart to try on.</p>
+                  )}
                 </div>
               </ScrollArea>
             </CardContent>
