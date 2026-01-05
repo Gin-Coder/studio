@@ -15,6 +15,7 @@ import { ArrowRight, Star, Truck, ShieldCheck, Gem } from 'lucide-react';
 import { products, categories, reviews } from '@/lib/mock-data';
 import ProductCard from '@/components/ProductCard';
 import { useLanguage } from '@/hooks/use-language';
+import { Logo } from '@/components/ui/logo';
 
 export default function Home() {
     const { t } = useLanguage();
@@ -41,6 +42,9 @@ export default function Home() {
         />
         <div className="absolute inset-0 bg-black/50" />
         <div className="relative z-10 flex h-full flex-col items-center justify-center text-center">
+            <div className="mb-4 flex h-24 w-24 items-center justify-center rounded-full bg-black/50 backdrop-blur-sm">
+                <Logo className="h-16 w-auto" />
+            </div>
           <h1 className="font-headline text-4xl font-bold md:text-6xl lg:text-7xl">
             {t('home.hero.title')}
           </h1>
@@ -68,7 +72,7 @@ export default function Home() {
                   <CardContent className="relative aspect-square p-0">
                     <Image
                       src={category.imageUrl}
-                      alt={category.name}
+                      alt={t(`filter.${category.id}`)}
                       fill
                       className="object-cover transition-transform duration-300 group-hover:scale-105"
                       data-ai-hint={category.imageHint}
