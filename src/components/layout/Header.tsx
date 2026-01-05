@@ -53,7 +53,7 @@ export default function Header() {
                 <SheetTitle className="sr-only">Menu</SheetTitle>
                 <div className="p-4">
                   <Link href="/">
-                      <Logo className="h-16 w-auto bg-transparent backdrop-blur-none"/>
+                      <Logo />
                   </Link>
                 </div>
                 <Separator />
@@ -78,7 +78,7 @@ export default function Header() {
 
         <div className="ml-4 hidden md:flex">
           <Link href="/" className="mr-6">
-            <Logo className="h-16 w-auto bg-transparent backdrop-blur-none" />
+            <Logo />
           </Link>
           <nav className="flex items-center space-x-1 text-sm font-medium">
             <NavLinks />

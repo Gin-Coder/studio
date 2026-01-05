@@ -3,8 +3,8 @@ import Image from "next/image";
 
 export function Logo({ className }: { className?: string }) {
   return (
-    <div className={cn("relative h-24 w-24 flex items-center justify-center rounded-full bg-black/50 backdrop-blur-sm", className)}>
-      <div className="relative h-16 w-16">
+    <div className={cn("relative h-28 w-28 flex items-center justify-center", className)}>
+      <div className="relative h-20 w-20">
         <Image 
           src="/logo.png" 
           alt="Danny Store Logo"
