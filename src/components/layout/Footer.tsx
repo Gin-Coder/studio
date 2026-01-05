@@ -41,7 +41,7 @@ export default function Footer() {
             &copy; {new Date().getFullYear()} Danny Store. {t('footer.rights')}
           </p>
           <div className="flex items-center gap-x-2">
-            <LanguageSwitcher />
+            
             <Button variant="ghost" size="icon" asChild>
                 <a href="#" target="_blank" rel="noopener noreferrer"><Twitter /></a>
             </Button>
