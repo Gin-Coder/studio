@@ -20,7 +20,11 @@ export function LanguageSwitcher() {
   }, []);
 
   if (!mounted) {
-    return null;
+    return (
+      <Button variant="ghost" size="icon" disabled>
+        <Globe className="h-[1.2rem] w-[1.2rem]" />
+      </Button>
+    );
   }
 
   return (
