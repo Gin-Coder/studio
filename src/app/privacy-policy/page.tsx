@@ -41,4 +41,8 @@ export default function PrivacyPolicyPage() {
         <h2 className="font-headline">Contact Us</h2>
         <p>
           If you have any questions about this Privacy Policy, please contact us at <a href="mailto:privacy@dannystore.com">privacy@dannystore.com</a>.
-        
+        </p>
+      </div>
+    </div>
+  );
+}

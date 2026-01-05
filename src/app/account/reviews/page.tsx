@@ -57,4 +57,6 @@ export default function AccountReviewsPage() {
                     </div>
                 )}
             </CardContent>
-        
+        </Card>
+    );
+}

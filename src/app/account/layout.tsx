@@ -14,4 +14,9 @@ export default function AccountLayout({
       </div>
       <div className="flex flex-col gap-8 md:flex-row">
         <AccountSidebar />
-        <Separator orientation="vertical" className="hidden md:
+        <Separator orientation="vertical" className="hidden md:block" />
+        <div className="flex-1">{children}</div>
+      </div>
+    </div>
+  );
+}
