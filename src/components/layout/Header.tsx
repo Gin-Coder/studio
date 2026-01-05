@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Menu, Search, ShoppingCart, Heart, User, Sparkles } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -50,6 +50,7 @@ export default function Header() {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="w-full max-w-sm p-0">
+                <SheetTitle className="sr-only">Menu principal</SheetTitle>
                 <div className="p-4">
                   <Link href="/">
                       <Logo />
