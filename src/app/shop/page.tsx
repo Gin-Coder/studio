@@ -100,7 +100,7 @@ export default function ShopPage() {
 
   const categoryParam = searchParams.get('category');
   const pageTitle = categoryParam 
-    ? categories.find(c => c.id === categoryParam)?.name || t('shop.title')
+    ? t(`filter.${categoryParam}`) || t('shop.title')
     : t('shop.all_products');
 
   const sortedProducts = useMemo(() => {
