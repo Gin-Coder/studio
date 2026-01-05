@@ -5,16 +5,18 @@ import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { User, ShoppingBag, Star, Heart, LogOut } from 'lucide-react';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-
-const navItems = [
-  { href: '/account', label: 'My Profile', icon: User },
-  { href: '/account/orders', label: 'My Orders', icon: ShoppingBag },
-  { href: '/account/reviews', label: 'My Reviews', icon: Star },
-  { href: '/account/saved-outfits', label: 'Saved Outfits', icon: Heart },
-];
+import { useLanguage } from '@/hooks/use-language';
 
 export function AccountSidebar() {
   const pathname = usePathname();
+  const { t } = useLanguage();
+
+  const navItems = [
+    { href: '/account', label: t('account.sidebar.profile'), icon: User },
+    { href: '/account/orders', label: t('account.sidebar.orders'), icon: ShoppingBag },
+    { href: '/account/reviews', label: t('account.sidebar.reviews'), icon: Star },
+    { href: '/account/saved-outfits', label: t('account.sidebar.outfits'), icon: Heart },
+  ];
 
   return (
     <aside className="w-full md:w-64 md:pr-8">
@@ -35,7 +37,7 @@ export function AccountSidebar() {
           ))}
           <Button variant="ghost" className="justify-start text-destructive hover:text-destructive shrink-0">
             <LogOut className="mr-2 h-4 w-4" />
-            Sign Out
+            {t('account.sidebar.signout')}
           </Button>
         </nav>
         <ScrollBar orientation="horizontal" className="md:hidden" />

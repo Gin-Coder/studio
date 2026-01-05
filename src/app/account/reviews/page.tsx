@@ -1,3 +1,5 @@
+
+'use client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Star, MoreVertical, Edit, Trash } from "lucide-react";
@@ -9,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
+import { useLanguage } from "@/hooks/use-language";
 
 // Mock data
 const userReviews = [
@@ -17,11 +20,12 @@ const userReviews = [
 ];
 
 export default function AccountReviewsPage() {
+    const { t } = useLanguage();
     return (
         <Card>
             <CardHeader>
-                <CardTitle>My Reviews</CardTitle>
-                <CardDescription>Manage the reviews you have submitted.</CardDescription>
+                <CardTitle>{t('account.reviews.title')}</CardTitle>
+                <CardDescription>{t('account.reviews.description')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
                 {userReviews.map(review => {
@@ -37,8 +41,8 @@ export default function AccountReviewsPage() {
                                         <Button variant="ghost" size="icon"><MoreVertical className="h-4 w-4" /></Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
-                                        <DropdownMenuItem><Edit className="mr-2 h-4 w-4"/> Edit</DropdownMenuItem>
-                                        <DropdownMenuItem className="text-destructive"><Trash className="mr-2 h-4 w-4"/> Delete</DropdownMenuItem>
+                                        <DropdownMenuItem><Edit className="mr-2 h-4 w-4"/> {t('account.reviews.edit')}</DropdownMenuItem>
+                                        <DropdownMenuItem className="text-destructive"><Trash className="mr-2 h-4 w-4"/> {t('account.reviews.delete')}</DropdownMenuItem>
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                             </div>
@@ -56,7 +60,7 @@ export default function AccountReviewsPage() {
 
                  {userReviews.length === 0 && (
                     <div className="text-center py-16">
-                        <p className="text-muted-foreground">You haven't written any reviews yet.</p>
+                        <p className="text-muted-foreground">{t('account.reviews.empty')}</p>
                     </div>
                 )}
             </CardContent>

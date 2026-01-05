@@ -1,8 +1,11 @@
+
+'use client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { HeartOff } from "lucide-react";
 import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
+import { useLanguage } from "@/hooks/use-language";
 
 // Mock data
 const savedOutfits = [
@@ -18,11 +21,12 @@ const savedOutfits = [
 ];
 
 export default function SavedOutfitsPage() {
+    const { t } = useLanguage();
     return (
          <Card>
             <CardHeader>
-                <CardTitle>Saved Outfits</CardTitle>
-                <CardDescription>Your favorite looks, saved from Virtual Try-On.</CardDescription>
+                <CardTitle>{t('account.outfits.title')}</CardTitle>
+                <CardDescription>{t('account.outfits.description')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
                  {savedOutfits.map(outfit => (
@@ -30,10 +34,10 @@ export default function SavedOutfitsPage() {
                         <div className="flex justify-between items-start">
                             <div>
                                 <h3 className="font-semibold">{outfit.name}</h3>
-                                <p className="text-sm text-muted-foreground">Saved on {outfit.date}</p>
+                                <p className="text-sm text-muted-foreground">{t('account.outfits.saved_on')} {outfit.date}</p>
                             </div>
                             <div className="flex gap-2">
-                               <Button variant="outline" size="sm">View</Button>
+                               <Button variant="outline" size="sm">{t('account.outfits.view')}</Button>
                                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive"><HeartOff className="h-4 w-4" /></Button>
                             </div>
                         </div>
@@ -51,8 +55,8 @@ export default function SavedOutfitsPage() {
                 
                 {savedOutfits.length === 0 && (
                     <div className="text-center py-16">
-                        <p className="text-muted-foreground">You haven't saved any outfits yet.</p>
-                        <p className="text-sm text-muted-foreground">Use the Virtual Try-On feature to create and save looks.</p>
+                        <p className="text-muted-foreground">{t('account.outfits.empty')}</p>
+                        <p className="text-sm text-muted-foreground">{t('account.outfits.empty_desc')}</p>
                     </div>
                 )}
             </CardContent>
