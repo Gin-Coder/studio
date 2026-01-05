@@ -24,17 +24,10 @@ export default function CartPage() {
   const handleWhatsappCheckout = async () => {
     setIsGenerating(true);
     try {
-        const mockUser = { name: 'John Doe', whatsapp: '+15551234567' }; // Placeholder user
+        const storeOwnerWhatsApp = '50933377934';
+        // Placeholder for customer data until user accounts are integrated
+        const customer = { name: 'Customer', whatsapp: 'N/A' }; 
         const orderId = `DS-${Date.now()}`;
-
-        if(!mockUser.whatsapp) {
-            toast({
-                variant: 'destructive',
-                title: 'WhatsApp Number Required',
-                description: 'Please add your WhatsApp number to your profile to proceed.',
-            });
-            return;
-        }
 
         const whatsappMessageInput = {
             language: language === 'fr' ? 'FR' : language === 'ht' ? 'Kreyòl' : 'EN',
@@ -49,13 +42,13 @@ export default function CartPage() {
             subtotal: totalPrice,
             total: totalPrice, // Delivery fee handled via WhatsApp
             orderId: orderId,
-            customerName: mockUser.name,
-            customerWhatsApp: mockUser.whatsapp,
+            customerName: customer.name,
+            customerWhatsApp: customer.whatsapp,
         };
 
         const result = await generateWhatsAppCheckoutMessage(whatsappMessageInput);
         const encodedMessage = encodeURIComponent(result.message);
-        window.open(`https://wa.me/${mockUser.whatsapp.replace(/\+/g, '')}?text=${encodedMessage}`, '_blank');
+        window.open(`https://wa.me/${storeOwnerWhatsApp}?text=${encodedMessage}`, '_blank');
 
     } catch (error) {
         console.error('Failed to generate WhatsApp message', error);
