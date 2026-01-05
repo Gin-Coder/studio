@@ -36,4 +36,6 @@ export function AccountSidebar() {
           Sign Out
         </Button>
       </nav>
-    </
+    </aside>
+  );
+}
