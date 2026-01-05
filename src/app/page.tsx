@@ -27,7 +27,7 @@ export default function Home() {
   const newArrivals = products.slice(8, 16);
 
   return (
-    <div className="bg-background">
+    <div className="bg-background overflow-x-hidden">
       {/* Hero Section */}
       <section className="relative w-full min-h-[85vh] md:min-h-screen text-white">
         <Image
@@ -86,7 +86,7 @@ export default function Home() {
       </section>
 
       {/* Best Sellers Section */}
-      <section className="bg-background py-12 md:py-20">
+      <section className="bg-background py-12 md:py-20 overflow-hidden">
         <div className="container mx-auto px-4">
           <h2 className="mb-8 text-center font-headline text-3xl font-bold md:mb-12 md:text-4xl">
             {t('home.bestsellers.title')}
@@ -114,7 +114,7 @@ export default function Home() {
       </section>
 
       {/* New Arrivals Section */}
-      <section className="py-12 md:py-20">
+      <section className="py-12 md:py-20 overflow-hidden">
         <div className="container mx-auto px-4">
           <h2 className="mb-8 text-center font-headline text-3xl font-bold md:mb-12 md:text-4xl">
             {t('home.newarrivals.title')}
@@ -186,7 +186,7 @@ export default function Home() {
       </section>
 
       {/* Customer Reviews Section */}
-      <section className="py-12 md:py-20">
+      <section className="py-12 md:py-20 overflow-hidden">
         <div className="container mx-auto px-4">
           <h2 className="mb-8 text-center font-headline text-3xl font-bold md:mb-12 md:text-4xl">
             {t('home.reviews.title')}
