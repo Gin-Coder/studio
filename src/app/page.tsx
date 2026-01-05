@@ -39,14 +39,14 @@ export default function Home() {
           data-ai-hint={heroImage.imageHint}
         />
         <div className="absolute inset-0 bg-black/50" />
-        <div className="relative z-10 flex h-full flex-col items-center justify-center text-center">
-            <div className="md:mt-20">
-                <Logo />
-            </div>
-          <h1 className="font-headline text-4xl font-bold md:text-6xl lg:text-7xl">
+        <div className="relative z-10 flex h-full flex-col items-center justify-center text-center p-4">
+          <div className="md:mt-16">
+            <Logo />
+          </div>
+          <h1 className="font-headline text-3xl font-bold sm:text-4xl md:text-6xl lg:text-7xl">
             {t('home.hero.title')}
           </h1>
-          <p className="mt-4 max-w-xl text-lg md:text-xl">
+          <p className="mt-4 max-w-xl text-base md:text-xl">
             {t('home.hero.subtitle')}
           </p>
           <Button asChild className="mt-8" size="lg">
