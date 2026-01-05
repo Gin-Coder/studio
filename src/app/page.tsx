@@ -40,7 +40,7 @@ export default function Home() {
         />
         <div className="absolute inset-0 bg-black/50" />
         <div className="relative z-10 flex h-full min-h-[85vh] w-full flex-col items-center justify-center text-center p-4 sm:p-6 lg:p-8 md:min-h-screen">
-          <Logo className="mb-4" />
+          <Logo className="mb-4 !h-24 !w-24" />
           <h1 className="font-headline text-3xl font-bold sm:text-5xl md:text-6xl">
             {t('home.hero.title')}
           </h1>
