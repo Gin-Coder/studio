@@ -9,9 +9,19 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Globe } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 export function LanguageSwitcher() {
   const { language, setLanguage } = useLanguage();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return <div className="h-10 w-10" />;
+  }
 
   return (
     <DropdownMenu>
