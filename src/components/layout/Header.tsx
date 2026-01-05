@@ -153,7 +153,7 @@ export default function Header() {
                 <span className="sr-only">Panier</span>
               </Link>
             </Button>
-            <div className="hidden items-center md:flex">
+            <div className="hidden md:flex">
               <LanguageSwitcher />
               <ThemeToggle />
             </div>
