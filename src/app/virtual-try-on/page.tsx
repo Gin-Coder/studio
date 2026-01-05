@@ -17,8 +17,9 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { products, avatars } from '@/lib/mock-data';
 import { useToast } from '@/hooks/use-toast';
-import { Sparkles, Upload, Trash2, Heart, Layers, Shirt } from 'lucide-act';
+import { Sparkles, Upload, Trash2, Heart, Layers, Shirt } from 'lucide-react';
 import type { Product, Avatar } from '@/lib/types';
+import { Separator } from '@/components/ui/separator';
 
 export default function VirtualTryOnPage() {
   const [selectedItems, setSelectedItems] = useState<Product[]>([]);
