@@ -39,7 +39,7 @@ export default function Home() {
           data-ai-hint={heroImage.imageHint}
         />
         <div className="absolute inset-0 bg-black/50" />
-        <div className="relative z-10 flex h-full min-h-[85vh] md:min-h-screen w-full flex-col items-center justify-center text-center p-4 sm:p-6 lg:p-8">
+        <div className="relative z-10 flex h-full min-h-[85vh] w-full flex-col items-center justify-center text-center p-4 sm:p-6 lg:p-8 md:min-h-screen">
           <Logo className="mb-4" />
           <h1 className="font-headline text-3xl font-bold sm:text-5xl md:text-6xl">
             {t('home.hero.title')}
@@ -61,7 +61,7 @@ export default function Home() {
           <h2 className="mb-8 text-center font-headline text-3xl font-bold md:mb-12 md:text-4xl">
             {t('home.categories.title')}
           </h2>
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:gap-8">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4 lg:gap-8">
             {categories.map((category) => (
               <Link href={`/shop?category=${category.id}`} key={category.id} className="group">
                 <Card className="overflow-hidden transition-shadow duration-300 group-hover:shadow-xl">
@@ -100,7 +100,7 @@ export default function Home() {
           >
             <CarouselContent>
               {bestSellers.map((product) => (
-                <CarouselItem key={product.id} className="md:basis-1/2 lg:basis-1/4">
+                <CarouselItem key={product.id} className="basis-1/1 sm:basis-1/2 lg:basis-1/4">
                   <div className="p-1">
                     <ProductCard product={product} />
                   </div>
@@ -128,7 +128,7 @@ export default function Home() {
           >
             <CarouselContent>
               {newArrivals.map((product) => (
-                <CarouselItem key={product.id} className="md:basis-1/2 lg:basis-1/4">
+                <CarouselItem key={product.id} className="basis-1/1 sm:basis-1/2 lg:basis-1/4">
                   <div className="p-1">
                     <ProductCard product={product} />
                   </div>
