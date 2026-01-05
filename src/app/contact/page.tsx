@@ -42,8 +42,8 @@ export default function ContactPage() {
                 {t('contact.email.description')}
             </p>
              <Button className="mt-4 w-full" variant="outline" asChild>
-                <a href="mailto:support@dannystore.com">
-                    support@dannystore.com
+                <a href="mailto:gincoder-ms@outlook.fr">
+                    gincoder-ms@outlook.fr
                 </a>
             </Button>
         </Card>
