@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Menu, Search, ShoppingCart, Heart, User } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -60,6 +60,8 @@ export default function Header() {
                   </Button>
                 </SheetTrigger>
                 <SheetContent side="left" className="w-full max-w-sm">
+                  <SheetTitle className="sr-only">Menu</SheetTitle>
+                  <SheetDescription className="sr-only">Main navigation menu</SheetDescription>
                   <div className="p-4">
                     <Link href="/" className="mb-4">
                       <Logo />
@@ -99,8 +101,8 @@ export default function Header() {
           </div>
           <div className="flex items-center">
             <div className="hidden md:flex md:items-center md:gap-2">
-                <LanguageSwitcher />
                 <ThemeToggle />
+                <LanguageSwitcher />
             </div>
             <Button variant="ghost" size="icon" asChild>
               <Link href="/account">
