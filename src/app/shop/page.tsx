@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -6,7 +7,7 @@ import { products, categories } from '@/lib/mock-data';
 import type { Product } from '@/lib/types';
 import ProductCard from '@/components/ProductCard';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from '@/components/ui/sheet';
 import {
   Select,
   SelectContent,
@@ -137,8 +138,13 @@ export default function ShopPage() {
                   </Button>
                 </SheetTrigger>
                 <SheetContent side="left">
-                  <ScrollArea className="h-full pr-4">
-                    <h2 className="text-xl font-headline font-semibold mb-4">{t('shop.filters')}</h2>
+                    <SheetHeader>
+                        <SheetTitle>{t('shop.filters')}</SheetTitle>
+                        <SheetDescription className="sr-only">
+                            Filter products by category, price, size, and color.
+                        </SheetDescription>
+                    </SheetHeader>
+                  <ScrollArea className="h-full pr-4 mt-4">
                     <Filters />
                   </ScrollArea>
                 </SheetContent>
