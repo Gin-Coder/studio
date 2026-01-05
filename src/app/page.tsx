@@ -29,7 +29,7 @@ export default function Home() {
   return (
     <div className="bg-background">
       {/* Hero Section */}
-      <section className="relative h-[60vh] min-h-[400px] w-full text-white">
+      <section className="relative w-full min-h-[85vh] md:min-h-screen text-white">
         <Image
           src={heroImage.imageUrl}
           alt={heroImage.description}
@@ -39,12 +39,12 @@ export default function Home() {
           data-ai-hint={heroImage.imageHint}
         />
         <div className="absolute inset-0 bg-black/50" />
-        <div className="relative z-10 flex h-full flex-col items-center justify-center p-4 text-center">
+        <div className="relative z-10 flex h-full min-h-[85vh] md:min-h-screen w-full flex-col items-center justify-center text-center p-4 sm:p-6 lg:p-8">
           <Logo className="mb-4" />
-          <h1 className="font-headline text-4xl font-bold sm:text-5xl md:text-6xl">
+          <h1 className="font-headline text-3xl font-bold sm:text-5xl md:text-6xl">
             {t('home.hero.title')}
           </h1>
-          <p className="mt-4 max-w-xl text-lg md:text-xl">
+          <p className="mt-4 max-w-xl text-base sm:text-lg md:text-xl">
             {t('home.hero.subtitle')}
           </p>
           <Button asChild className="mt-8" size="lg">
