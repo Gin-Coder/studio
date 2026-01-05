@@ -24,7 +24,7 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400..900&family=PT+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap"
           rel="stylesheet"
         />
-        <link rel="icon" href="https://storage.googleapis.com/studioprompt-helper-images/danny-store-logo-for-light-bg.png" sizes="any" />
+        <link rel="icon" href="https://storage.googleapis.com/studioprompt-helper-images/danny-store-logo-for-dark-bg.png" sizes="any" />
       </head>
       <body className="font-body antialiased">
         <Providers>
