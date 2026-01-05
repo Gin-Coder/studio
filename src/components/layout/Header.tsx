@@ -12,6 +12,7 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { useLanguage } from '@/hooks/use-language';
 import { useCart } from '@/hooks/use-cart';
 import { useWishlist } from '@/hooks/use-wishlist';
+import { Separator } from '../ui/separator';
 
 const NavLinks = () => {
   const { t } = useLanguage();
@@ -50,6 +51,40 @@ export default function Header() {
         </div>
 
         <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
+           <div className="md:hidden">
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <Menu className="h-6 w-6" />
+                    <span className="sr-only">Toggle navigation menu</span>
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="w-full max-w-sm">
+                  <div className="p-4">
+                    <Link href="/" className="mb-4">
+                      <Logo />
+                    </Link>
+                  </div>
+                  <Separator />
+                  <div className="flex flex-col space-y-2 p-4">
+                    <NavLinks />
+                  </div>
+                  <Separator />
+                   <div className="p-4 space-y-4">
+                     <p className="text-sm font-medium text-muted-foreground">Settings</p>
+                    <div className="flex items-center justify-between">
+                       <p>Language</p>
+                       <LanguageSwitcher />
+                    </div>
+                     <div className="flex items-center justify-between">
+                       <p>Theme</p>
+                       <ThemeToggle />
+                    </div>
+                  </div>
+                </SheetContent>
+              </Sheet>
+          </div>
+
           <div className="w-full flex-1 md:w-auto md:flex-none">
             <form>
               <div className="relative">
@@ -62,9 +97,11 @@ export default function Header() {
               </div>
             </form>
           </div>
-          <div className="flex items-center gap-2">
-            <LanguageSwitcher />
-            <ThemeToggle />
+          <div className="flex items-center">
+            <div className="hidden md:flex md:items-center md:gap-2">
+                <LanguageSwitcher />
+                <ThemeToggle />
+            </div>
             <Button variant="ghost" size="icon" asChild>
               <Link href="/account">
                 <User />
@@ -86,23 +123,6 @@ export default function Header() {
               </Link>
             </Button>
           </div>
-
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="md:hidden">
-                <Menu className="h-6 w-6" />
-                <span className="sr-only">Toggle navigation menu</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left">
-              <Link href="/" className="mb-4">
-                <Logo />
-              </Link>
-              <div className="flex flex-col space-y-2">
-                <NavLinks />
-              </div>
-            </SheetContent>
-          </Sheet>
         </div>
       </div>
     </header>

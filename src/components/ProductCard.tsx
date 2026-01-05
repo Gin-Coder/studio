@@ -10,6 +10,7 @@ import type { Product } from '@/lib/types';
 import { useCart } from '@/hooks/use-cart';
 import { useWishlist } from '@/hooks/use-wishlist';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 interface ProductCardProps {
   product: Product;
@@ -20,8 +21,9 @@ export default function ProductCard({ product }: ProductCardProps) {
   const { addToWishlist, isInWishlist, removeFromWishlist } = useWishlist();
   const { toast } = useToast();
 
-  const handleAddToCart = () => {
-    // For simplicity, add the first variant
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     const firstVariant = product.variants[0];
     if (firstVariant) {
       addToCart(product, firstVariant, 1);
@@ -53,8 +55,8 @@ export default function ProductCard({ product }: ProductCardProps) {
   };
 
   return (
-    <Card className="group w-full overflow-hidden">
-      <Link href={`/shop/${product.slug}`}>
+    <Card className="group w-full overflow-hidden flex flex-col">
+      <Link href={`/shop/${product.slug}`} className="flex-grow">
         <CardContent className="relative aspect-[3/4] p-0">
           <Image
             src={product.images[0]}
@@ -64,32 +66,31 @@ export default function ProductCard({ product }: ProductCardProps) {
             className="object-cover transition-transform duration-300 group-hover:scale-105"
             data-ai-hint={product.imageHints[0]}
           />
-          <div className="absolute bottom-0 left-0 right-0 flex translate-y-full items-center justify-center gap-2 bg-background/80 p-2 transition-transform duration-300 group-hover:translate-y-0">
-            <Button
-              size="sm"
-              className="flex-1"
-              onClick={(e) => {
-                e.preventDefault();
-                handleAddToCart();
-              }}
-            >
-              <ShoppingCart className="mr-2 h-4 w-4" /> Add to Cart
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={handleWishlistToggle}
-            >
-              <Heart className={`h-4 w-4 ${isWishlisted ? 'fill-destructive text-destructive' : ''}`} />
-            </Button>
-          </div>
           <Badge variant="secondary" className="absolute top-2 left-2">{product.category}</Badge>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="absolute top-2 right-2 bg-background/60 hover:bg-background/80 rounded-full"
+            onClick={handleWishlistToggle}
+          >
+            <Heart className={cn("h-5 w-5", isWishlisted ? 'fill-destructive text-destructive' : 'text-foreground')} />
+          </Button>
         </CardContent>
       </Link>
-      <div className="p-4">
-        <h3 className="truncate font-headline text-lg font-semibold">{product.name}</h3>
-        <p className="text-sm text-muted-foreground">{product.description}</p>
-        <p className="mt-2 font-semibold">${product.price.toFixed(2)}</p>
+      <div className="p-2 md:p-4 flex-shrink-0">
+        <h3 className="truncate font-headline text-base md:text-lg font-semibold">{product.name}</h3>
+        <div className="flex items-center justify-between gap-2 mt-2">
+            <p className="font-semibold text-sm md:text-base">${product.price.toFixed(2)}</p>
+            <Button
+              size="sm"
+              className="flex-1 max-w-[140px]"
+              onClick={handleAddToCart}
+            >
+              <ShoppingCart className="mr-2 h-4 w-4" /> 
+              <span className="hidden md:inline">Add to Cart</span>
+              <span className="inline md:hidden">Add</span>
+            </Button>
+        </div>
       </div>
     </Card>
   );
