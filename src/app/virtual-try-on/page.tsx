@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -39,8 +38,8 @@ export default function VirtualTryOnPage() {
   }, [cartItems]);
 
   useEffect(() => {
-    // Pre-select all clothing items from the cart by default
-    setSelectedItems(cartProducts.filter(p => p.category === 'clothing'));
+    // Pre-select all clothing and shoe items from the cart by default
+    setSelectedItems(cartProducts.filter(p => ['clothing', 'shoes'].includes(p.category)));
   }, [cartProducts]);
 
   const handleItemToggle = (product: Product, checked: boolean) => {
@@ -110,7 +109,7 @@ export default function VirtualTryOnPage() {
           <Card>
             <CardHeader>
               <CardTitle>1. Select Items from Cart</CardTitle>
-              <CardDescription>Choose clothing from your shopping cart.</CardDescription>
+              <CardDescription>Choose clothing and shoes from your cart.</CardDescription>
             </CardHeader>
             <CardContent>
               <ScrollArea className="h-64">
@@ -121,7 +120,7 @@ export default function VirtualTryOnPage() {
                         id={`item-${product.id}`}
                         checked={selectedItems.some(item => item.id === product.id)}
                         onCheckedChange={(checked) => handleItemToggle(product, !!checked)}
-                        disabled={product.category !== 'clothing'}
+                        disabled={!['clothing', 'shoes'].includes(product.category)}
                       />
                       <label
                         htmlFor={`item-${product.id}`}
@@ -129,7 +128,7 @@ export default function VirtualTryOnPage() {
                       >
                           <Image src={product.images[0]} alt={product.name} width={40} height={40} className="rounded-md object-cover"/>
                           <span className="truncate">{product.name}</span>
-                           {product.category !== 'clothing' && <Badge variant="outline">Not Tryable</Badge>}
+                           {!['clothing', 'shoes'].includes(product.category) && <Badge variant="outline">Not Tryable</Badge>}
                       </label>
                     </div>
                   )) : (
