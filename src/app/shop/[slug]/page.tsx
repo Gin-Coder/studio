@@ -13,20 +13,14 @@ import ProductCard from '@/components/ProductCard';
 import ProductActions from './ProductActions';
 import OutfitSuggestions from './OutfitSuggestions';
 import VirtualTryOn from './VirtualTryOn';
-import { formatPrice } from '@/lib/utils';
-import { useLanguage } from '@/hooks/use-language';
+import ProductPrice from './ProductPrice';
+
 
 // This function allows Next.js to generate static pages for each product at build time
 export async function generateStaticParams() {
   return products.map((product) => ({
     slug: product.slug,
   }));
-}
-
-// Dummy component to use the hook
-function ProductPrice({ price }: { price: number }) {
-  const { language } = useLanguage();
-  return <p className="mt-4 font-sans text-3xl font-semibold">{formatPrice(price, language)}</p>;
 }
 
 export default function ProductDetailPage({ params }: { params: { slug: string } }) {
