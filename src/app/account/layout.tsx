@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { AccountSidebar } from '@/components/account/AccountSidebar';
 import { Separator } from '@/components/ui/separator';
 import { useLanguage } from '@/hooks/use-language';
-import { useUser } from '@/firebase'; // Changed to useUser for clarity
+import { useUser } from '@/firebase'; // Correct hook for user state
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function AccountLayout({
