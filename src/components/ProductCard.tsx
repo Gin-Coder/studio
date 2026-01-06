@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -10,7 +11,8 @@ import type { Product } from '@/lib/types';
 import { useCart } from '@/hooks/use-cart';
 import { useWishlist } from '@/hooks/use-wishlist';
 import { useToast } from '@/hooks/use-toast';
-import { cn } from '@/lib/utils';
+import { cn, formatPrice } from '@/lib/utils';
+import { useLanguage } from '@/hooks/use-language';
 
 interface ProductCardProps {
   product: Product;
@@ -20,6 +22,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   const { addToCart } = useCart();
   const { addToWishlist, isInWishlist, removeFromWishlist } = useWishlist();
   const { toast } = useToast();
+  const { language } = useLanguage();
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -72,6 +75,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             variant="ghost"
             className="absolute top-2 right-2 bg-background/60 hover:bg-background/80 rounded-full"
             onClick={handleWishlistToggle}
+            aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
           >
             <Heart className={cn("h-5 w-5", isWishlisted ? 'fill-destructive text-destructive' : 'text-foreground')} />
           </Button>
@@ -80,7 +84,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       <div className="p-2 md:p-4 flex-shrink-0">
         <h3 className="truncate font-headline text-base md:text-lg font-semibold">{product.name}</h3>
         <div className="flex items-center justify-between gap-2 mt-2">
-            <p className="font-semibold text-sm md:text-base">${product.price.toFixed(2)}</p>
+            <p className="font-semibold text-sm md:text-base">{formatPrice(product.price, language)}</p>
             <Button
               size="sm"
               className="flex-1 max-w-[140px]"

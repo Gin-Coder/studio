@@ -12,6 +12,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/hooks/use-language";
+import { formatPrice } from "@/lib/utils";
 
 // Mock data
 const orders = [
@@ -21,7 +22,7 @@ const orders = [
 ];
 
 export default function AccountOrdersPage() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   const getStatusTranslation = (status: string) => {
     switch (status) {
@@ -69,7 +70,7 @@ export default function AccountOrdersPage() {
                     {getStatusTranslation(order.status)}
                   </Badge>
                 </TableCell>
-                <TableCell className="text-right">${order.total.toFixed(2)}</TableCell>
+                <TableCell className="text-right">{formatPrice(order.total, language)}</TableCell>
                 <TableCell className="text-right">
                     <Button variant="outline" size="sm">{t('account.orders.view_details')}</Button>
                 </TableCell>

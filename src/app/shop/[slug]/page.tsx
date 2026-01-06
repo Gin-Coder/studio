@@ -1,3 +1,4 @@
+
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import { products, reviews } from '@/lib/mock-data';
@@ -12,12 +13,20 @@ import ProductCard from '@/components/ProductCard';
 import ProductActions from './ProductActions';
 import OutfitSuggestions from './OutfitSuggestions';
 import VirtualTryOn from './VirtualTryOn';
+import { formatPrice } from '@/lib/utils';
+import { useLanguage } from '@/hooks/use-language';
 
 // This function allows Next.js to generate static pages for each product at build time
 export async function generateStaticParams() {
   return products.map((product) => ({
     slug: product.slug,
   }));
+}
+
+// Dummy component to use the hook
+function ProductPrice({ price }: { price: number }) {
+  const { language } = useLanguage();
+  return <p className="mt-4 font-sans text-3xl font-semibold">{formatPrice(price, language)}</p>;
 }
 
 export default function ProductDetailPage({ params }: { params: { slug: string } }) {
@@ -63,7 +72,7 @@ export default function ProductDetailPage({ params }: { params: { slug: string }
               ({product.reviewCount} reviews)
             </a>
           </div>
-          <p className="mt-4 font-sans text-3xl font-semibold">${product.price.toFixed(2)}</p>
+          <ProductPrice price={product.price} />
           <p className="mt-4 text-muted-foreground">{product.description}</p>
           
           <ProductActions product={product} />

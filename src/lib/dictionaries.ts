@@ -1,3 +1,4 @@
+
 type Dictionary = {
   [key: string]: string;
 };

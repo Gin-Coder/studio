@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -14,6 +15,7 @@ import {
 } from '@/ai/flows/generate-whatsapp-checkout-message';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { formatPrice } from '@/lib/utils';
 
 export default function CartPage() {
   const { cartItems, updateQuantity, removeFromCart, cartCount, totalPrice } = useCart();
@@ -25,7 +27,6 @@ export default function CartPage() {
     setIsGenerating(true);
     try {
         const storeOwnerWhatsApp = '50933377934';
-        // Placeholder for customer data until user accounts are integrated
         const customer = { name: 'Customer', whatsapp: 'N/A' }; 
         const orderId = `DS-${Date.now()}`;
 
@@ -96,13 +97,14 @@ export default function CartPage() {
                   <p className="text-sm text-muted-foreground">
                     {item.color} / {item.size}
                   </p>
-                  <p className="mt-2 font-bold">${item.price.toFixed(2)}</p>
+                  <p className="mt-2 font-bold">{formatPrice(item.price, language)}</p>
                 </div>
                 <div className="flex items-center rounded-md border">
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={() => updateQuantity(item.variantId, Math.max(1, item.quantity - 1))}
+                    aria-label="Decrease quantity"
                   >
                     <Minus className="h-4 w-4" />
                   </Button>
@@ -111,19 +113,21 @@ export default function CartPage() {
                     value={item.quantity}
                     onChange={(e) => updateQuantity(item.variantId, parseInt(e.target.value) || 1)}
                     className="h-8 w-12 border-0 bg-transparent text-center"
+                    aria-label="Item quantity"
                   />
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={() => updateQuantity(item.variantId, item.quantity + 1)}
+                    aria-label="Increase quantity"
                   >
                     <Plus className="h-4 w-4" />
                   </Button>
                 </div>
                 <p className="w-20 text-right font-semibold">
-                  ${(item.price * item.quantity).toFixed(2)}
+                  {formatPrice(item.price * item.quantity, language)}
                 </p>
-                <Button variant="ghost" size="icon" onClick={() => removeFromCart(item.variantId)}>
+                <Button variant="ghost" size="icon" onClick={() => removeFromCart(item.variantId)} aria-label="Remove item from cart">
                   <Trash2 className="h-5 w-5 text-muted-foreground hover:text-destructive" />
                 </Button>
               </CardContent>
@@ -138,7 +142,7 @@ export default function CartPage() {
             <CardContent className="space-y-4">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">{t('cart.subtotal')}</span>
-                <span>${totalPrice.toFixed(2)}</span>
+                <span>{formatPrice(totalPrice, language)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">{t('cart.delivery')}</span>
@@ -147,7 +151,7 @@ export default function CartPage() {
               <Separator />
               <div className="flex justify-between font-bold text-lg">
                 <span>{t('cart.total')}</span>
-                <span>${totalPrice.toFixed(2)}</span>
+                <span>{formatPrice(totalPrice, language)}</span>
               </div>
                <Button size="lg" className="w-full mt-4" onClick={handleWhatsappCheckout} disabled={isGenerating}>
                  {isGenerating ? "Generating..." : t('cart.checkout_whatsapp')}

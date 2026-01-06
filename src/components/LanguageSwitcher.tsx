@@ -21,15 +21,20 @@ export function LanguageSwitcher() {
   }, []);
 
   if (!mounted) {
-    return null;
+    // Render a stable placeholder on the server and initial client render
+    return (
+      <Button variant="ghost" size="icon" disabled>
+        <Globe className="h-[1.2rem] w-[1.2rem]" />
+        <span className="sr-only">Change language</span>
+      </Button>
+    );
   }
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon">
+        <Button variant="ghost" size="icon" aria-label="Change language">
           <Globe className="h-[1.2rem] w-[1.2rem]" />
-          <span className="sr-only">Change language</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">

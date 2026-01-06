@@ -25,10 +25,43 @@ import { useLanguage } from '@/hooks/use-language';
 const uniqueSizes = [...new Set(products.flatMap(p => p.variants.map(v => v.size)))];
 const uniqueColors = [...new Set(products.flatMap(p => p.variants.map(v => v.colorName)))];
 
+type FilterState = {
+    categories: string[];
+    price: number;
+    sizes: string[];
+    colors: string[];
+}
 
-const Filters = () => {
+const Filters = ({ filters, setFilters }: { filters: FilterState, setFilters: React.Dispatch<React.SetStateAction<FilterState>> }) => {
     const { t } = useLanguage();
-    const [priceRange, setPriceRange] = useState([0, 500]);
+
+    const handleCategoryChange = (categoryId: string, checked: boolean) => {
+        setFilters(prev => ({
+            ...prev,
+            categories: checked
+                ? [...prev.categories, categoryId]
+                : prev.categories.filter(c => c !== categoryId)
+        }));
+    };
+
+    const handleSizeChange = (size: string) => {
+        setFilters(prev => ({
+            ...prev,
+            sizes: prev.sizes.includes(size)
+                ? prev.sizes.filter(s => s !== size)
+                : [...prev.sizes, size]
+        }));
+    };
+    
+    const handleColorChange = (color: string) => {
+        setFilters(prev => ({
+            ...prev,
+            colors: prev.colors.includes(color)
+                ? prev.colors.filter(c => c !== color)
+                : [...prev.colors, color]
+        }));
+    };
+
     return (
         <div className="space-y-6">
             <Accordion type="multiple" defaultValue={['category', 'price']} className="w-full">
@@ -38,7 +71,11 @@ const Filters = () => {
                         <div className="grid gap-2">
                         {categories.map((category) => (
                              <div key={category.id} className="flex items-center space-x-2">
-                                <Checkbox id={`cat-${category.id}`} />
+                                <Checkbox 
+                                    id={`cat-${category.id}`} 
+                                    checked={filters.categories.includes(category.id)}
+                                    onCheckedChange={(checked) => handleCategoryChange(category.id, !!checked)}
+                                />
                                 <label
                                     htmlFor={`cat-${category.id}`}
                                     className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
@@ -55,14 +92,14 @@ const Filters = () => {
                     <AccordionContent>
                         <div className="p-2">
                            <Slider
-                                defaultValue={[500]}
+                                value={[filters.price]}
                                 max={500}
                                 step={10}
-                                onValueChange={(value) => setPriceRange([0, value[0]])}
+                                onValueChange={(value) => setFilters(prev => ({ ...prev, price: value[0] }))}
                             />
                             <div className="flex justify-between mt-2 text-sm text-muted-foreground">
                                 <span>$0</span>
-                                <span>${priceRange[1]}</span>
+                                <span>${filters.price}</span>
                             </div>
                         </div>
                     </AccordionContent>
@@ -72,7 +109,14 @@ const Filters = () => {
                     <AccordionContent>
                        <div className="grid grid-cols-3 gap-2">
                             {uniqueSizes.map((size) => (
-                                <Button key={size} variant="outline" size="sm">{size}</Button>
+                                <Button 
+                                    key={size} 
+                                    variant={filters.sizes.includes(size) ? "default" : "outline"} 
+                                    size="sm"
+                                    onClick={() => handleSizeChange(size)}
+                                >
+                                    {size}
+                                </Button>
                             ))}
                         </div>
                     </AccordionContent>
@@ -82,7 +126,14 @@ const Filters = () => {
                     <AccordionContent>
                         <div className="flex flex-wrap gap-2">
                             {uniqueColors.map((color) => (
-                                <Button key={color} variant="outline" size="sm">{color}</Button>
+                                <Button 
+                                    key={color} 
+                                    variant={filters.colors.includes(color) ? "default" : "outline"}
+                                    size="sm"
+                                    onClick={() => handleColorChange(color)}
+                                >
+                                    {color}
+                                </Button>
                             ))}
                         </div>
                     </AccordionContent>
@@ -96,13 +147,34 @@ const Filters = () => {
 export default function ShopPage() {
   const { t } = useLanguage();
   const searchParams = useSearchParams();
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>(products);
+  const categoryParam = searchParams.get('category');
+  
+  const [filters, setFilters] = useState<FilterState>({
+    categories: categoryParam ? [categoryParam] : [],
+    price: 500,
+    sizes: [],
+    colors: []
+  });
   const [sortOption, setSortOption] = useState('newest');
 
-  const categoryParam = searchParams.get('category');
-  const pageTitle = categoryParam 
-    ? t(`filter.${categoryParam}`) || t('shop.title')
-    : t('shop.all_products');
+  const pageTitle = useMemo(() => {
+    if (filters.categories.length === 1) {
+        const category = categories.find(c => c.id === filters.categories[0]);
+        return t(`filter.${category?.id || ''}`) || t('shop.all_products');
+    }
+    return t('shop.all_products');
+  }, [filters.categories, t]);
+
+
+  const filteredProducts = useMemo(() => {
+    return products.filter(product => {
+        const categoryMatch = filters.categories.length === 0 || filters.categories.includes(product.category);
+        const priceMatch = product.price <= filters.price;
+        const sizeMatch = filters.sizes.length === 0 || product.variants.some(v => filters.sizes.includes(v.size));
+        const colorMatch = filters.colors.length === 0 || product.variants.some(v => filters.colors.includes(v.colorName));
+        return categoryMatch && priceMatch && sizeMatch && colorMatch;
+    });
+  }, [filters]);
 
   const sortedProducts = useMemo(() => {
     let sorted = [...filteredProducts];
@@ -110,9 +182,8 @@ export default function ShopPage() {
       sorted.sort((a, b) => a.price - b.price);
     } else if (sortOption === 'price_high_low') {
       sorted.sort((a, b) => b.price - a.price);
-    } else { // newest
-      // Assuming mock data is already sorted by newest, or we could add a date property
     }
+    // `newest` is the default, assuming mock data is pre-sorted or we add a date field later
     return sorted;
   }, [filteredProducts, sortOption]);
 
@@ -125,7 +196,7 @@ export default function ShopPage() {
       <div className="flex">
         <aside className="hidden w-64 pr-8 lg:block">
             <h2 className="text-xl font-headline font-semibold mb-4">{t('shop.filters')}</h2>
-            <Filters />
+            <Filters filters={filters} setFilters={setFilters} />
         </aside>
         <main className="flex-1">
           <div className="flex items-center justify-between mb-4">
@@ -145,7 +216,7 @@ export default function ShopPage() {
                         </SheetDescription>
                     </SheetHeader>
                   <ScrollArea className="h-full pr-4 mt-4">
-                    <Filters />
+                    <Filters filters={filters} setFilters={setFilters} />
                   </ScrollArea>
                 </SheetContent>
               </Sheet>

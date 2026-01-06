@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,9 +8,12 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useCart } from "@/hooks/use-cart";
 import Image from "next/image";
+import { formatPrice } from "@/lib/utils";
+import { useLanguage } from "@/hooks/use-language";
 
 export default function CheckoutPage() {
     const { cartItems, totalPrice } = useCart();
+    const { language } = useLanguage();
 
     return (
         <div className="container mx-auto py-12">
@@ -98,7 +102,7 @@ export default function CheckoutPage() {
                                                 <p className="text-sm text-muted-foreground">{item.color} / {item.size}</p>
                                             </div>
                                         </div>
-                                        <p className="font-medium">${(item.price * item.quantity).toFixed(2)}</p>
+                                        <p className="font-medium">{formatPrice(item.price * item.quantity, language)}</p>
                                     </div>
                                 ))}
                             </div>
@@ -106,7 +110,7 @@ export default function CheckoutPage() {
                             <div className="space-y-2">
                                 <div className="flex justify-between">
                                     <p className="text-muted-foreground">Subtotal</p>
-                                    <p>${totalPrice.toFixed(2)}</p>
+                                    <p>{formatPrice(totalPrice, language)}</p>
                                 </div>
                                 <div className="flex justify-between">
                                     <p className="text-muted-foreground">Shipping</p>
@@ -116,7 +120,7 @@ export default function CheckoutPage() {
                              <Separator className="my-4" />
                             <div className="flex justify-between font-bold text-lg">
                                 <p>Total</p>
-                                <p>${totalPrice.toFixed(2)}</p>
+                                <p>{formatPrice(totalPrice, language)}</p>
                             </div>
                         </CardContent>
                     </Card>
