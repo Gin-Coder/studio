@@ -43,13 +43,13 @@ export const getOrCreateUser = (user: FirebaseUser): Promise<void> => {
       .then((userSnap) => {
         if (!userSnap.exists()) {
           // User does not exist, create new document
-          const { displayName, email, photoURL } = user;
+          const { displayName, email, photoURL, phoneNumber } = user;
           const newUserDoc = {
             displayName,
             email,
             photoURL,
             language: 'en',
-            phoneWhatsApp: '',
+            phoneWhatsApp: phoneNumber || '', // Pre-fill with Google phone number if available
             consentWhatsApp: false,
             createdAt: serverTimestamp(),
             lastLoginAt: serverTimestamp(),
