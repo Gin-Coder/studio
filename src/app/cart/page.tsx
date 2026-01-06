@@ -16,18 +16,27 @@ import {
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { formatPrice } from '@/lib/utils';
+import { useUser } from '@/firebase';
+import { useRouter } from 'next/navigation';
 
 export default function CartPage() {
   const { cartItems, updateQuantity, removeFromCart, cartCount, totalPrice } = useCart();
   const { t, language } = useLanguage();
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
+  const { user } = useUser();
+  const router = useRouter();
 
   const handleWhatsappCheckout = async () => {
+    if (!user) {
+      router.push('/login?redirect=/cart');
+      return;
+    }
+
     setIsGenerating(true);
     try {
         const storeOwnerWhatsApp = '50933377934';
-        const customer = { name: 'Customer', whatsapp: 'N/A' }; 
+        const customer = { name: user.displayName || 'Customer', whatsapp: 'N/A' }; 
         const orderId = `DS-${Date.now()}`;
 
         const whatsappMessageInput = {
@@ -62,6 +71,14 @@ export default function CartPage() {
         setIsGenerating(false);
     }
   };
+
+  const handleOtherCheckout = () => {
+    if (!user) {
+      router.push('/login?redirect=/checkout');
+    } else {
+      router.push('/checkout');
+    }
+  }
 
 
   if (cartCount === 0) {
@@ -156,8 +173,8 @@ export default function CartPage() {
                <Button size="lg" className="w-full mt-4" onClick={handleWhatsappCheckout} disabled={isGenerating}>
                  {isGenerating ? "Generating..." : t('cart.checkout_whatsapp')}
                </Button>
-               <Button variant="outline" size="lg" className="w-full" asChild>
-                 <Link href="/checkout">{t('cart.checkout_other')}</Link>
+               <Button variant="outline" size="lg" className="w-full" onClick={handleOtherCheckout}>
+                 {t('cart.checkout_other')}
                </Button>
             </CardContent>
           </Card>

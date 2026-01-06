@@ -1,6 +1,8 @@
 
 'use client';
 
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,10 +12,37 @@ import { useCart } from "@/hooks/use-cart";
 import Image from "next/image";
 import { formatPrice } from "@/lib/utils";
 import { useLanguage } from "@/hooks/use-language";
+import { useUser } from '@/firebase';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function CheckoutPage() {
     const { cartItems, totalPrice } = useCart();
     const { language } = useLanguage();
+    const { user, isUserLoading } = useUser();
+    const router = useRouter();
+
+    useEffect(() => {
+        if (!isUserLoading && !user) {
+            router.push('/login?redirect=/checkout');
+        }
+    }, [user, isUserLoading, router]);
+
+    if (isUserLoading || !user) {
+        return (
+            <div className="container mx-auto py-12">
+                <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+                    <div className="space-y-8">
+                        <Skeleton className="h-48 w-full rounded-lg" />
+                        <Skeleton className="h-64 w-full rounded-lg" />
+                        <Skeleton className="h-64 w-full rounded-lg" />
+                    </div>
+                    <div className="lg:pl-8">
+                        <Skeleton className="h-[400px] w-full rounded-lg" />
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="container mx-auto py-12">
@@ -26,7 +55,7 @@ export default function CheckoutPage() {
                         <CardContent className="space-y-4">
                             <div className="grid gap-2">
                                 <Label htmlFor="email">Email</Label>
-                                <Input id="email" type="email" placeholder="m@example.com" />
+                                <Input id="email" type="email" placeholder="m@example.com" value={user.email || ''} disabled />
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="phone">WhatsApp Number</Label>
@@ -41,11 +70,11 @@ export default function CheckoutPage() {
                              <div className="grid grid-cols-2 gap-4">
                                 <div className="grid gap-2">
                                     <Label htmlFor="first-name">First name</Label>
-                                    <Input id="first-name" placeholder="John" />
+                                    <Input id="first-name" placeholder="John" defaultValue={user.displayName?.split(' ')[0] || ''} />
                                 </div>
                                 <div className="grid gap-2">
                                     <Label htmlFor="last-name">Last name</Label>
-                                    <Input id="last-name" placeholder="Doe" />
+                                    <Input id="last-name" placeholder="Doe" defaultValue={user.displayName?.split(' ').slice(1).join(' ') || ''}/>
                                 </div>
                             </div>
                              <div className="grid gap-2">
