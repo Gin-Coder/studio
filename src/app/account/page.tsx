@@ -84,6 +84,8 @@ export default function AccountProfilePage() {
         setDocumentNonBlocking(userRef, { 
             phoneWhatsApp: fullPhoneNumber,
             consentWhatsApp: data.consentWhatsApp,
+            language: userData?.language, // Preserve existing language
+            lastLoginAt: userData?.lastLoginAt // Preserve existing last login
         }, { merge: true });
         
         toast({
@@ -165,7 +167,7 @@ export default function AccountProfilePage() {
                                 name="countryCode"
                                 control={control}
                                 render={({ field }) => (
-                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <Select onValueChange={field.onChange} value={field.value}>
                                         <SelectTrigger className="w-[120px]">
                                             <SelectValue placeholder="Code" />
                                         </SelectTrigger>
