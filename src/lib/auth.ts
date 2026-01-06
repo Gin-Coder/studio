@@ -21,7 +21,12 @@ export const handleSignInWithGoogle = async (
   try {
     const result = await signInWithPopup(auth, provider);
     return result;
-  } catch (error) {
+  } catch (error: any) {
+    // This is a common "error" when the user closes the popup.
+    // It's not a real error, so we can safely ignore it.
+    if (error.code === 'auth/cancelled-popup-request') {
+      return null;
+    }
     console.error('Error during Google sign-in:', error);
     return null;
   }
