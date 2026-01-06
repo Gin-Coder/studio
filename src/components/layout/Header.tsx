@@ -29,6 +29,7 @@ import { useLanguage } from '@/hooks/use-language';
 import { useCart } from '@/hooks/use-cart';
 import { useWishlist } from '@/hooks/use-wishlist';
 import { Separator } from '../ui/separator';
+import { useUser } from '@/firebase';
 
 const NavLinks = ({ inSheet = false }: { inSheet?: boolean }) => {
   const { t } = useLanguage();
@@ -69,6 +70,7 @@ const NavLinks = ({ inSheet = false }: { inSheet?: boolean }) => {
 export default function Header() {
   const { cartCount } = useCart();
   const { wishlistCount } = useWishlist();
+  const { user, isUserLoading } = useUser();
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -91,17 +93,19 @@ export default function Header() {
                 </SheetClose>
               </SheetHeader>
               <Separator />
-              <div className="flex flex-col space-y-2 p-4">
+              <nav className="flex flex-col space-y-2 p-4">
                 <NavLinks inSheet />
-              </div>
-              <div className="p-4">
-                <Button asChild className="w-full">
-                  <Link href="/login">
-                    <LogIn className="mr-2 h-4 w-4" />
-                    Se connecter
-                  </Link>
-                </Button>
-              </div>
+              </nav>
+              {!isUserLoading && !user && (
+                <div className="p-4 pt-0">
+                  <Button asChild className="w-full">
+                    <Link href="/login">
+                      <LogIn className="mr-2 h-4 w-4" />
+                      Se connecter
+                    </Link>
+                  </Button>
+                </div>
+              )}
               <Separator />
               <div className="p-4 space-y-4">
                 <p className="text-sm font-medium text-muted-foreground">
