@@ -74,13 +74,19 @@ service cloud.firestore {
     }
 
     /**
-     * Validates that administrative fields (isAdmin, roles) are not being
-     * modified during an update operation. These must be managed by the server.
+     * Validates that a user can update their own profile fields without
+     * escalating privileges.
      */
-    function isProtectingAdminFields() {
-      return !("isAdmin" in request.resource.data)
-        && !("roles" in request.resource.data);
-    }
+     function canUpdateOwnProfile() {
+        let incomingData = request.resource.data;
+        return !("isAdmin" in incomingData)
+            && !("roles" in incomingData)
+            && !("createdAt" in incomingData)
+            && !("email" in incomingData)
+            && (!("phoneWhatsApp" in incomingData) || incomingData.phoneWhatsApp is string)
+            && (!("consentWhatsApp" in incomingData) || incomingData.consentWhatsApp is bool)
+            && (!("language" in incomingData) || incomingData.language is string);
+     }
 
 
     //-------------------------------------------------------------------------
@@ -100,7 +106,7 @@ service cloud.firestore {
       allow get: if isOwner(userId);
       allow list: if false;
       allow create: if isCreatingOwnUser(userId);
-      allow update: if isExistingOwner(userId) && isProtectingAdminFields();
+      allow update: if isExistingOwner(userId) && canUpdateOwnProfile();
       allow delete: if isExistingOwner(userId);
     }
 
@@ -319,3 +325,5 @@ service cloud.firestore {
     }
   }
 }
+
+    
