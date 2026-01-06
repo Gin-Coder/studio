@@ -7,6 +7,8 @@ import {
   SheetContent,
   SheetClose,
   SheetTrigger,
+  SheetHeader,
+  SheetTitle,
 } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import {
@@ -80,26 +82,25 @@ export default function Header() {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="w-full max-w-sm p-0">
-              <div className="p-4">
+              <SheetHeader className="p-4">
+                <SheetTitle className="sr-only">Menu de navigation</SheetTitle>
                 <SheetClose asChild>
                   <Link href="/">
                     <Logo />
                   </Link>
                 </SheetClose>
-              </div>
+              </SheetHeader>
               <Separator />
               <div className="flex flex-col space-y-2 p-4">
                 <NavLinks inSheet />
               </div>
               <div className="p-4">
-                 <SheetClose asChild>
-                    <Button asChild className="w-full">
-                    <Link href="/login">
-                        <LogIn className="mr-2 h-4 w-4" />
-                        Se connecter
-                    </Link>
-                    </Button>
-                 </SheetClose>
+                <Button asChild className="w-full">
+                  <Link href="/login">
+                    <LogIn className="mr-2 h-4 w-4" />
+                    Se connecter
+                  </Link>
+                </Button>
               </div>
               <Separator />
               <div className="p-4 space-y-4">
