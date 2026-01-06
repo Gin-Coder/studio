@@ -1,3 +1,4 @@
+
 'use client';
 import { useEffect, useState } from 'react';
 import { doc, DocumentData } from 'firebase/firestore';
@@ -19,7 +20,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 
 const profileFormSchema = z.object({
-  displayName: z.string().min(1, 'Name is required'),
   phoneWhatsApp: z.string().min(1, 'WhatsApp number is required'),
   consentWhatsApp: z.boolean().refine(val => val === true, {
     message: 'You must consent to WhatsApp communication',
@@ -44,7 +44,6 @@ export default function AccountProfilePage() {
     const { control, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<ProfileFormValues>({
         resolver: zodResolver(profileFormSchema),
         defaultValues: {
-            displayName: '',
             phoneWhatsApp: '',
             consentWhatsApp: false,
         }
@@ -53,7 +52,6 @@ export default function AccountProfilePage() {
     useEffect(() => {
         if (userData) {
             reset({
-                displayName: userData.displayName || '',
                 phoneWhatsApp: userData.phoneWhatsApp || '',
                 consentWhatsApp: userData.consentWhatsApp || false,
             });
@@ -123,12 +121,7 @@ export default function AccountProfilePage() {
 
                     <div className="space-y-2">
                         <Label htmlFor="displayName">{t('account.profile.name')}</Label>
-                        <Controller
-                            name="displayName"
-                            control={control}
-                            render={({ field }) => <Input id="displayName" {...field} />}
-                        />
-                        {errors.displayName && <p className="text-sm text-destructive">{errors.displayName.message}</p>}
+                        <Input id="displayName" value={userData?.displayName || ''} disabled />
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="email">{t('account.profile.email')}</Label>
