@@ -83,16 +83,15 @@ export default function ProductCard({ product }: ProductCardProps) {
       </Link>
       <div className="p-2 md:p-4 flex-shrink-0">
         <h3 className="truncate font-headline text-base md:text-lg font-semibold">{product.name}</h3>
-        <div className="flex items-center justify-between gap-2 mt-2">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mt-2">
             <p className="font-semibold text-sm md:text-base">{formatPrice(product.price, language)}</p>
             <Button
               size="sm"
-              className="flex-1 max-w-[140px]"
+              className="w-full md:flex-1 md:max-w-[140px]"
               onClick={handleAddToCart}
             >
               <ShoppingCart className="mr-2 h-4 w-4" /> 
-              <span className="hidden md:inline">Add to Cart</span>
-              <span className="inline md:hidden">Add</span>
+              <span>{language === 'en' ? 'Add to cart' : language === 'fr' ? 'Ajouter' : 'Ajoute'}</span>
             </Button>
         </div>
       </div>
