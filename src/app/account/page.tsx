@@ -1,4 +1,3 @@
-
 'use client';
 import { useEffect, useState } from 'react';
 import { doc, DocumentData } from 'firebase/firestore';
@@ -16,6 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 import { AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Skeleton } from '@/components/ui/skeleton';
 
 
 const profileFormSchema = z.object({
@@ -71,8 +71,36 @@ export default function AccountProfilePage() {
 
     const showOnboardingAlert = userData && (!userData.phoneWhatsApp || !userData.consentWhatsApp);
 
-    if (isLoading) {
-        return <p>Loading profile...</p>;
+    if (isLoading || !user) {
+        return (
+             <Card>
+                <CardHeader>
+                    <Skeleton className="h-8 w-1/2 rounded-lg" />
+                    <Skeleton className="h-4 w-3/4 mt-2 rounded-lg" />
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    <div className="space-y-2">
+                        <Skeleton className="h-4 w-24 rounded-lg" />
+                        <Skeleton className="h-10 w-full rounded-lg" />
+                    </div>
+                     <div className="space-y-2">
+                        <Skeleton className="h-4 w-24 rounded-lg" />
+                        <Skeleton className="h-10 w-full rounded-lg" />
+                    </div>
+                     <div className="space-y-2">
+                        <Skeleton className="h-4 w-24 rounded-lg" />
+                        <Skeleton className="h-10 w-full rounded-lg" />
+                    </div>
+                    <div className="flex items-start space-x-3 rounded-md border p-4">
+                        <Skeleton className="h-6 w-6 rounded" />
+                        <div className="space-y-2 flex-1">
+                             <Skeleton className="h-4 w-1/2 rounded-lg" />
+                             <Skeleton className="h-3 w-full rounded-lg" />
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+        );
     }
 
     return (
