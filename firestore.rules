@@ -69,9 +69,10 @@ service cloud.firestore {
      * when creating their user document.
      */
     function isCreatingOwnUser(userId) {
+      let data = request.resource.data;
       return isOwner(userId)
-        && !("isAdmin" in request.resource.data)
-        && !("roles" in request.resource.data);
+        && !("isAdmin" in data)
+        && !("roles" in data);
     }
 
     /**
@@ -80,24 +81,21 @@ service cloud.firestore {
      */
      function canUpdateOwnProfile() {
         let incomingData = request.resource.data;
-        let existingData = resource.data;
 
-        // Fields that CANNOT be changed by the user
-        let isProtectedUnchanged = 
-            !("isAdmin" in incomingData) &&
-            !("roles" in incomingData) &&
-            !("createdAt" in incomingData) &&
-            !("email" in incomingData);
-
-        // Fields that CAN be changed, with type validation
-        let isProfileDataValid =
+        // Ensure no-self-proclaim of admin rights
+        let isNotAdminUpdate = !("isAdmin" in incomingData) && !("roles" in incomingData);
+        // Ensure immutable fields are not changed
+        let areImmutableFieldsUnchanged = !("createdAt" in incomingData) && !("email" in incomingData);
+        
+        // Ensure all other fields being updated are of the correct type
+        let areFieldsValid = 
             (!("displayName" in incomingData) || incomingData.displayName is string) &&
+            (!("language" in incomingData) || incomingData.language is string) &&
             (!("phoneWhatsApp" in incomingData) || incomingData.phoneWhatsApp is string) &&
             (!("consentWhatsApp" in incomingData) || incomingData.consentWhatsApp is bool) &&
-            (!("lastLoginAt" in incomingData) || incomingData.lastLoginAt == request.time) &&
-            (!("language" in incomingData) || incomingData.language is string);
+            (!("lastLoginAt" in incomingData) || incomingData.lastLoginAt == request.time);
             
-        return isProtectedUnchanged && isProfileDataValid;
+        return isNotAdminUpdate && areImmutableFieldsUnchanged && areFieldsValid;
      }
 
 
@@ -337,5 +335,3 @@ service cloud.firestore {
     }
   }
 }
-
-    
