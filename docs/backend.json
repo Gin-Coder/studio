@@ -6,6 +6,10 @@
       "type": "object",
       "description": "Represents a user in the Danny Store application.",
       "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the user."
+        },
         "displayName": {
           "type": "string",
           "description": "User's display name."
@@ -30,11 +34,11 @@
         },
         "consentWhatsApp": {
           "type": "boolean",
-          "description": "Indicates if the user has consented to be contacted via WhatsApp."
+          "description": "Indicates if the user has consented to WhatsApp communication."
         },
         "createdAt": {
           "type": "string",
-          "description": "Timestamp of when the user account was created.",
+          "description": "Timestamp of when the user was created.",
           "format": "date-time"
         },
         "lastLoginAt": {
@@ -44,20 +48,20 @@
         },
         "isAdmin": {
           "type": "boolean",
-          "description": "Indicates if the user is a super administrator."
+          "description": "Indicates if the user is an administrator."
         },
         "roles": {
           "type": "array",
-          "description": "List of roles assigned to the user.",
+          "description": "Array of role IDs assigned to the user. (Relationship: User 1:N Role)",
           "items": {
             "type": "string"
           }
         }
       },
       "required": [
+        "id",
         "displayName",
         "email",
-        "language",
         "phoneWhatsApp",
         "consentWhatsApp",
         "createdAt",
@@ -70,19 +74,24 @@
       "type": "object",
       "description": "Represents a role with associated permissions.",
       "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the role."
+        },
         "name": {
           "type": "string",
           "description": "Name of the role."
         },
         "permissions": {
           "type": "array",
-          "description": "List of permissions associated with the role.",
+          "description": "Array of permissions associated with the role.",
           "items": {
             "type": "string"
           }
         }
       },
       "required": [
+        "id",
         "name",
         "permissions"
       ]
@@ -93,27 +102,21 @@
       "type": "object",
       "description": "Represents a product in the Danny Store catalog.",
       "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the product."
+        },
         "slug": {
           "type": "string",
-          "description": "Unique slug for the product (used in URLs)."
+          "description": "Unique slug for the product."
         },
         "title": {
-          "type": "object",
-          "description": "Localized title of the product.",
-          "properties": {
-            "en": { "type": "string" },
-            "fr": { "type": "string" },
-            "ht": { "type": "string" }
-          }
+          "type": "string",
+          "description": "Title of the product."
         },
         "descriptions": {
-          "type": "object",
-          "description": "Localized description for the product.",
-           "properties": {
-            "en": { "type": "string" },
-            "fr": { "type": "string" },
-            "ht": { "type": "string" }
-          }
+          "type": "string",
+          "description": "Localized product descriptions (en, fr, ht)."
         },
         "price": {
           "type": "number",
@@ -121,11 +124,11 @@
         },
         "compareAtPrice": {
           "type": "number",
-          "description": "Original price of the product (used for displaying discounts)."
+          "description": "Original price of the product (before discount)."
         },
         "images": {
           "type": "array",
-          "description": "List of image URLs for the product.",
+          "description": "Array of image URLs for the product.",
           "items": {
             "type": "string"
           }
@@ -136,30 +139,21 @@
         },
         "tags": {
           "type": "array",
-          "description": "List of tags associated with the product.",
+          "description": "Array of tags associated with the product.",
           "items": {
             "type": "string"
           }
         },
         "variants": {
           "type": "array",
-          "description": "List of product variants (color, size, etc.).",
-           "items": {
-            "type": "object",
-            "properties": {
-              "id": {"type": "string"},
-              "color": {"type": "string"},
-              "size": {"type": "string"},
-              "price": {"type": "number"},
-              "sku": {"type": "string"},
-              "stock": {"type": "number"}
-            },
-            "required": ["id", "color", "size", "stock"]
+          "description": "Array of product variants (color, size, etc.).",
+          "items": {
+            "type": "string"
           }
         },
         "isActive": {
           "type": "boolean",
-          "description": "Indicates if the product is currently active and visible."
+          "description": "Indicates if the product is currently active and available."
         },
         "createdAt": {
           "type": "string",
@@ -181,16 +175,20 @@
         }
       },
       "required": [
+        "id",
         "slug",
         "title",
         "descriptions",
         "price",
         "images",
         "categoryId",
+        "tags",
         "variants",
         "isActive",
         "createdAt",
-        "updatedAt"
+        "updatedAt",
+        "ratingAvg",
+        "ratingCount"
       ]
     },
     "Category": {
@@ -199,18 +197,17 @@
       "type": "object",
       "description": "Represents a product category.",
       "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the category."
+        },
         "slug": {
           "type": "string",
-          "description": "Unique slug for the category (used in URLs)."
+          "description": "Unique slug for the category."
         },
         "name": {
-          "type": "object",
-          "description": "Localized name of the category.",
-           "properties": {
-            "en": { "type": "string" },
-            "fr": { "type": "string" },
-            "ht": { "type": "string" }
-          }
+          "type": "string",
+          "description": "Localized category names (en, fr, ht)."
         },
         "order": {
           "type": "number",
@@ -218,18 +215,20 @@
         },
         "isActive": {
           "type": "boolean",
-          "description": "Indicates if the category is currently active and visible."
+          "description": "Indicates if the category is currently active."
         },
         "attributesConfig": {
           "type": "string",
-          "description": "JSON configuration for customizable category attributes (sizes, colors, filters)."
+          "description": "Configuration for customizable category attributes (sizes, colors, filters)."
         }
       },
       "required": [
+        "id",
         "slug",
         "name",
         "order",
-        "isActive"
+        "isActive",
+        "attributesConfig"
       ]
     },
     "Collection": {
@@ -238,6 +237,10 @@
       "type": "object",
       "description": "Represents a collection of products.",
       "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the collection."
+        },
         "name": {
           "type": "string",
           "description": "Name of the collection."
@@ -251,8 +254,8 @@
         }
       },
       "required": [
-        "name",
-        "productIds"
+        "id",
+        "name"
       ]
     },
     "Page": {
@@ -261,16 +264,21 @@
       "type": "object",
       "description": "Represents a CMS page (about, FAQ, legal).",
       "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the page."
+        },
         "title": {
           "type": "string",
           "description": "Title of the page."
         },
         "content": {
           "type": "string",
-          "description": "Content of the page (HTML or markdown)."
+          "description": "Localized content of the page (en, fr, ht)."
         }
       },
       "required": [
+        "id",
         "title",
         "content"
       ]
@@ -286,30 +294,27 @@
           "description": "Theme tokens (light/dark)."
         },
         "socialLinks": {
-          "type": "object",
+          "type": "string",
           "description": "Social media links."
         },
         "whatsappSupportNumber": {
           "type": "string",
-          "description": "WhatsApp support phone number."
+          "description": "WhatsApp support number."
         },
         "languagesEnabled": {
-          "type": "array",
-          "items": { "type": "string" }
+          "type": "string",
+          "description": "Enabled languages (en, fr, ht)."
         },
         "seoDefaults": {
-          "type": "object",
+          "type": "string",
           "description": "Default SEO settings."
         },
         "featureFlags": {
-          "type": "object",
-          "description": "Feature flags."
+          "type": "string",
+          "description": "Enabled feature flags."
         }
       },
-      "required": [
-        "whatsappSupportNumber",
-        "languagesEnabled"
-      ]
+      "required": []
     },
     "Cart": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -323,13 +328,14 @@
         },
         "items": {
           "type": "array",
-          "description": "List of items in the cart.",
-          "items": { "type": "object" }
+          "description": "Array of cart items.",
+          "items": {
+            "type": "string"
+          }
         }
       },
       "required": [
-        "userId",
-        "items"
+        "userId"
       ]
     },
     "Order": {
@@ -338,25 +344,19 @@
       "type": "object",
       "description": "Represents a customer order.",
       "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the order."
+        },
         "userId": {
           "type": "string",
           "description": "Reference to User. (Relationship: User 1:N Order)"
         },
         "items": {
           "type": "array",
-          "description": "List of items in the order.",
+          "description": "Array of items in the order.",
           "items": {
-            "type": "object",
-            "properties": {
-                "productId": { "type": "string" },
-                "variantId": { "type": "string" },
-                "titleSnapshot": { "type": "string" },
-                "imageSnapshot": { "type": "string" },
-                "color": { "type": "string" },
-                "size": { "type": "string" },
-                "qty": { "type": "number" },
-                "unitPrice": { "type": "number" }
-            }
+            "type": "string"
           }
         },
         "subtotal": {
@@ -373,12 +373,11 @@
         },
         "status": {
           "type": "string",
-          "description": "Status of the order.",
-          "enum": ["pending", "confirmed", "processing", "shipped", "delivered", "cancelled"]
+          "description": "Status of the order (pending, confirmed, etc.)."
         },
         "checkoutMethod": {
           "type": "string",
-          "description": "Checkout method used (whatsapp, other)."
+          "description": "Checkout method used (WhatsApp, other)."
         },
         "customerWhatsApp": {
           "type": "string",
@@ -386,7 +385,7 @@
         },
         "language": {
           "type": "string",
-          "description": "Language used for the order (en, fr, ht)."
+          "description": "Language used for the order."
         },
         "provisionalWhatsAppMessage": {
           "type": "string",
@@ -408,6 +407,7 @@
         }
       },
       "required": [
+        "id",
         "userId",
         "items",
         "subtotal",
@@ -417,6 +417,7 @@
         "checkoutMethod",
         "customerWhatsApp",
         "language",
+        "provisionalWhatsAppMessage",
         "deliveryNote",
         "createdAt",
         "updatedAt"
@@ -426,11 +427,19 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "OrderEvent",
       "type": "object",
-      "description": "Represents an event in the lifecycle of an order.",
+      "description": "Represents an event related to an order.",
       "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the event."
+        },
+        "orderId": {
+          "type": "string",
+          "description": "Reference to Order. (Relationship: Order 1:N OrderEvent)"
+        },
         "type": {
           "type": "string",
-          "description": "Type of event (e.g., status change)."
+          "description": "Type of the event."
         },
         "message": {
           "type": "string",
@@ -447,6 +456,8 @@
         }
       },
       "required": [
+        "id",
+        "orderId",
         "type",
         "message",
         "createdAt",
@@ -459,6 +470,10 @@
       "type": "object",
       "description": "Represents a product review.",
       "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the review."
+        },
         "userId": {
           "type": "string",
           "description": "Reference to User. (Relationship: User 1:N Review)"
@@ -473,15 +488,11 @@
         },
         "rating": {
           "type": "number",
-          "description": "Rating given by the user (1-5)."
+          "description": "Rating given in the review."
         },
         "text": {
-          "type": "object",
-           "properties": {
-            "en": { "type": "string" },
-            "fr": { "type": "string" },
-            "ht": { "type": "string" }
-          }
+          "type": "string",
+          "description": "Localized review text (en, fr, ht)."
         },
         "status": {
           "type": "string",
@@ -499,9 +510,11 @@
         }
       },
       "required": [
+        "id",
         "userId",
         "productId",
         "rating",
+        "text",
         "status",
         "createdAt",
         "updatedAt"
@@ -511,23 +524,31 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "SurveyPrompt",
       "type": "object",
-      "description": "Represents a survey prompt displayed to the user after an order is delivered.",
+      "description": "Represents a post-delivery survey prompt.",
       "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the survey prompt."
+        },
         "userId": {
           "type": "string",
-          "description": "Reference to User."
+          "description": "Reference to User. (Relationship: User 1:N SurveyPrompt)"
+        },
+        "orderId": {
+          "type": "string",
+          "description": "Reference to Order. (Relationship: Order 1:N SurveyPrompt)"
         },
         "status": {
           "type": "string",
-          "description": "Status of the survey (idle, snoozed, submitted)."
+          "description": "Status of the survey prompt (idle, snoozed, submitted)."
         },
         "shownOnce": {
           "type": "boolean",
-          "description": "Indicates if the survey has been shown to the user once."
+          "description": "Indicates if the survey prompt has been shown once."
         },
         "reshowAt": {
           "type": "string",
-          "description": "Timestamp of when the survey should be shown again if snoozed.",
+          "description": "Timestamp of when to reshow the survey prompt.",
           "format": "date-time"
         },
         "submittedAt": {
@@ -542,9 +563,12 @@
         }
       },
       "required": [
+        "id",
         "userId",
+        "orderId",
         "status",
         "shownOnce",
+        "reshowAt",
         "createdAt"
       ]
     },
@@ -554,13 +578,21 @@
       "type": "object",
       "description": "Represents the usage of virtual try-on feature for a user on a specific day.",
       "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the tryon usage entry."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N TryonUsage)"
+        },
         "usedCount": {
           "type": "number",
-          "description": "Number of try-on requests used on the specified date."
+          "description": "Number of try-on requests used on the day."
         },
         "limit": {
           "type": "number",
-          "description": "Maximum number of try-on requests allowed per day (default 5)."
+          "description": "Try-on request limit for the day."
         },
         "updatedAt": {
           "type": "string",
@@ -569,6 +601,8 @@
         }
       },
       "required": [
+        "id",
+        "userId",
         "usedCount",
         "limit",
         "updatedAt"
@@ -578,8 +612,12 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "TryonRequest",
       "type": "object",
-      "description": "Represents a request for a virtual try-on.",
+      "description": "Represents a virtual try-on request.",
       "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the try-on request."
+        },
         "userId": {
           "type": "string",
           "description": "Reference to User. (Relationship: User 1:N TryonRequest)"
@@ -589,8 +627,7 @@
           "description": "Identifier of the avatar used for the try-on."
         },
         "itemsSnapshot": {
-          "type": "array",
-          "items": { "type": "object" },
+          "type": "string",
           "description": "Snapshot of the items used for the try-on."
         },
         "userPhotoUrl": {
@@ -604,7 +641,7 @@
         },
         "resultImageUrl": {
           "type": "string",
-          "description": "URL of the resulting image after the try-on is processed.",
+          "description": "URL of the generated try-on result image.",
           "format": "uri"
         },
         "errorMessage": {
@@ -623,7 +660,9 @@
         }
       },
       "required": [
+        "id",
         "userId",
+        "avatarId",
         "itemsSnapshot",
         "status",
         "createdAt",
@@ -633,67 +672,247 @@
   },
   "auth": {
     "providers": [
-      "google.com",
-      "apple.com",
-      "facebook.com"
+      "password",
+      "anonymous"
     ]
   },
   "firestore": {
-    "/users/{userId}": {
-      "schema": { "$ref": "#/entities/User" },
-      "description": "Stores user profiles. Only the user can read/write their own document (except admin fields)."
-    },
-    "/roles/{roleId}": {
-      "schema": { "$ref": "#/entities/Role" },
-      "description": "Stores role definitions (name, permissions[]). Accessible to super admins only."
-    },
-    "/products/{productId}": {
-      "schema": { "$ref": "#/entities/Product" },
-      "description": "Stores product information. Public read for active products. Admin write access."
-    },
-    "/categories/{categoryId}": {
-      "schema": { "$ref": "#/entities/Category" },
-      "description": "Stores product categories. Public read. Admin write access."
-    },
-    "/collections/{collectionId}": {
-      "schema": { "$ref": "#/entities/Collection" },
-      "description": "Stores collections of products. Public read. Admin write access."
-    },
-    "/pages/{pageId}": {
-      "schema": { "$ref": "#/entities/Page" },
-      "description": "Stores CMS pages (about, FAQ, legal). Public read. Admin write access."
-    },
-    "/siteSettings/global": {
-      "schema": { "$ref": "#/entities/SiteSetting" },
-      "description": "Stores global site settings. Public read. Admin write access."
-    },
-    "/carts/{userId}": {
-      "schema": { "$ref": "#/entities/Cart" },
-      "description": "Stores user's shopping cart. The user can read/write their own cart."
-    },
-    "/orders/{orderId}": {
-      "schema": { "$ref": "#/entities/Order" },
-      "description": "Stores customer orders. User can read their own orders. Write access only via server."
-    },
-    "/orderEvents/{orderId}/events/{eventId}": {
-      "schema": { "$ref": "#/entities/OrderEvent" },
-      "description": "Stores events related to an order. Write access only via server."
-    },
-    "/reviews/{reviewId}": {
-      "schema": { "$ref": "#/entities/Review" },
-      "description": "Stores product reviews. Public read only for published reviews. User can write their own reviews."
-    },
-    "/surveyPrompts/{orderId}": {
-      "schema": { "$ref": "#/entities/SurveyPrompt" },
-      "description": "Stores survey prompts post-delivery. Write access via server."
-    },
-    "/tryonUsage/{userId}/days/{YYYYMMDD}": {
-      "schema": { "$ref": "#/entities/TryonUsage" },
-      "description": "Tracks daily usage of the virtual try-on feature. Write access via server."
-    },
-    "/tryonRequests/{requestId}": {
-      "schema": { "$ref": "#/entities/TryonRequest" },
-      "description": "Stores virtual try-on requests. User can read their own requests. Write access via server."
-    }
+    "structure": [
+      {
+        "path": "users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user profile data. Includes fields like displayName, email, photoURL, language, phoneWhatsApp, consentWhatsApp, createdAt, lastLoginAt, isAdmin, and roles. This collection uses path-based ownership for private user data.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "roles/{roleId}",
+        "definition": {
+          "entityName": "Role",
+          "schema": {
+            "$ref": "#/backend/entities/Role"
+          },
+          "description": "Stores roles and their associated permissions.  Used for RBAC (Role-Based Access Control).",
+          "params": [
+            {
+              "name": "roleId",
+              "description": "The unique identifier for the role."
+            }
+          ]
+        }
+      },
+      {
+        "path": "products/{productId}",
+        "definition": {
+          "entityName": "Product",
+          "schema": {
+            "$ref": "#/backend/entities/Product"
+          },
+          "description": "Stores product information. Includes fields like slug, title, descriptions, price, compareAtPrice, images, categoryId, tags, variants, isActive, createdAt, updatedAt, ratingAvg, and ratingCount.  Products are publicly readable if isActive is true.",
+          "params": [
+            {
+              "name": "productId",
+              "description": "The unique identifier for the product."
+            }
+          ]
+        }
+      },
+      {
+        "path": "categories/{categoryId}",
+        "definition": {
+          "entityName": "Category",
+          "schema": {
+            "$ref": "#/backend/entities/Category"
+          },
+          "description": "Stores product categories. Includes fields like slug, name, order, isActive, and attributesConfig. Categories are publicly readable.",
+          "params": [
+            {
+              "name": "categoryId",
+              "description": "The unique identifier for the category."
+            }
+          ]
+        }
+      },
+      {
+        "path": "collections/{collectionId}",
+        "definition": {
+          "entityName": "Collection",
+          "schema": {
+            "$ref": "#/backend/entities/Collection"
+          },
+          "description": "Stores collections of products. Includes fields like name and productIds. Collections are publicly readable.",
+          "params": [
+            {
+              "name": "collectionId",
+              "description": "The unique identifier for the collection."
+            }
+          ]
+        }
+      },
+      {
+        "path": "pages/{pageId}",
+        "definition": {
+          "entityName": "Page",
+          "schema": {
+            "$ref": "#/backend/entities/Page"
+          },
+          "description": "Stores CMS pages (about, faq, legal). Includes fields like title and content.  Pages can be configured to be publicly readable.",
+          "params": [
+            {
+              "name": "pageId",
+              "description": "The unique identifier for the page."
+            }
+          ]
+        }
+      },
+      {
+        "path": "siteSettings/global",
+        "definition": {
+          "entityName": "SiteSetting",
+          "schema": {
+            "$ref": "#/backend/entities/SiteSetting"
+          },
+          "description": "Stores global site settings, including themeTokens, socialLinks, whatsappSupportNumber, languagesEnabled, seoDefaults, and featureFlags."
+        }
+      },
+      {
+        "path": "carts/{userId}",
+        "definition": {
+          "entityName": "Cart",
+          "schema": {
+            "$ref": "#/backend/entities/Cart"
+          },
+          "description": "Stores user's shopping cart data. Includes fields like userId and items. This collection uses path-based ownership.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "users/{userId}/orders/{orderId}",
+        "definition": {
+          "entityName": "Order",
+          "schema": {
+            "$ref": "#/backend/entities/Order"
+          },
+          "description": "Stores order information for each user. Includes fields like items, subtotal, total, currency, status, checkoutMethod, customerWhatsApp, language, provisionalWhatsAppMessage, deliveryNote, createdAt, and updatedAt.  This collection uses path-based ownership for private user data.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            },
+            {
+              "name": "orderId",
+              "description": "The unique identifier for the order."
+            }
+          ]
+        }
+      },
+      {
+        "path": "orderEvents/{orderId}/events/{eventId}",
+        "definition": {
+          "entityName": "OrderEvent",
+          "schema": {
+            "$ref": "#/backend/entities/OrderEvent"
+          },
+          "description": "Stores events related to an order. Includes fields like type, message, createdAt, and actor. Subcollection of orders.",
+          "params": [
+            {
+              "name": "orderId",
+              "description": "The unique identifier for the order."
+            },
+            {
+              "name": "eventId",
+              "description": "The unique identifier for the order event."
+            }
+          ]
+        }
+      },
+      {
+        "path": "reviews/{reviewId}",
+        "definition": {
+          "entityName": "Review",
+          "schema": {
+            "$ref": "#/backend/entities/Review"
+          },
+          "description": "Stores product reviews. Includes fields like userId, productId, orderId, rating, text, status, createdAt, and updatedAt.  Reviews are publicly readable if the status is 'published'.",
+          "params": [
+            {
+              "name": "reviewId",
+              "description": "The unique identifier for the review."
+            }
+          ]
+        }
+      },
+      {
+        "path": "surveyPrompts/{orderId}",
+        "definition": {
+          "entityName": "SurveyPrompt",
+          "schema": {
+            "$ref": "#/backend/entities/SurveyPrompt"
+          },
+          "description": "Stores post-delivery survey prompts. Includes fields like userId, orderId, status, shownOnce, reshowAt, submittedAt, and createdAt.",
+          "params": [
+            {
+              "name": "orderId",
+              "description": "The unique identifier for the order."
+            }
+          ]
+        }
+      },
+      {
+        "path": "users/{userId}/tryonUsage/days/{YYYYMMDD}",
+        "definition": {
+          "entityName": "TryonUsage",
+          "schema": {
+            "$ref": "#/backend/entities/TryonUsage"
+          },
+          "description": "Stores virtual try-on usage data for each user per day. Includes fields like usedCount, limit, and updatedAt.  This collection uses path-based ownership.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            },
+            {
+              "name": "YYYYMMDD",
+              "description": "The specific date."
+            }
+          ]
+        }
+      },
+      {
+        "path": "users/{userId}/tryonRequests/{requestId}",
+        "definition": {
+          "entityName": "TryonRequest",
+          "schema": {
+            "$ref": "#/backend/entities/TryonRequest"
+          },
+          "description": "Stores virtual try-on requests for each user. Includes fields like avatarId, itemsSnapshot, userPhotoUrl, status, resultImageUrl, errorMessage, createdAt, and updatedAt.  This collection uses path-based ownership.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            },
+            {
+              "name": "requestId",
+              "description": "The unique identifier for the try-on request."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore data structure is designed to ensure security, scalability, and ease of debugging, following the principles of Authorization Independence, Clarity of Intent, DBAC, and QAPs. \n\nAuthorization Independence is achieved through denormalization. For example, the `orders` collection includes the `userId`, eliminating the need for security rules to fetch user data. Similarly, access to reviews is controlled by the `userId` and `productId` within the review document itself.\n\nStructural Segregation is applied by separating data with different access requirements into distinct collections. Publicly readable data, such as active products and categories, resides in the `products` and `categories` collections, respectively. User-specific data is stored under the `/users/{uid}` path. Admin-related data and configurations are stored in dedicated collections like `roles` and `siteSettings`.\n\nAccess Modeling uses path-based ownership for user-owned data, like orders (`/users/{userId}/orders/{orderId}`) and try-on requests (`/users/{userId}/tryonRequests/{requestId}`). Collaborative data is implicitly handled via server-side logic, ensuring only authorized operations modify the data.\n\nQAPs (Rules are not Filters) are supported by segregating data based on access needs. For example, only active products are readable by the public, while the admin can read all products. Reviews are also separated by `status` (published, hidden, pending) to control public accessibility.\n\nInvariants are maintained through server-side validation and transactions. For example, recalculating `ratingAvg` and `ratingCount` on the `product` document when a `review` is published uses a transaction. Timestamps are managed and enforced server-side."
   }
 }

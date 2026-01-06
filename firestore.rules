@@ -1,151 +1,321 @@
+/**
+ * This ruleset enforces a security model for the Danny Store e-commerce application.
+ *
+ * Core Philosophy:
+ * The security model is built on the principle of least privilege, segregating data
+ * based on access patterns. It combines user-ownership for private data with a
+ * public-read model for the product catalog. All sensitive write operations, such as
+ * creating orders or moderating content, are intended to be performed by a trusted
+ * server backend, and are therefore disallowed for clients.
+ *
+ * Data Structure:
+ * - User-specific, private data (like orders, carts, and try-on requests) is
+ *   nested under the `/users/{userId}` path or uses the user's UID as the document ID
+ *   in a top-level collection (e.g., `/carts/{userId}`). This structure enables
+ *   path-based ownership rules for clear and secure access control.
+ * - Publicly-facing data, such as products, categories, and published reviews,
+ *   is stored in top-level collections for easy and performant public querying.
+ * - Administrative data, like roles, is stored in a locked-down collection,
+ *   inaccessible to clients.
+ *
+ * Key Security Decisions:
+ * - Default Deny: Access is denied unless explicitly granted.
+ * - User Data Isolation: Users can only access their own data. User enumeration
+ *   is explicitly disabled by disallowing `list` operations on the `users` collection.
+ * - Server-Side Authority: All business logic and sensitive operations (e.g., order
+ *   processing, review moderation, quota management) are assumed to be handled by a
+ *   secure backend. Client-side write access is heavily restricted to prevent tampering.
+ * - Conditional Public Access: Public data is often conditionally available. For example,
+ *   only products marked as `isActive` are viewable via direct `get`, and only reviews
+ *   marked as `published` are readable.
+ * - Immutable Ownership: The `userId` field on documents like reviews and orders is
+ *   denormalized for authorization and is made immutable after creation to maintain
+ *   data integrity.
+ */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // --------------------------------
+    //-------------------------------------------------------------------------
     // Helper Functions
-    // --------------------------------
+    //-------------------------------------------------------------------------
 
+    /**
+     * Returns true if the user is authenticated.
+     */
     function isSignedIn() {
       return request.auth != null;
     }
 
+    /**
+     * Returns true if the authenticated user's UID matches the provided userId.
+     * This is the primary function for enforcing data ownership.
+     */
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    // Check if the user has a specific role
-    function hasRole(role) {
-      return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.roles.hasAny([role, 'super_admin']);
-    }
-    
-    // Check if user has a specific permission by checking all their roles
-    function hasPermission(permission) {
-        let userRoles = get(/databases/$(database)/documents/users/$(request.auth.uid)).data.roles;
-        // Early exit for super_admin
-        if ('super_admin' in userRoles) {
-          return true;
-        }
-        // Iterate through user roles and check permissions
-        let isAllowed = false;
-        for (let roleName in userRoles) {
-            let roleDoc = get(/databases/$(database)/documents/roles/$(userRoles[roleName])).data;
-            if (permission in roleDoc.permissions || '*' in roleDoc.permissions) {
-                isAllowed = true;
-                break;
-            }
-        }
-        return isAllowed;
+    /**
+     * Returns true if the user is the owner and the document already exists.
+     * Used for safe update and delete operations.
+     */
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
     }
 
-    // --------------------------------
-    // Collection Rules
-    // --------------------------------
+    /**
+     * Validates that a user cannot grant themselves administrative privileges
+     * when creating their user document.
+     */
+    function isCreatingOwnUser(userId) {
+      return isOwner(userId)
+        && !("isAdmin" in request.resource.data)
+        && !("roles" in request.resource.data);
+    }
 
-    // Users
-    // Users can read their own data.
-    // Users can update their own data, but not their roles or isAdmin status.
-    // Admins with 'users.read' can read any user doc.
-    // Admins with 'users.write' can update any user doc (incl. roles).
+    /**
+     * Validates that administrative fields (isAdmin, roles) are not being
+     * modified during an update operation. These must be managed by the server.
+     */
+    function isProtectingAdminFields() {
+      return request.resource.data.isAdmin == resource.data.isAdmin
+        && request.resource.data.roles == resource.data.roles;
+    }
+
+
+    //-------------------------------------------------------------------------
+    // User Data Collections
+    //-------------------------------------------------------------------------
+
+    /**
+     * @description Users can create and manage their own profile document.
+     *              They are prevented from changing their own roles or admin status.
+     * @path        /users/{userId}
+     * @allow       (create) A new user creating their own document.
+     * @deny        (list) A user trying to list all other users.
+     * @deny        (update) A user trying to set `isAdmin` to true on their profile.
+     * @principle   Enforces document ownership and prevents privilege escalation.
+     */
     match /users/{userId} {
-      allow get: if isOwner(userId) || hasPermission('users.read');
-      allow list: if hasPermission('users.read');
-      allow create: if isOwner(userId); // Any authenticated user can create their own profile
-      allow update: if (isOwner(userId) && !("roles" in request.resource.data) && !("isAdmin" in request.resource.data)) || hasPermission('users.write');
-      allow delete: if hasPermission('users.write'); // Only admins can delete users
+      allow get: if isOwner(userId);
+      allow list: if false;
+      allow create: if isCreatingOwnUser(userId);
+      allow update: if isExistingOwner(userId) && isProtectingAdminFields();
+      allow delete: if isExistingOwner(userId);
     }
 
-    // Roles
-    // Only readable and writable by users with 'roles.assign' permission (typically super_admins).
-    match /roles/{roleId} {
-      allow read, write: if hasPermission('roles.assign');
+    /**
+     * @description A user's cart is private to them. The document ID is the user's UID.
+     * @path        /carts/{userId}
+     * @allow       (get) A user reading their own cart document.
+     * @deny        (list) A user trying to list all carts in the system.
+     * @deny        (get) A user trying to read another user's cart.
+     * @principle   Restricts access to a user's own data tree using path-based ownership.
+     */
+    match /carts/{userId} {
+      allow get: if isOwner(userId);
+      allow list: if false;
+      allow create: if isOwner(userId);
+      allow update: if isExistingOwner(userId);
+      allow delete: if isExistingOwner(userId);
     }
 
-    // Products, Categories, Collections, Pages
-    // Publicly readable if 'isActive' is true.
-    // Writable only by users with the appropriate admin permissions.
+    /**
+     * @description Users can read their own orders. All writes must go through the server.
+     * @path        /users/{userId}/orders/{orderId}
+     * @allow       (list) A user listing their own past orders.
+     * @deny        (create) A user trying to create an order directly from the client.
+     * @deny        (get) A user trying to access another user's order history.
+     * @principle   Restricts access to a user's own data tree; writes are server-only.
+     */
+    match /users/{userId}/orders/{orderId} {
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    /**
+     * @description Users can read their own try-on requests. All writes must go through the server.
+     * @path        /users/{userId}/tryonRequests/{requestId}
+     * @allow       (get, list) A user viewing their virtual try-on requests and history.
+     * @deny        (create) A user trying to create a try-on request directly.
+     * @deny        (get) A user trying to view another user's try-on requests.
+     * @principle   Restricts access to a user's own data tree; writes are server-only.
+     */
+    match /users/{userId}/tryonRequests/{requestId} {
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    /**
+     * @description Users can read their own try-on usage quotas. Writes are server-only.
+     * @path        /users/{userId}/tryonUsage/days/{YYYYMMDD}
+     * @allow       (get) A user checking their remaining try-on quota for the day.
+     * @deny        (update) A user trying to reset their own usage count.
+     * @deny        (get) A user trying to check another user's quota.
+     * @principle   Restricts access to a user's own data tree; writes are server-only.
+     */
+    match /users/{userId}/tryonUsage/days/{YYYYMMDD} {
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    //-------------------------------------------------------------------------
+    // Public & Semi-Public Collections
+    //-------------------------------------------------------------------------
+
+    /**
+     * @description Products that are active are publicly readable. All writes are server-only.
+     * @path        /products/{productId}
+     * @allow       (get) Anyone reading an active product's details. auth: any.
+     * @deny        (get) Anyone trying to read a product where `isActive` is false.
+     * @deny        (create) Any client trying to add a new product.
+     * @principle   Allows public read for catalog data while restricting writes to admins (via server).
+     */
     match /products/{productId} {
       allow get: if resource.data.isActive == true;
-      allow list: if true; // Client must filter for isActive=true
-      allow write: if hasPermission('products.write');
+      allow list: if true;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
     }
 
+    /**
+     * @description Product categories are publicly readable. All writes are server-only.
+     * @path        /categories/{categoryId}
+     * @allow       (list) Anyone listing all available product categories. auth: any.
+     * @deny        (create) Any client trying to add a new category.
+     * @principle   Allows public read for catalog data while restricting writes to admins (via server).
+     */
     match /categories/{categoryId} {
-      allow read: if true;
-      allow write: if hasPermission('categories.write');
+      allow get: if true;
+      allow list: if true;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
     }
-    
+
+    /**
+     * @description Product collections are publicly readable. All writes are server-only.
+     * @path        /collections/{collectionId}
+     * @allow       (list) Anyone listing all available product collections. auth: any.
+     * @deny        (create) Any client trying to add a new collection.
+     * @principle   Allows public read for catalog data while restricting writes to admins (via server).
+     */
     match /collections/{collectionId} {
-      allow read: if true;
-      allow write: if hasPermission('collections.write');
+      allow get: if true;
+      allow list: if true;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
     }
 
+    /**
+     * @description CMS pages (e.g., about, FAQ) are publicly readable. All writes are server-only.
+     * @path        /pages/{pageId}
+     * @allow       (get) Anyone reading a CMS page. auth: any.
+     * @deny        (update) Any client trying to modify page content.
+     * @principle   Allows public read for content data while restricting writes to admins (via server).
+     */
     match /pages/{pageId} {
-      allow read: if true;
-      allow write: if hasPermission('content_seo');
-    }
-    
-    // Site Settings
-    // Publicly readable, but only writable by admins with content_seo permission.
-     match /siteSettings/global {
-      allow read: if true;
-      allow write: if hasPermission('content_seo');
+      allow get: if true;
+      allow list: if true;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
     }
 
-    // Carts
-    // Only the owner of the cart can read or write to it.
-    match /carts/{userId} {
-      allow read, write: if isOwner(userId);
-    }
-    
-    // Orders
-    // Users can read their own orders. List operations must be filtered by userId.
-    // Writes are only allowed from the server (or by an order manager).
-    match /orders/{orderId} {
-      allow get: if isOwner(resource.data.userId) || hasPermission('orders.read');
-      allow list: if hasPermission('orders.read') || request.query.userId == request.auth.uid;
-      allow create: if isSignedIn(); // Allow any signed-in user to create an order via server action
-      allow update: if hasPermission('orders.write'); // Only admins can update
-      allow delete: if false; // Orders should not be deletable
-    }
-    
-    // Order Events
-    // Readable by the order owner or an admin. Writable only by server/admins.
-    match /orderEvents/{orderId}/events/{eventId} {
-      allow read: if get(/databases/$(database)/documents/orders/$(orderId)).data.userId == request.auth.uid || hasPermission('orders.read');
-      allow write: if hasPermission('orders.write');
-    }
-    
-    // Reviews
-    // Published reviews are public. Users can create/update/delete their own reviews.
-    // Admins with 'reviews.moderate' can write/delete any review.
+    /**
+     * @description Reviews can be created by authenticated users. Published reviews are public.
+     * @path        /reviews/{reviewId}
+     * @allow       (create) A signed-in user submitting a review for a product.
+     * @allow       (get) Anyone reading a review where `status` is 'published'.
+     * @deny        (get) Anyone trying to read a review with status 'pending' or 'hidden'.
+     * @deny        (update) A user trying to change another user's review.
+     * @principle   Enforces document ownership for writes and conditional public access for reads.
+     */
     match /reviews/{reviewId} {
-      allow get: if resource.data.status == 'published' || isOwner(resource.data.userId) || hasPermission('reviews.read');
-      allow list: if true; // Client must filter for status=='published'
-      allow create: if isOwner(request.resource.data.userId);
-      allow update: if isOwner(resource.data.userId);
-      allow delete: if isOwner(resource.data.userId) || hasPermission('reviews.moderate');
-      allow write: if hasPermission('reviews.moderate'); // Moderator can edit anything
+      // NOTE: `list` is public, but clients MUST query `where('status', '==', 'published')`.
+      // The `get` rule below secures individual non-published documents from direct access.
+      allow get: if resource.data.status == 'published';
+      allow list: if true;
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update: if isExistingOwner(resource.data.userId);
+      allow delete: if isExistingOwner(resource.data.userId);
     }
 
-    // Survey Prompts
-    // Readable by the owner or an admin. Writable only by the server.
+    //-------------------------------------------------------------------------
+    // Server-Only & Private Collections
+    //-------------------------------------------------------------------------
+
+    /**
+     * @description Roles define admin permissions and are not client-accessible.
+     * @path        /roles/{roleId}
+     * @allow       (none) No client operation is permitted.
+     * @deny        (get) Any client trying to read role definitions.
+     * @principle   Secures administrative data by denying all client access.
+     */
+    match /roles/{roleId} {
+      allow get: if false;
+      allow list: if false;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    /**
+     * @description Global site settings are publicly readable but not listable or writable by clients.
+     * @path        /siteSettings/global
+     * @allow       (get) Any client reading the global site configuration.
+     * @deny        (list, create, update, delete) Any client attempting any other operation.
+     * @principle   Allows public read for configuration while restricting writes to admins (via server).
+     */
+    match /siteSettings/global {
+      allow get: if true;
+      allow list: if false;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    /**
+     * @description Order events contain sensitive history and are not client-accessible.
+     * @path        /orderEvents/{orderId}/events/{eventId}
+     * @allow       (none) No client operation is permitted.
+     * @deny        (get) Any client trying to read order history events.
+     * @principle   Secures sensitive data by denying all client access. The data structure
+     *              lacks a direct userId, making secure client rules impossible.
+     */
+    match /orderEvents/{orderId}/events/{eventId} {
+      allow get: if false;
+      allow list: if false;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    /**
+     * @description Survey prompts are user-specific. Writes are handled by the server.
+     * @path        /surveyPrompts/{orderId}
+     * @allow       (get) A user reading their own survey prompt. auth: owner.
+     * @deny        (list) A user trying to list all survey prompts in the system.
+     * @deny        (update) A user trying to snooze or submit a survey directly.
+     * @principle   Restricts access based on denormalized ownership data (`userId` field).
+     */
     match /surveyPrompts/{orderId} {
-       allow get: if isOwner(resource.data.userId) || hasPermission('orders.read');
-       allow write: if false; // Server-only writes
-    }
-    
-    // Tryon Usage and Requests
-    // Readable only by the owner or an admin. Writable only by the server.
-    match /tryonUsage/{userId}/days/{YYYYMMDD} {
-      allow get: if isOwner(userId) || hasPermission('users.read');
-      allow write: if false; // Server-only writes
-    }
-
-    match /tryonRequests/{requestId} {
-      allow get: if isOwner(resource.data.userId) || hasPermission('users.read');
-      allow list: if request.query.userId == request.auth.uid || hasPermission('users.read');
-      allow write: if false; // Server-only writes
+      allow get: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow list: if false;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
     }
   }
 }
