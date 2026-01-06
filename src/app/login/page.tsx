@@ -1,7 +1,14 @@
+'use client';
+
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Logo } from "@/components/ui/logo";
+import { useFirebase } from '@/firebase';
+import { handleSignInWithGoogle, getOrCreateUser } from '@/lib/auth';
+import { useToast } from '@/hooks/use-toast';
 
 const GoogleIcon = () => (
     <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
@@ -11,6 +18,47 @@ const GoogleIcon = () => (
 
 
 export default function LoginPage() {
+    const { auth, user, isUserLoading } = useFirebase();
+    const router = useRouter();
+    const { toast } = useToast();
+
+    useEffect(() => {
+        if (!isUserLoading && user) {
+            getOrCreateUser(user).then(() => {
+                router.push('/account');
+            });
+        }
+    }, [user, isUserLoading, router]);
+
+    const onSignIn = async () => {
+        try {
+            const userCredential = await handleSignInWithGoogle(auth);
+            if (userCredential?.user) {
+                await getOrCreateUser(userCredential.user);
+                toast({
+                    title: "Connexion réussie",
+                    description: `Bienvenue, ${userCredential.user.displayName} !`,
+                });
+                router.push('/account');
+            }
+        } catch (error: any) {
+            console.error("Erreur de connexion : ", error);
+            toast({
+                variant: "destructive",
+                title: "Erreur de connexion",
+                description: "Une erreur est survenue lors de la connexion avec Google. Veuillez réessayer.",
+            });
+        }
+    };
+
+    if (isUserLoading || user) {
+        return (
+            <div className="container flex min-h-[80vh] items-center justify-center py-12">
+                <p>Loading...</p>
+            </div>
+        );
+    }
+    
     return (
         <div className="container flex min-h-[80vh] items-center justify-center py-12">
             <Card className="w-full max-w-md">
@@ -21,7 +69,7 @@ export default function LoginPage() {
                 </CardHeader>
                 <CardContent>
                     <div className="flex flex-col gap-4">
-                        <Button className="w-full">
+                        <Button className="w-full" onClick={onSignIn} disabled={isUserLoading}>
                            <GoogleIcon /> Continue with Google
                         </Button>
                         <Button variant="secondary" className="w-full" disabled>
