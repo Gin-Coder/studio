@@ -53,8 +53,8 @@ export const getOrCreateUser = (user: FirebaseUser): Promise<void> => {
             consentWhatsApp: false,
             createdAt: serverTimestamp(),
             lastLoginAt: serverTimestamp(),
-            isAdmin: false,
-            roles: [],
+            // DO NOT set isAdmin or roles on creation.
+            // Security rules prevent this. These fields are managed by admins.
           };
           setDoc(userRef, newUserDoc)
             .then(() => resolve())
