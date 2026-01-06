@@ -31,6 +31,7 @@ export default function LoginPage() {
     }, [user, isUserLoading, router]);
 
     const onSignIn = async () => {
+        if (!auth) return;
         try {
             const userCredential = await handleSignInWithGoogle(auth);
             if (userCredential?.user) {
