@@ -1,3 +1,4 @@
+
 /**
  * This ruleset enforces a security model for the Danny Store e-commerce application.
  *
@@ -75,17 +76,27 @@ service cloud.firestore {
 
     /**
      * Validates that a user can update their own profile fields without
-     * escalating privileges.
+     * escalating privileges or changing immutable data.
      */
      function canUpdateOwnProfile() {
         let incomingData = request.resource.data;
-        return !("isAdmin" in incomingData)
-            && !("roles" in incomingData)
-            && !("createdAt" in incomingData)
-            && !("email" in incomingData)
-            && (!("phoneWhatsApp" in incomingData) || incomingData.phoneWhatsApp is string)
-            && (!("consentWhatsApp" in incomingData) || incomingData.consentWhatsApp is bool)
-            && (!("language" in incomingData) || incomingData.language is string);
+        let existingData = resource.data;
+
+        // Fields that CANNOT be changed by the user
+        let isProtectedUnchanged = 
+            !("isAdmin" in incomingData) &&
+            !("roles" in incomingData) &&
+            !("createdAt" in incomingData) &&
+            incomingData.email == existingData.email;
+
+        // Fields that CAN be changed, with type validation
+        let isProfileDataValid =
+            (!("displayName" in incomingData) || incomingData.displayName is string) &&
+            (!("phoneWhatsApp" in incomingData) || incomingData.phoneWhatsApp is string) &&
+            (!("consentWhatsApp" in incomingData) || incomingData.consentWhatsApp is bool) &&
+            (!("language" in incomingData) || incomingData.language is string);
+            
+        return isProtectedUnchanged && isProfileDataValid;
      }
 
 
