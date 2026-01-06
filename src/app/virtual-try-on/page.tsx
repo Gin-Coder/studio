@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -21,9 +22,11 @@ import type { Product, Avatar } from '@/lib/types';
 import { Separator } from '@/components/ui/separator';
 import { useCart } from '@/hooks/use-cart';
 import { Badge } from '@/components/ui/badge';
+import { useLanguage } from '@/hooks/use-language';
 
 export default function VirtualTryOnPage() {
   const { cartItems } = useCart();
+  const { t } = useLanguage();
   const [selectedItems, setSelectedItems] = useState<Product[]>([]);
   const [selectedAvatar, setSelectedAvatar] = useState<Avatar | null>(avatars[0]);
   const [userImage, setUserImage] = useState<string | null>(null);
@@ -54,16 +57,16 @@ export default function VirtualTryOnPage() {
     if (selectedItems.length === 0) {
       toast({
         variant: 'destructive',
-        title: 'No items selected',
-        description: 'Please select at least one item to try on.',
+        title: t('vto.toast.no_items.title'),
+        description: t('vto.toast.no_items.description'),
       });
       return;
     }
     if (!selectedAvatar && !userImage) {
         toast({
             variant: 'destructive',
-            title: 'No model selected',
-            description: 'Please select an avatar or upload a photo.',
+            title: t('vto.toast.no_model.title'),
+            description: t('vto.toast.no_model.description'),
         });
         return;
     }
@@ -81,25 +84,25 @@ export default function VirtualTryOnPage() {
 
     setIsGenerating(false);
     toast({
-        title: 'Outfit Generated!',
-        description: 'Your virtual look is ready.',
+        title: t('vto.toast.generated.title'),
+        description: t('vto.toast.generated.description'),
     });
   };
 
   const handleSaveOutfit = () => {
       if (!generatedImage || selectedItems.length === 0) {
-          toast({ variant: 'destructive', title: 'Cannot save empty outfit.' });
+          toast({ variant: 'destructive', title: t('vto.toast.empty_outfit.title') });
           return;
       }
       // Logic to save the outfit
-      toast({ title: 'Outfit Saved!', description: 'You can find it in your account.' });
+      toast({ title: t('vto.toast.saved.title'), description: t('vto.toast.saved.description') });
   }
 
   return (
     <div className="container mx-auto py-12">
       <div className="text-center mb-8">
-        <h1 className="font-headline text-4xl font-bold">Virtual Try-On</h1>
-        <p className="text-muted-foreground">Create your perfect look before you buy.</p>
+        <h1 className="font-headline text-4xl font-bold">{t('vto.title')}</h1>
+        <p className="text-muted-foreground">{t('vto.subtitle')}</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -108,8 +111,8 @@ export default function VirtualTryOnPage() {
           {/* Item Selection */}
           <Card>
             <CardHeader>
-              <CardTitle>1. Select Items from Cart</CardTitle>
-              <CardDescription>Choose clothing and shoes from your cart.</CardDescription>
+              <CardTitle>{t('vto.select_items.title')}</CardTitle>
+              <CardDescription>{t('vto.select_items.description')}</CardDescription>
             </CardHeader>
             <CardContent>
               <ScrollArea className="h-64">
@@ -128,11 +131,11 @@ export default function VirtualTryOnPage() {
                       >
                           <Image src={product.images[0]} alt={product.name} width={40} height={40} className="rounded-md object-cover"/>
                           <span className="truncate">{product.name}</span>
-                           {!['clothing', 'shoes'].includes(product.category) && <Badge variant="outline">Not Tryable</Badge>}
+                           {!['clothing', 'shoes'].includes(product.category) && <Badge variant="outline">{t('vto.not_tryable')}</Badge>}
                       </label>
                     </div>
                   )) : (
-                    <p className="text-sm text-muted-foreground text-center py-10">No items in your cart to try on.</p>
+                    <p className="text-sm text-muted-foreground text-center py-10">{t('vto.select_items.empty')}</p>
                   )}
                 </div>
               </ScrollArea>
@@ -142,8 +145,8 @@ export default function VirtualTryOnPage() {
           {/* Avatar/Model Selection */}
           <Card>
             <CardHeader>
-              <CardTitle>2. Choose a Model</CardTitle>
-              <CardDescription>Select an avatar or upload your photo.</CardDescription>
+              <CardTitle>{t('vto.choose_model.title')}</CardTitle>
+              <CardDescription>{t('vto.choose_model.description')}</CardDescription>
             </CardHeader>
             <CardContent>
                 <RadioGroup 
@@ -176,10 +179,10 @@ export default function VirtualTryOnPage() {
                 </RadioGroup>
                 <Separator className="my-4"/>
                 <Button variant="outline" className="w-full" onClick={() => document.getElementById('file-upload')?.click()}>
-                    <Upload className="mr-2 h-4 w-4" /> Upload Your Photo
+                    <Upload className="mr-2 h-4 w-4" /> {t('vto.choose_model.upload')}
                 </Button>
                 <input type="file" id="file-upload" className="hidden" accept="image/*" />
-                 <p className="text-xs text-muted-foreground mt-2 text-center">5 free uses per day. Photo is not stored.</p>
+                 <p className="text-xs text-muted-foreground mt-2 text-center">{t('vto.choose_model.disclaimer')}</p>
             </CardContent>
           </Card>
         </div>
@@ -188,7 +191,7 @@ export default function VirtualTryOnPage() {
         <div className="lg:col-span-2">
           <Card>
             <CardHeader>
-              <CardTitle>3. Your Virtual Look</CardTitle>
+              <CardTitle>{t('vto.your_look.title')}</CardTitle>
             </CardHeader>
             <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -197,13 +200,13 @@ export default function VirtualTryOnPage() {
                         {isGenerating && (
                             <div className="flex flex-col items-center gap-2">
                                 <Sparkles className="h-8 w-8 animate-spin text-primary" />
-                                <p className="text-muted-foreground">Generating your look...</p>
+                                <p className="text-muted-foreground">{t('vto.generating')}</p>
                             </div>
                         )}
                         {!isGenerating && generatedImage && (
                              <Image
                                 src={generatedImage}
-                                alt="Generated try-on look"
+                                alt={t('vto.your_look.alt')}
                                 fill
                                 className="object-contain rounded-lg"
                               />
@@ -211,7 +214,7 @@ export default function VirtualTryOnPage() {
                          {!isGenerating && !generatedImage && (
                             <div className="text-center p-4">
                                 <Shirt className="h-16 w-16 mx-auto text-muted-foreground"/>
-                                <p className="text-muted-foreground mt-4">Your generated outfit will appear here.</p>
+                                <p className="text-muted-foreground mt-4">{t('vto.your_look.placeholder')}</p>
                             </div>
                         )}
                     </div>
@@ -220,10 +223,10 @@ export default function VirtualTryOnPage() {
                     <div className="md:col-span-1 space-y-6">
                        <Button size="lg" className="w-full" onClick={handleGenerate} disabled={isGenerating}>
                             <Sparkles className="mr-2 h-4 w-4" />
-                            {isGenerating ? 'Generating...' : 'Generate Look'}
+                            {isGenerating ? t('vto.generating_button') : t('vto.generate_button')}
                        </Button>
                        <div className="space-y-4">
-                            <h3 className="font-semibold flex items-center gap-2"><Layers className="h-4 w-4"/>Selected Items</h3>
+                            <h3 className="font-semibold flex items-center gap-2"><Layers className="h-4 w-4"/>{t('vto.selected_items.title')}</h3>
                             <div className="space-y-3">
                                 {selectedItems.map(item => (
                                     <div key={item.id} className="flex items-center justify-between text-sm p-2 rounded-md bg-secondary">
@@ -233,12 +236,12 @@ export default function VirtualTryOnPage() {
                                         </Button>
                                     </div>
                                 ))}
-                                {selectedItems.length === 0 && <p className="text-sm text-muted-foreground">No items selected.</p>}
+                                {selectedItems.length === 0 && <p className="text-sm text-muted-foreground">{t('vto.selected_items.empty')}</p>}
                             </div>
                        </div>
                         <Separator />
                         <Button variant="outline" className="w-full" onClick={handleSaveOutfit} disabled={!generatedImage || isGenerating}>
-                            <Heart className="mr-2 h-4 w-4" /> Save Outfit
+                            <Heart className="mr-2 h-4 w-4" /> {t('vto.save_outfit_button')}
                        </Button>
                     </div>
                 </div>
@@ -249,3 +252,5 @@ export default function VirtualTryOnPage() {
     </div>
   );
 }
+
+    
