@@ -2,6 +2,8 @@
 'use client';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRef } from 'react';
+import Autoplay from 'embla-carousel-autoplay';
 import {
   Carousel,
   CarouselContent,
@@ -21,6 +23,10 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 export default function Home() {
     const { t } = useLanguage();
+    const plugin = useRef(
+      Autoplay({ delay: 4000, stopOnInteraction: true })
+    );
+
   const heroImage = PlaceHolderImages.find(p => p.id === 'hero-main') || { src: '', alt: '', hint: '' };
 
   const bestSellers = products.slice(0, 8);
@@ -92,11 +98,14 @@ export default function Home() {
             {t('home.bestsellers.title')}
           </h2>
           <Carousel
+            plugins={[plugin.current]}
             opts={{
               align: 'start',
               loop: true,
             }}
             className="w-full"
+            onMouseEnter={plugin.current.stop}
+            onMouseLeave={plugin.current.reset}
           >
             <CarouselContent>
               {bestSellers.map((product) => (
@@ -120,11 +129,14 @@ export default function Home() {
             {t('home.newarrivals.title')}
           </h2>
            <Carousel
+             plugins={[plugin.current]}
             opts={{
               align: 'start',
               loop: true,
             }}
             className="w-full"
+            onMouseEnter={plugin.current.stop}
+            onMouseLeave={plugin.current.reset}
           >
             <CarouselContent>
               {newArrivals.map((product) => (
@@ -192,8 +204,11 @@ export default function Home() {
             {t('home.reviews.title')}
           </h2>
           <Carousel
+             plugins={[plugin.current]}
             opts={{ align: 'start', loop: true }}
             className="w-full max-w-4xl mx-auto"
+            onMouseEnter={plugin.current.stop}
+            onMouseLeave={plugin.current.reset}
           >
             <CarouselContent>
               {reviews.map((review) => (
