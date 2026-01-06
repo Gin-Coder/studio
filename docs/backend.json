@@ -672,8 +672,9 @@
   },
   "auth": {
     "providers": [
-      "password",
-      "anonymous"
+      "google.com",
+      "apple.com",
+      "facebook.com"
     ]
   },
   "firestore": {
@@ -916,3 +917,4 @@
     "reasoning": "The Firestore data structure is designed to ensure security, scalability, and ease of debugging, following the principles of Authorization Independence, Clarity of Intent, DBAC, and QAPs. \n\nAuthorization Independence is achieved through denormalization. For example, the `orders` collection includes the `userId`, eliminating the need for security rules to fetch user data. Similarly, access to reviews is controlled by the `userId` and `productId` within the review document itself.\n\nStructural Segregation is applied by separating data with different access requirements into distinct collections. Publicly readable data, such as active products and categories, resides in the `products` and `categories` collections, respectively. User-specific data is stored under the `/users/{uid}` path. Admin-related data and configurations are stored in dedicated collections like `roles` and `siteSettings`.\n\nAccess Modeling uses path-based ownership for user-owned data, like orders (`/users/{userId}/orders/{orderId}`) and try-on requests (`/users/{userId}/tryonRequests/{requestId}`). Collaborative data is implicitly handled via server-side logic, ensuring only authorized operations modify the data.\n\nQAPs (Rules are not Filters) are supported by segregating data based on access needs. For example, only active products are readable by the public, while the admin can read all products. Reviews are also separated by `status` (published, hidden, pending) to control public accessibility.\n\nInvariants are maintained through server-side validation and transactions. For example, recalculating `ratingAvg` and `ratingCount` on the `product` document when a `review` is published uses a transaction. Timestamps are managed and enforced server-side."
   }
 }
+    
