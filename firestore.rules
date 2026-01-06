@@ -78,8 +78,8 @@ service cloud.firestore {
      * modified during an update operation. These must be managed by the server.
      */
     function isProtectingAdminFields() {
-      return request.resource.data.isAdmin == resource.data.isAdmin
-        && request.resource.data.roles == resource.data.roles;
+      return !("isAdmin" in request.resource.data)
+        && !("roles" in request.resource.data);
     }
 
 
@@ -319,4 +319,3 @@ service cloud.firestore {
     }
   }
 }
-    
