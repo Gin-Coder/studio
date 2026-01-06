@@ -3,6 +3,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import {
   Card,
   CardContent,
@@ -23,6 +24,8 @@ import { Separator } from '@/components/ui/separator';
 import { useCart } from '@/hooks/use-cart';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/hooks/use-language';
+import { useUser } from '@/firebase';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function VirtualTryOnPage() {
   const { cartItems } = useCart();
@@ -33,6 +36,16 @@ export default function VirtualTryOnPage() {
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
+  
+  const { user, isUserLoading } = useUser();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      router.push('/login?redirect=/virtual-try-on');
+    }
+  }, [user, isUserLoading, router]);
+
 
   const cartProducts = useMemo(() => {
     return cartItems
@@ -96,6 +109,26 @@ export default function VirtualTryOnPage() {
       }
       // Logic to save the outfit
       toast({ title: t('vto.toast.saved.title'), description: t('vto.toast.saved.description') });
+  }
+
+  if (isUserLoading || !user) {
+    return (
+      <div className="container mx-auto py-12">
+        <div className="text-center mb-8">
+            <Skeleton className="h-10 w-1/2 mx-auto rounded-lg" />
+            <Skeleton className="h-4 w-3/4 mx-auto mt-2 rounded-lg" />
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-1 space-y-8">
+                <Skeleton className="h-64 w-full rounded-lg" />
+                <Skeleton className="h-96 w-full rounded-lg" />
+            </div>
+            <div className="lg:col-span-2">
+                <Skeleton className="h-[600px] w-full rounded-lg" />
+            </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -252,5 +285,3 @@ export default function VirtualTryOnPage() {
     </div>
   );
 }
-
-    

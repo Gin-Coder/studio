@@ -31,7 +31,7 @@ type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
 export default function AccountProfilePage() {
     const { t } = useLanguage();
-    const { user, firestore } = useFirebase();
+    const { user, firestore, isUserLoading: isAuthLoading } = useFirebase();
     const { toast } = useToast();
 
     const userRef = useMemoFirebase(() => {
@@ -39,7 +39,9 @@ export default function AccountProfilePage() {
         return doc(firestore, 'users', user.uid);
     }, [user, firestore]);
 
-    const { data: userData, isLoading } = useDoc<DocumentData>(userRef);
+    const { data: userData, isLoading: isDocLoading } = useDoc<DocumentData>(userRef);
+    
+    const isLoading = isAuthLoading || (user && isDocLoading);
 
     const { control, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<ProfileFormValues>({
         resolver: zodResolver(profileFormSchema),
@@ -67,16 +69,16 @@ export default function AccountProfilePage() {
         });
     };
 
-    const showOnboardingAlert = userData && (!userData.phoneWhatsApp || !userData.consentWhatsApp);
+    const showOnboardingAlert = !isLoading && userData && (!userData.phoneWhatsApp || !userData.consentWhatsApp);
 
-    if (isLoading || !user) {
+    if (isLoading) {
         return (
              <Card>
                 <CardHeader>
                     <Skeleton className="h-8 w-1/2 rounded-lg" />
                     <Skeleton className="h-4 w-3/4 mt-2 rounded-lg" />
                 </CardHeader>
-                <CardContent className="space-y-6">
+                <CardContent className="space-y-6 pt-6">
                     <div className="space-y-2">
                         <Skeleton className="h-4 w-24 rounded-lg" />
                         <Skeleton className="h-10 w-full rounded-lg" />
@@ -100,6 +102,10 @@ export default function AccountProfilePage() {
             </Card>
         );
     }
+    
+    if (!user) {
+        return null; // The layout will handle the redirect
+    }
 
     return (
         <form onSubmit={handleSubmit(onSubmit)}>
@@ -108,7 +114,7 @@ export default function AccountProfilePage() {
                     <CardTitle>{t('account.profile.title')}</CardTitle>
                     <CardDescription>{t('account.profile.description')}</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6">
+                <CardContent className="space-y-6 pt-6">
                     {showOnboardingAlert && (
                          <Alert variant="destructive">
                             <AlertCircle className="h-4 w-4" />
