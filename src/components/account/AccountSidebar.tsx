@@ -6,10 +6,19 @@ import { Button } from '@/components/ui/button';
 import { User, ShoppingBag, Star, Heart, LogOut } from 'lucide-react';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { useLanguage } from '@/hooks/use-language';
+import { useFirebase } from '@/firebase';
+import { useRouter } from 'next/navigation';
 
 export function AccountSidebar() {
   const pathname = usePathname();
   const { t } = useLanguage();
+  const { auth } = useFirebase();
+  const router = useRouter();
+
+  const handleSignOut = async () => {
+    await auth.signOut();
+    router.push('/login');
+  };
 
   const navItems = [
     { href: '/account', label: t('account.sidebar.profile'), icon: User },
@@ -35,7 +44,7 @@ export function AccountSidebar() {
               </Link>
             </Button>
           ))}
-          <Button variant="ghost" className="justify-start text-destructive hover:text-destructive shrink-0">
+          <Button variant="ghost" className="justify-start text-destructive hover:text-destructive shrink-0" onClick={handleSignOut}>
             <LogOut className="mr-2 h-4 w-4" />
             {t('account.sidebar.signout')}
           </Button>
