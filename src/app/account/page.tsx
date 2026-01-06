@@ -17,17 +17,18 @@ import { AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Skeleton } from '@/components/ui/skeleton';
-
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { countries } from '@/lib/countries';
 
 const profileFormSchema = z.object({
-  phoneWhatsApp: z.string().min(1, 'WhatsApp number is required'),
+  countryCode: z.string().min(1, 'Country code is required'),
+  phone: z.string().min(1, 'WhatsApp number is required'),
   consentWhatsApp: z.boolean().refine(val => val === true, {
     message: 'You must consent to WhatsApp communication',
   }),
 });
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
-
 
 export default function AccountProfilePage() {
     const { t } = useLanguage();
@@ -46,15 +47,30 @@ export default function AccountProfilePage() {
     const { control, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<ProfileFormValues>({
         resolver: zodResolver(profileFormSchema),
         defaultValues: {
-            phoneWhatsApp: '',
+            countryCode: '+509',
+            phone: '',
             consentWhatsApp: false,
         }
     });
 
     useEffect(() => {
-        if (userData) {
-            reset({
-                phoneWhatsApp: userData.phoneWhatsApp || '',
+        if (userData?.phoneWhatsApp) {
+            const country = countries.find(c => userData.phoneWhatsApp.startsWith(c.dial_code));
+            if (country) {
+                reset({
+                    countryCode: country.dial_code,
+                    phone: userData.phoneWhatsApp.substring(country.dial_code.length),
+                    consentWhatsApp: userData.consentWhatsApp || false,
+                });
+            } else {
+                 reset({
+                    countryCode: '+509', // Default
+                    phone: userData.phoneWhatsApp,
+                    consentWhatsApp: userData.consentWhatsApp || false,
+                });
+            }
+        } else if (userData) {
+             reset({
                 consentWhatsApp: userData.consentWhatsApp || false,
             });
         }
@@ -63,7 +79,12 @@ export default function AccountProfilePage() {
     const onSubmit = (data: ProfileFormValues) => {
         if (!userRef || !firestore) return;
 
-        setDocumentNonBlocking(userRef, data, { merge: true });
+        const fullPhoneNumber = `${data.countryCode}${data.phone}`;
+
+        setDocumentNonBlocking(userRef, { 
+            phoneWhatsApp: fullPhoneNumber,
+            consentWhatsApp: data.consentWhatsApp,
+        }, { merge: true });
         
         toast({
             title: "Profile Updated",
@@ -138,13 +159,34 @@ export default function AccountProfilePage() {
                         <p className="text-xs text-muted-foreground">{t('account.profile.email_desc')}</p>
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="phoneWhatsApp">{t('account.profile.whatsapp')}</Label>
-                        <Controller
-                            name="phoneWhatsApp"
-                            control={control}
-                            render={({ field }) => <Input id="phoneWhatsApp" type="tel" {...field} />}
-                        />
-                        {errors.phoneWhatsApp && <p className="text-sm text-destructive">{errors.phoneWhatsApp.message}</p>}
+                        <Label htmlFor="phone">{t('account.profile.whatsapp')}</Label>
+                        <div className="flex items-center gap-2">
+                           <Controller
+                                name="countryCode"
+                                control={control}
+                                render={({ field }) => (
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <SelectTrigger className="w-[120px]">
+                                            <SelectValue placeholder="Code" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {countries.map(country => (
+                                                <SelectItem key={country.code} value={country.dial_code}>
+                                                    {country.flag} {country.dial_code}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                           />
+                            <Controller
+                                name="phone"
+                                control={control}
+                                render={({ field }) => <Input id="phone" type="tel" {...field} className="flex-1" placeholder="Your number"/>}
+                            />
+                        </div>
+                        {errors.countryCode && <p className="text-sm text-destructive">{errors.countryCode.message}</p>}
+                        {errors.phone && <p className="text-sm text-destructive">{errors.phone.message}</p>}
                     </div>
 
                     <div className="flex items-start space-x-3 rounded-md border p-4">
