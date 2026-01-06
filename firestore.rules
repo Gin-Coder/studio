@@ -87,13 +87,14 @@ service cloud.firestore {
             !("isAdmin" in incomingData) &&
             !("roles" in incomingData) &&
             !("createdAt" in incomingData) &&
-            incomingData.email == existingData.email;
+            !("email" in incomingData);
 
         // Fields that CAN be changed, with type validation
         let isProfileDataValid =
             (!("displayName" in incomingData) || incomingData.displayName is string) &&
             (!("phoneWhatsApp" in incomingData) || incomingData.phoneWhatsApp is string) &&
             (!("consentWhatsApp" in incomingData) || incomingData.consentWhatsApp is bool) &&
+            (!("lastLoginAt" in incomingData) || incomingData.lastLoginAt == request.time) &&
             (!("language" in incomingData) || incomingData.language is string);
             
         return isProtectedUnchanged && isProfileDataValid;
