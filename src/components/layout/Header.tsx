@@ -1,10 +1,11 @@
+
 'use client';
 
 import Link from 'next/link';
 import {
   Sheet,
   SheetContent,
-  SheetTitle,
+  SheetClose,
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
@@ -15,6 +16,7 @@ import {
   Heart,
   User,
   Sparkles,
+  LogIn,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -26,7 +28,7 @@ import { useCart } from '@/hooks/use-cart';
 import { useWishlist } from '@/hooks/use-wishlist';
 import { Separator } from '../ui/separator';
 
-const NavLinks = () => {
+const NavLinks = ({ inSheet = false }: { inSheet?: boolean }) => {
   const { t } = useLanguage();
   const links = [
     { href: '/', label: t('nav.home') },
@@ -35,15 +37,31 @@ const NavLinks = () => {
     { href: '/contact', label: t('nav.contact') },
   ];
 
-  return (
+  const content = (
     <>
       {links.map((link) => (
-        <Button key={link.href} variant="ghost" asChild>
+        <Button variant="ghost" asChild key={link.href}>
           <Link href={link.href}>{link.label}</Link>
         </Button>
       ))}
     </>
   );
+
+  if (inSheet) {
+    return (
+      <>
+        {links.map((link) => (
+          <SheetClose asChild key={link.href}>
+            <Button variant="ghost" asChild className="justify-start">
+              <Link href={link.href}>{link.label}</Link>
+            </Button>
+          </SheetClose>
+        ))}
+      </>
+    );
+  }
+
+  return <>{content}</>;
 };
 
 export default function Header() {
@@ -62,15 +80,26 @@ export default function Header() {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="w-full max-w-sm p-0">
-              <SheetTitle className="sr-only">Menu</SheetTitle>
               <div className="p-4">
-                <Link href="/">
-                  <Logo />
-                </Link>
+                <SheetClose asChild>
+                  <Link href="/">
+                    <Logo />
+                  </Link>
+                </SheetClose>
               </div>
               <Separator />
               <div className="flex flex-col space-y-2 p-4">
-                <NavLinks />
+                <NavLinks inSheet />
+              </div>
+              <div className="p-4">
+                 <SheetClose asChild>
+                    <Button asChild className="w-full">
+                    <Link href="/login">
+                        <LogIn className="mr-2 h-4 w-4" />
+                        Se connecter
+                    </Link>
+                    </Button>
+                 </SheetClose>
               </div>
               <Separator />
               <div className="p-4 space-y-4">
