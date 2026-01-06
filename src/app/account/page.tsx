@@ -61,9 +61,10 @@ export default function AccountProfilePage() {
     }, [userData, reset]);
 
     const onSubmit = (data: ProfileFormValues) => {
-        if (!userRef) return;
-        // Use { merge: true } to only update the fields in the form
+        if (!userRef || !firestore) return;
+
         setDocumentNonBlocking(userRef, data, { merge: true });
+        
         toast({
             title: "Profile Updated",
             description: "Your changes have been saved successfully.",
@@ -129,6 +130,7 @@ export default function AccountProfilePage() {
                     <div className="space-y-2">
                         <Label htmlFor="displayName">{t('account.profile.name')}</Label>
                         <Input id="displayName" value={userData?.displayName || ''} disabled />
+                        <p className="text-xs text-muted-foreground">Your name from your Google account.</p>
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="email">{t('account.profile.email')}</Label>

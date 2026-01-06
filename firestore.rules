@@ -81,21 +81,30 @@ service cloud.firestore {
      */
      function canUpdateOwnProfile() {
         let incomingData = request.resource.data;
+        let existingData = resource.data;
+        let numFieldsBeingUpdated = incomingData.keys().size();
 
-        // Ensure no-self-proclaim of admin rights
-        let isNotAdminUpdate = !("isAdmin" in incomingData) && !("roles" in incomingData);
-        // Ensure immutable fields are not changed
-        let areImmutableFieldsUnchanged = !("createdAt" in incomingData) && !("email" in incomingData);
+        // Scenario 1: Just updating lastLoginAt (1 field)
+        if ("lastLoginAt" in incomingData && numFieldsBeingUpdated == 1) {
+          return incomingData.lastLoginAt == request.time;
+        }
+
+        // Scenario 2: Updating profile from the form
+        // These fields are not allowed to be changed by the user at all.
+        let areProtectedFieldsUntouched = 
+            !("isAdmin" in incomingData) && 
+            !("roles" in incomingData) &&
+            !("createdAt" in incomingData) &&
+            !("email" in incomingData) &&
+            !("displayName" in incomingData);
         
-        // Ensure all other fields being updated are of the correct type
-        let areFieldsValid = 
-            (!("displayName" in incomingData) || incomingData.displayName is string) &&
+        // These fields can be changed, so we validate their types.
+        let areUpdatableFieldsValid = 
             (!("language" in incomingData) || incomingData.language is string) &&
             (!("phoneWhatsApp" in incomingData) || incomingData.phoneWhatsApp is string) &&
-            (!("consentWhatsApp" in incomingData) || incomingData.consentWhatsApp is bool) &&
-            (!("lastLoginAt" in incomingData) || incomingData.lastLoginAt == request.time);
-            
-        return isNotAdminUpdate && areImmutableFieldsUnchanged && areFieldsValid;
+            (!("consentWhatsApp" in incomingData) || incomingData.consentWhatsApp is bool);
+
+        return areProtectedFieldsUntouched && areUpdatableFieldsValid;
      }
 
 
