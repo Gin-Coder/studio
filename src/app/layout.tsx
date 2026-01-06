@@ -2,9 +2,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { ClientLayout } from './client-layout';
-import Header from '@/components/layout/Header';
-import Footer from '@/components/layout/Footer';
-import { Toaster } from '@/components/ui/toaster';
 
 
 // Metadata is defined in the Server Component part of the file.
@@ -42,12 +39,8 @@ export default function RootLayout({
   // which will provide all the client-side context.
   return (
     <ClientLayout>
-      <div className="flex min-h-screen flex-col">
-        <Header />
-        <main className="flex-grow">{children}</main>
-        <Footer />
-      </div>
-      <Toaster />
+      {children}
     </ClientLayout>
   );
 }
+
