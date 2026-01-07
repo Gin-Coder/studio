@@ -81,12 +81,13 @@ export default function AccountProfilePage() {
 
         const fullPhoneNumber = `${data.countryCode}${data.phone}`;
 
-        setDocumentNonBlocking(userRef, { 
-            phoneWhatsApp: fullPhoneNumber,
-            consentWhatsApp: data.consentWhatsApp,
-            language: userData?.language, // Preserve existing language
-            lastLoginAt: userData?.lastLoginAt // Preserve existing last login
-        }, { merge: true });
+        // Only include fields that the user is allowed to modify.
+        const updateData = {
+          phoneWhatsApp: fullPhoneNumber,
+          consentWhatsApp: data.consentWhatsApp,
+        };
+
+        setDocumentNonBlocking(userRef, updateData, { merge: true });
         
         toast({
             title: "Profile Updated",

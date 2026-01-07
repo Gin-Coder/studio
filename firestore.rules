@@ -89,6 +89,7 @@ service cloud.firestore {
             !("roles" in incomingData) &&
             !("createdAt" in incomingData) &&
             !("email" in incomingData) &&
+            !("photoURL" in incomingData) && // Also protect photoURL from user change
             !("displayName" in incomingData);
         
         // Fields that can be changed, so we validate their types.
@@ -338,5 +339,3 @@ service cloud.firestore {
     }
   }
 }
-
-    
