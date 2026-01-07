@@ -82,15 +82,8 @@ service cloud.firestore {
      function canUpdateOwnProfile() {
         let incomingData = request.resource.data;
         let existingData = resource.data;
-        let numFieldsBeingUpdated = incomingData.keys().size();
 
-        // Scenario 1: Just updating lastLoginAt (1 field)
-        if ("lastLoginAt" in incomingData && numFieldsBeingUpdated == 1) {
-          return incomingData.lastLoginAt == request.time;
-        }
-
-        // Scenario 2: Updating profile from the form
-        // These fields are not allowed to be changed by the user at all.
+        // Fields that are not allowed to be changed by the user at all.
         let areProtectedFieldsUntouched = 
             !("isAdmin" in incomingData) && 
             !("roles" in incomingData) &&
@@ -98,11 +91,12 @@ service cloud.firestore {
             !("email" in incomingData) &&
             !("displayName" in incomingData);
         
-        // These fields can be changed, so we validate their types.
+        // Fields that can be changed, so we validate their types.
         let areUpdatableFieldsValid = 
             (!("language" in incomingData) || incomingData.language is string) &&
             (!("phoneWhatsApp" in incomingData) || incomingData.phoneWhatsApp is string) &&
-            (!("consentWhatsApp" in incomingData) || incomingData.consentWhatsApp is bool);
+            (!("consentWhatsApp" in incomingData) || incomingData.consentWhatsApp is bool) &&
+            (!("lastLoginAt" in incomingData) || incomingData.lastLoginAt == request.time);
 
         return areProtectedFieldsUntouched && areUpdatableFieldsValid;
      }
@@ -344,3 +338,5 @@ service cloud.firestore {
     }
   }
 }
+
+    
