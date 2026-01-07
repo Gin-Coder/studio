@@ -81,12 +81,11 @@ service cloud.firestore {
      */
      function canUpdateOwnProfile(userId) {
         let incomingData = request.resource.data;
-        let existingData = resource.data;
 
-        // Condition 1: Updating only lastLoginAt.
+        // Condition 1: Updating only lastLoginAt during login.
         let isUpdatingLastLogin = incomingData.keys().hasOnly(['lastLoginAt']) && incomingData.lastLoginAt == request.time;
         
-        // Condition 2: Updating user-editable profile fields.
+        // Condition 2: Updating user-editable profile fields from the account page.
         let isUpdatingProfile = 
           // Protected fields are not in the incoming request
           !("isAdmin" in incomingData) && 
@@ -98,9 +97,7 @@ service cloud.firestore {
           // Validate types of editable fields if they are present
           (!("language" in incomingData) || incomingData.language is string) &&
           (!("phoneWhatsApp" in incomingData) || incomingData.phoneWhatsApp is string) &&
-          (!("consentWhatsApp" in incomingData) || incomingData.consentWhatsApp is bool) &&
-          // Ensure lastLoginAt is also valid if it's part of the profile update
-          (!("lastLoginAt" in incomingData) || incomingData.lastLoginAt == request.time);
+          (!("consentWhatsApp" in incomingData) || incomingData.consentWhatsApp is bool);
 
         // Allow update if the user is the owner AND one of the two conditions is met.
         return isOwner(userId) && (isUpdatingLastLogin || isUpdatingProfile);
@@ -343,5 +340,3 @@ service cloud.firestore {
     }
   }
 }
-
-    
