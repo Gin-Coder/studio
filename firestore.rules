@@ -79,27 +79,31 @@ service cloud.firestore {
      * Validates that a user can update their own profile fields without
      * escalating privileges or changing immutable data.
      */
-     function canUpdateOwnProfile() {
+     function canUpdateOwnProfile(userId) {
         let incomingData = request.resource.data;
         let existingData = resource.data;
 
-        // Fields that are not allowed to be changed by the user at all.
-        let areProtectedFieldsUntouched = 
-            !("isAdmin" in incomingData) && 
-            !("roles" in incomingData) &&
-            !("createdAt" in incomingData) &&
-            !("email" in incomingData) &&
-            !("photoURL" in incomingData) && // Also protect photoURL from user change
-            !("displayName" in incomingData);
+        // Condition 1: Updating only lastLoginAt.
+        let isUpdatingLastLogin = incomingData.keys().hasOnly(['lastLoginAt']) && incomingData.lastLoginAt == request.time;
         
-        // Fields that can be changed, so we validate their types.
-        let areUpdatableFieldsValid = 
-            (!("language" in incomingData) || incomingData.language is string) &&
-            (!("phoneWhatsApp" in incomingData) || incomingData.phoneWhatsApp is string) &&
-            (!("consentWhatsApp" in incomingData) || incomingData.consentWhatsApp is bool) &&
-            (!("lastLoginAt" in incomingData) || incomingData.lastLoginAt == request.time);
+        // Condition 2: Updating user-editable profile fields.
+        let isUpdatingProfile = 
+          // Protected fields are not in the incoming request
+          !("isAdmin" in incomingData) && 
+          !("roles" in incomingData) &&
+          !("createdAt" in incomingData) &&
+          !("email" in incomingData) &&
+          !("photoURL" in incomingData) && 
+          !("displayName" in incomingData) &&
+          // Validate types of editable fields if they are present
+          (!("language" in incomingData) || incomingData.language is string) &&
+          (!("phoneWhatsApp" in incomingData) || incomingData.phoneWhatsApp is string) &&
+          (!("consentWhatsApp" in incomingData) || incomingData.consentWhatsApp is bool) &&
+          // Ensure lastLoginAt is also valid if it's part of the profile update
+          (!("lastLoginAt" in incomingData) || incomingData.lastLoginAt == request.time);
 
-        return areProtectedFieldsUntouched && areUpdatableFieldsValid;
+        // Allow update if the user is the owner AND one of the two conditions is met.
+        return isOwner(userId) && (isUpdatingLastLogin || isUpdatingProfile);
      }
 
 
@@ -120,7 +124,7 @@ service cloud.firestore {
       allow get: if isOwner(userId);
       allow list: if false;
       allow create: if isCreatingOwnUser(userId);
-      allow update: if isExistingOwner(userId) && canUpdateOwnProfile();
+      allow update: if canUpdateOwnProfile(userId);
       allow delete: if isExistingOwner(userId);
     }
 
@@ -339,3 +343,5 @@ service cloud.firestore {
     }
   }
 }
+
+    
