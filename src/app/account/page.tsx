@@ -21,7 +21,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { countries } from '@/lib/countries';
 
 const profileFormSchema = z.object({
-  countryCode: z.string().min(1, 'Country code is required'),
+  countryUniqueValue: z.string().min(1, 'Country is required'),
   phone: z.string().min(1, 'WhatsApp number is required'),
   consentWhatsApp: z.boolean().refine(val => val === true, {
     message: 'You must consent to WhatsApp communication',
@@ -47,7 +47,7 @@ export default function AccountProfilePage() {
     const { control, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<ProfileFormValues>({
         resolver: zodResolver(profileFormSchema),
         defaultValues: {
-            countryCode: '+509',
+            countryUniqueValue: 'HT_+509',
             phone: '',
             consentWhatsApp: false,
         }
@@ -57,14 +57,16 @@ export default function AccountProfilePage() {
         if (userData?.phoneWhatsApp) {
             const country = countries.find(c => userData.phoneWhatsApp.startsWith(c.dial_code));
             if (country) {
+                // Find the specific country entry if multiple have the same dial_code
+                const specificCountry = countries.find(c => c.uniqueValue === `${c.code}_${country.dial_code}`) || country;
                 reset({
-                    countryCode: country.dial_code,
+                    countryUniqueValue: specificCountry.uniqueValue,
                     phone: userData.phoneWhatsApp.substring(country.dial_code.length),
                     consentWhatsApp: userData.consentWhatsApp || false,
                 });
             } else {
                  reset({
-                    countryCode: '+509', // Default
+                    countryUniqueValue: 'HT_+509', // Default
                     phone: userData.phoneWhatsApp,
                     consentWhatsApp: userData.consentWhatsApp || false,
                 });
@@ -72,14 +74,16 @@ export default function AccountProfilePage() {
         } else if (userData) {
              reset({
                 consentWhatsApp: userData.consentWhatsApp || false,
-            });
+             });
         }
     }, [userData, reset]);
 
     const onSubmit = (data: ProfileFormValues) => {
         if (!userRef || !firestore) return;
 
-        const fullPhoneNumber = `${data.countryCode}${data.phone}`;
+        const selectedCountry = countries.find(c => c.uniqueValue === data.countryUniqueValue);
+        const dialCode = selectedCountry ? selectedCountry.dial_code : '';
+        const fullPhoneNumber = `${dialCode}${data.phone}`;
 
         // Only include fields that the user is allowed to modify.
         const updateData = {
@@ -165,7 +169,7 @@ export default function AccountProfilePage() {
                         <Label htmlFor="phone">{t('account.profile.whatsapp')}</Label>
                         <div className="flex items-center gap-2">
                            <Controller
-                                name="countryCode"
+                                name="countryUniqueValue"
                                 control={control}
                                 render={({ field }) => (
                                     <Select onValueChange={field.onChange} value={field.value}>
@@ -174,7 +178,7 @@ export default function AccountProfilePage() {
                                         </SelectTrigger>
                                         <SelectContent>
                                             {countries.map(country => (
-                                                <SelectItem key={`${country.code}-${country.dial_code}`} value={country.dial_code}>
+                                                <SelectItem key={country.uniqueValue} value={country.uniqueValue}>
                                                     {country.flag} {country.dial_code}
                                                 </SelectItem>
                                             ))}
@@ -188,7 +192,7 @@ export default function AccountProfilePage() {
                                 render={({ field }) => <Input id="phone" type="tel" {...field} className="flex-1" placeholder="Your number"/>}
                             />
                         </div>
-                        {errors.countryCode && <p className="text-sm text-destructive">{errors.countryCode.message}</p>}
+                        {errors.countryUniqueValue && <p className="text-sm text-destructive">{errors.countryUniqueValue.message}</p>}
                         {errors.phone && <p className="text-sm text-destructive">{errors.phone.message}</p>}
                     </div>
 
