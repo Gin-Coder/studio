@@ -32,6 +32,7 @@ import { useCart } from '@/hooks/use-cart';
 import { useWishlist } from '@/hooks/use-wishlist';
 import { Separator } from '../ui/separator';
 import { useFirebase } from '@/firebase';
+import { useState, useEffect } from 'react';
 
 const NavLinks = ({ inSheet = false }: { inSheet?: boolean }) => {
   const { t } = useLanguage();
@@ -76,6 +77,12 @@ export default function Header() {
   const { wishlistCount } = useWishlist();
   const { user, isUserLoading, auth } = useFirebase();
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
 
    const handleSignOut = async () => {
     if (auth) {
@@ -83,6 +90,15 @@ export default function Header() {
       router.push('/login');
     }
   };
+
+  // Render a placeholder or null on the server and initial client render
+  if (!mounted) {
+    return (
+        <header className="sticky top-0 z-50 w-full border-b bg-background/95">
+            <div className="container flex h-16 items-center" />
+        </header>
+    );
+  }
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
