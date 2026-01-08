@@ -31,6 +31,9 @@ export default function Footer() {
             <Link href="/terms-conditions" className="text-sm text-muted-foreground hover:text-foreground">
               Terms & Conditions
             </Link>
+            <Link href="/admin/login" className="text-sm text-muted-foreground hover:text-foreground">
+              Staff Login
+            </Link>
           </div>
         </div>
 
