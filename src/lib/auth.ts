@@ -2,8 +2,7 @@
 import {
   Auth,
   GoogleAuthProvider,
-  signInWithPopup,
-  UserCredential,
+  signInWithRedirect,
   User as FirebaseUser,
 } from 'firebase/auth';
 import {
@@ -19,18 +18,14 @@ import { FirestorePermissionError } from '@/firebase/errors';
 
 export const handleSignInWithGoogle = async (
   auth: Auth
-): Promise<UserCredential | null> => {
+): Promise<void> => {
   const provider = new GoogleAuthProvider();
   try {
-    const result = await signInWithPopup(auth, provider);
-    return result;
+    // This will redirect the user to the Google sign-in page
+    // The result is handled on the login page after redirect
+    await signInWithRedirect(auth, provider);
   } catch (error: any) {
-    if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
-      console.log('Sign-in popup closed by user.');
-      return null;
-    }
-    console.error('Error during Google sign-in:', error);
-    return null;
+     console.error('Error during Google sign-in redirect:', error);
   }
 };
 
@@ -53,8 +48,6 @@ export const getOrCreateUser = (user: FirebaseUser): Promise<void> => {
             consentWhatsApp: false,
             createdAt: serverTimestamp(),
             lastLoginAt: serverTimestamp(),
-            // DO NOT set isAdmin or roles on creation.
-            // Security rules prevent this. These fields are managed by admins.
           };
           setDoc(userRef, newUserDoc)
             .then(() => resolve())

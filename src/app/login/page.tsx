@@ -1,7 +1,8 @@
+
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -9,6 +10,7 @@ import { Logo } from "@/components/ui/logo";
 import { useFirebase } from '@/firebase';
 import { handleSignInWithGoogle, getOrCreateUser } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
+import { getRedirectResult } from 'firebase/auth';
 
 const GoogleIcon = () => (
     <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
@@ -20,45 +22,51 @@ const GoogleIcon = () => (
 export default function LoginPage() {
     const { auth, user, isUserLoading } = useFirebase();
     const router = useRouter();
+    const searchParams = useSearchParams();
     const { toast } = useToast();
 
+    // Handle the result of the redirect sign-in
+    useEffect(() => {
+        if (!auth || isUserLoading) return;
+
+        getRedirectResult(auth)
+            .then(async (result) => {
+                if (result?.user) {
+                    await getOrCreateUser(result.user);
+                    toast({
+                        title: "Connexion réussie",
+                        description: `Bienvenue, ${result.user.displayName} !`,
+                    });
+                    const redirectUrl = searchParams.get('redirect') || '/account';
+                    router.push(redirectUrl);
+                }
+            })
+            .catch((error) => {
+                console.error("Erreur de connexion par redirection : ", error);
+                if (error.code !== 'auth/no-user-for-redirect') {
+                    toast({
+                        variant: "destructive",
+                        title: "Erreur de connexion",
+                        description: "Une erreur est survenue. Veuillez réessayer.",
+                    });
+                }
+            });
+    }, [auth, isUserLoading, router, toast, searchParams]);
+
+    // Redirect if user is already logged in
     useEffect(() => {
         if (!isUserLoading && user) {
-            getOrCreateUser(user).then(() => {
-                router.push('/account');
-            });
+            const redirectUrl = searchParams.get('redirect') || '/account';
+            router.push(redirectUrl);
         }
-    }, [user, isUserLoading, router]);
+    }, [user, isUserLoading, router, searchParams]);
+
 
     const onSignIn = async () => {
         if (!auth) return;
-        try {
-            const userCredential = await handleSignInWithGoogle(auth);
-            if (userCredential?.user) {
-                await getOrCreateUser(userCredential.user);
-                toast({
-                    title: "Connexion réussie",
-                    description: `Bienvenue, ${userCredential.user.displayName} !`,
-                });
-                router.push('/account');
-            }
-        } catch (error: any) {
-            console.error("Erreur de connexion : ", error);
-            toast({
-                variant: "destructive",
-                title: "Erreur de connexion",
-                description: "Une erreur est survenue lors de la connexion avec Google. Veuillez réessayer.",
-            });
-        }
+        // This function now just initiates the redirect
+        handleSignInWithGoogle(auth);
     };
-
-    if (isUserLoading || user) {
-        return (
-            <div className="container flex min-h-[80vh] items-center justify-center py-12">
-                <p>Loading...</p>
-            </div>
-        );
-    }
     
     return (
         <div className="container flex min-h-[80vh] items-center justify-center py-12">
@@ -97,3 +105,4 @@ export default function LoginPage() {
         </div>
     );
 }
+
