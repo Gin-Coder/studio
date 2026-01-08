@@ -77,12 +77,11 @@ export default function Header() {
   const { wishlistCount } = useWishlist();
   const { user, isUserLoading, auth } = useFirebase();
   const router = useRouter();
-  const [mounted, setMounted] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
+    setIsMounted(true);
   }, []);
-
 
    const handleSignOut = async () => {
     if (auth) {
@@ -90,15 +89,15 @@ export default function Header() {
       router.push('/login');
     }
   };
-
-  // Render a placeholder or null on the server and initial client render
-  if (!mounted) {
+  
+  if (!isMounted) {
     return (
-        <header className="sticky top-0 z-50 w-full border-b bg-background/95">
+        <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div className="container flex h-16 items-center" />
         </header>
     );
   }
+
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
