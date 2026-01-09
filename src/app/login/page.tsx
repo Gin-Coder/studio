@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect } from 'react';
@@ -10,7 +9,7 @@ import { Logo } from "@/components/ui/logo";
 import { useFirebase } from '@/firebase';
 import { handleSignInWithGoogle, getOrCreateUser } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
-import { getRedirectResult } from 'firebase/auth';
+import { getRedirectResult, UserCredential } from 'firebase/auth';
 
 const GoogleIcon = () => (
     <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
@@ -25,7 +24,7 @@ export default function LoginPage() {
     const searchParams = useSearchParams();
     const { toast } = useToast();
 
-    // Handle the result of the redirect sign-in
+    // Handle the result of a redirect sign-in, which runs when the page loads after redirect.
     useEffect(() => {
         if (!auth || isUserLoading) return;
 
@@ -43,15 +42,18 @@ export default function LoginPage() {
             })
             .catch((error) => {
                 console.error("Erreur de connexion par redirection : ", error);
+                // Avoid showing an error toast if the error is just that there's no redirect user to be found.
                 if (error.code !== 'auth/no-user-for-redirect') {
                     toast({
                         variant: "destructive",
                         title: "Erreur de connexion",
-                        description: "Une erreur est survenue. Veuillez réessayer.",
+                        description: "Une erreur est survenue lors de la tentative de connexion par redirection.",
                     });
                 }
             });
+    // The dependency array includes everything that could trigger this effect.
     }, [auth, isUserLoading, router, toast, searchParams]);
+
 
     // Redirect if user is already logged in
     useEffect(() => {
@@ -64,8 +66,33 @@ export default function LoginPage() {
 
     const onSignIn = async () => {
         if (!auth) return;
-        // This function now just initiates the redirect
-        handleSignInWithGoogle(auth);
+        
+        try {
+            const result = await handleSignInWithGoogle(auth);
+            
+            // This part will only execute if signInWithPopup was successful and didn't fall back to redirect.
+            if (result?.user) {
+                await getOrCreateUser(result.user);
+                 toast({
+                    title: "Connexion réussie",
+                    description: `Bienvenue, ${result.user.displayName}!`,
+                });
+                const redirectUrl = searchParams.get('redirect') || '/account';
+                router.push(redirectUrl);
+            }
+            // If handleSignInWithGoogle fell back to redirect, this code block won't be reached.
+            // The getRedirectResult effect will handle the login after the user is redirected back.
+
+        } catch (error: any) {
+             // This catch block will now primarily handle errors not caught inside handleSignInWithGoogle,
+             // or re-thrown errors.
+            console.error("Erreur de connexion: ", error);
+            toast({
+                variant: "destructive",
+                title: "Erreur de connexion",
+                description: error.message || "Une erreur inconnue est survenue.",
+            });
+        }
     };
     
     return (
@@ -105,4 +132,3 @@ export default function LoginPage() {
         </div>
     );
 }
-

@@ -2,8 +2,10 @@
 import {
   Auth,
   GoogleAuthProvider,
+  signInWithPopup,
   signInWithRedirect,
   User as FirebaseUser,
+  UserCredential,
 } from 'firebase/auth';
 import {
   doc,
@@ -18,14 +20,28 @@ import { FirestorePermissionError } from '@/firebase/errors';
 
 export const handleSignInWithGoogle = async (
   auth: Auth
-): Promise<void> => {
+): Promise<UserCredential | null> => {
   const provider = new GoogleAuthProvider();
   try {
-    // This will redirect the user to the Google sign-in page
-    // The result is handled on the login page after redirect
-    await signInWithRedirect(auth, provider);
+    // Prefer popup, as it's a better user experience.
+    const result = await signInWithPopup(auth, provider);
+    return result;
   } catch (error: any) {
-     console.error('Error during Google sign-in redirect:', error);
+    // If popup fails (e.g., blocked by browser), fall back to redirect.
+    if (
+      error.code === 'auth/popup-blocked-by-browser' ||
+      error.code === 'auth/cancelled-popup-request'
+    ) {
+      console.log('Popup was blocked or closed, falling back to redirect...');
+      await signInWithRedirect(auth, provider);
+      // After redirect, the page will reload and getRedirectResult will handle the login.
+      // So, we return null here because the promise won't resolve in this context.
+      return null;
+    } else {
+      // For other errors, we re-throw them to be handled by the calling component.
+      console.error('Error during Google sign-in:', error);
+      throw error;
+    }
   }
 };
 
