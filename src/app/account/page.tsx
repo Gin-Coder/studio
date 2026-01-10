@@ -47,36 +47,42 @@ export default function AccountProfilePage() {
     const { control, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<ProfileFormValues>({
         resolver: zodResolver(profileFormSchema),
         defaultValues: {
-            countryUniqueValue: 'HT_+509',
+            countryUniqueValue: '',
             phone: '',
             consentWhatsApp: false,
         }
     });
 
     useEffect(() => {
-        if (userData?.phoneWhatsApp) {
-            const country = countries.find(c => userData.phoneWhatsApp.startsWith(c.dial_code));
-            if (country) {
-                // Find the specific country entry if multiple have the same dial_code
-                const specificCountry = countries.find(c => c.uniqueValue === `${c.code}_${country.dial_code}`) || country;
-                reset({
-                    countryUniqueValue: specificCountry.uniqueValue,
-                    phone: userData.phoneWhatsApp.substring(country.dial_code.length),
-                    consentWhatsApp: userData.consentWhatsApp || false,
-                });
-            } else {
-                 reset({
-                    countryUniqueValue: 'HT_+509', // Default
-                    phone: userData.phoneWhatsApp,
-                    consentWhatsApp: userData.consentWhatsApp || false,
-                });
+        if (userData) {
+            const phone = userData.phoneWhatsApp || '';
+            const consent = userData.consentWhatsApp || false;
+            let countryValue = 'HT_+509'; // Default to Haiti
+            let phoneWithoutDialCode = phone;
+
+            const foundCountry = countries.find(c => phone.startsWith(c.dial_code));
+            
+            if (foundCountry) {
+                // Try to find the most specific match if dial codes are shared
+                const specificCountry = countries.find(c => c.uniqueValue === `${c.code}_${foundCountry.dial_code}` && phone.startsWith(c.dial_code)) || foundCountry;
+                countryValue = specificCountry.uniqueValue;
+                phoneWithoutDialCode = phone.substring(specificCountry.dial_code.length);
             }
-        } else if (userData) {
-             reset({
-                consentWhatsApp: userData.consentWhatsApp || false,
-             });
+
+            reset({
+                countryUniqueValue: countryValue,
+                phone: phoneWithoutDialCode,
+                consentWhatsApp: consent,
+            });
+        } else if (!isLoading) {
+            // Set default for new user or if data fails to load
+            reset({
+                countryUniqueValue: 'HT_+509',
+                phone: '',
+                consentWhatsApp: false,
+            });
         }
-    }, [userData, reset]);
+    }, [userData, isLoading, reset]);
 
     const onSubmit = (data: ProfileFormValues) => {
         if (!userRef || !firestore) return;
@@ -234,3 +240,4 @@ export default function AccountProfilePage() {
         </form>
     );
 }
+
