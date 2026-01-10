@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,8 @@ import { Logo } from "@/components/ui/logo";
 import { useFirebase } from '@/firebase';
 import { handleSignInWithGoogle, getOrCreateUser } from '@/lib/auth';
 import { useToast } from '@/hooks/use-toast';
-import { getRedirectResult, UserCredential } from 'firebase/auth';
+import { getRedirectResult } from 'firebase/auth';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const GoogleIcon = () => (
     <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
@@ -23,77 +24,91 @@ export default function LoginPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { toast } = useToast();
+    const [isProcessingLogin, setIsProcessingLogin] = useState(true);
 
     // Handle the result of a redirect sign-in, which runs when the page loads after redirect.
     useEffect(() => {
-        if (!auth || isUserLoading) return;
+        if (!auth) return;
 
-        getRedirectResult(auth)
-            .then(async (result) => {
-                if (result?.user) {
-                    await getOrCreateUser(result.user);
-                    toast({
-                        title: "Connexion réussie",
-                        description: `Bienvenue, ${result.user.displayName} !`,
-                    });
-                    const redirectUrl = searchParams.get('redirect') || '/account';
-                    router.push(redirectUrl);
-                }
-            })
-            .catch((error) => {
-                console.error("Erreur de connexion par redirection : ", error);
-                // Avoid showing an error toast if the error is just that there's no redirect user to be found.
-                if (error.code !== 'auth/no-user-for-redirect') {
+        // isUserLoading is true on initial load. We only want to process redirect once.
+        if (isUserLoading) {
+            getRedirectResult(auth)
+                .then(async (result) => {
+                    if (result?.user) {
+                        await getOrCreateUser(result.user);
+                        toast({
+                            title: "Connexion réussie",
+                            description: `Bienvenue, ${result.user.displayName} !`,
+                        });
+                        const redirectUrl = searchParams.get('redirect') || '/account';
+                        router.push(redirectUrl);
+                    } else {
+                        // No redirect result, so we're done processing.
+                        setIsProcessingLogin(false);
+                    }
+                })
+                .catch((error) => {
+                    console.error("Erreur de connexion par redirection : ", error);
                     toast({
                         variant: "destructive",
                         title: "Erreur de connexion",
-                        description: "Une erreur est survenue lors de la tentative de connexion par redirection.",
+                        description: "Une erreur est survenue lors de la tentative de connexion.",
                     });
-                }
-            });
-    // The dependency array includes everything that could trigger this effect.
-    }, [auth, isUserLoading, router, toast, searchParams]);
+                    setIsProcessingLogin(false);
+                });
+        } else if (!user) {
+            // If auth is resolved and there's no user, we're not processing a login.
+            setIsProcessingLogin(false);
+        }
+    }, [auth, isUserLoading, router, toast, searchParams, user]);
 
 
-    // Redirect if user is already logged in
+    // Redirect if user is already logged in and we are not in the middle of processing a redirect.
     useEffect(() => {
-        if (!isUserLoading && user) {
+        if (!isProcessingLogin && user) {
             const redirectUrl = searchParams.get('redirect') || '/account';
             router.push(redirectUrl);
         }
-    }, [user, isUserLoading, router, searchParams]);
+    }, [user, isProcessingLogin, router, searchParams]);
 
 
     const onSignIn = async () => {
         if (!auth) return;
-        
+        setIsProcessingLogin(true); // Indicate that a login process has started
         try {
-            const result = await handleSignInWithGoogle(auth);
-            
-            // This part will only execute if signInWithPopup was successful and didn't fall back to redirect.
-            if (result?.user) {
-                await getOrCreateUser(result.user);
-                 toast({
-                    title: "Connexion réussie",
-                    description: `Bienvenue, ${result.user.displayName}!`,
-                });
-                const redirectUrl = searchParams.get('redirect') || '/account';
-                router.push(redirectUrl);
-            }
-            // If handleSignInWithGoogle fell back to redirect, this code block won't be reached.
-            // The getRedirectResult effect will handle the login after the user is redirected back.
-
+            await handleSignInWithGoogle(auth);
+            // The user will be redirected to Google and then back to this page.
+            // The useEffect hook with `getRedirectResult` will handle the rest.
         } catch (error: any) {
-             // This catch block will now primarily handle errors not caught inside handleSignInWithGoogle,
-             // or re-thrown errors.
             console.error("Erreur de connexion: ", error);
             toast({
                 variant: "destructive",
                 title: "Erreur de connexion",
                 description: error.message || "Une erreur inconnue est survenue.",
             });
+            setIsProcessingLogin(false);
         }
     };
+    
+    // While checking auth state or processing a redirect, show a loading state
+    if (isUserLoading || isProcessingLogin) {
+        return (
+             <div className="container flex min-h-[80vh] items-center justify-center py-12">
+                <Card className="w-full max-w-md">
+                    <CardHeader className="text-center">
+                        <Logo className="mx-auto mb-2" />
+                        <CardTitle className="font-headline text-2xl">Welcome to Danny Store</CardTitle>
+                        <CardDescription>Please wait while we check your login status...</CardDescription>
+                    </CardHeader>
+                    <CardContent className="flex flex-col gap-4">
+                        <Skeleton className="h-10 w-full" />
+                        <Skeleton className="h-10 w-full" />
+                        <Skeleton className="h-10 w-full" />
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
     
     return (
         <div className="container flex min-h-[80vh] items-center justify-center py-12">
@@ -105,7 +120,7 @@ export default function LoginPage() {
                 </CardHeader>
                 <CardContent>
                     <div className="flex flex-col gap-4">
-                        <Button className="w-full" onClick={onSignIn} disabled={isUserLoading}>
+                        <Button className="w-full" onClick={onSignIn} disabled={isProcessingLogin}>
                            <GoogleIcon /> Continue with Google
                         </Button>
                         <Button variant="secondary" className="w-full" disabled>
