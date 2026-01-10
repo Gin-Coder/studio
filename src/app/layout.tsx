@@ -2,7 +2,8 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { ClientLayout } from './client-layout';
-
+import { Playfair_Display, PT_Sans } from 'next/font/google';
+import { cn } from '@/lib/utils';
 
 // Metadata is defined in the Server Component part of the file.
 export const metadata: Metadata = {
@@ -30,6 +31,18 @@ export const metadata: Metadata = {
   },
 };
 
+const fontHeadline = Playfair_Display({
+  subsets: ['latin'],
+  variable: '--font-headline',
+});
+
+const fontBody = PT_Sans({
+  subsets: ['latin'],
+  weight: ['400', '700'],
+  variable: '--font-body',
+});
+
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -41,15 +54,9 @@ export default function RootLayout({
     // The suppressHydrationWarning is important here because the client will change the lang attribute
     <html lang="en" suppressHydrationWarning>
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400..900&family=PT+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap"
-          rel="stylesheet"
-        />
         <link rel="icon" href="/logo.png" sizes="any" />
       </head>
-      <body className="font-body antialiased">
+      <body className={cn("font-body antialiased", fontHeadline.variable, fontBody.variable)}>
         <ClientLayout>
           {children}
         </ClientLayout>
