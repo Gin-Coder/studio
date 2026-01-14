@@ -221,7 +221,7 @@ export default function ShopPage() {
                 </SheetContent>
               </Sheet>
             </div>
-            <p className="text-sm text-muted-foreground">{sortedProducts.length} products</p>
+            <div className="flex-1" />
             <Select onValueChange={setSortOption} defaultValue="newest">
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder={t('filter.sort_by')} />
