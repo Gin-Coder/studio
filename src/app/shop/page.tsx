@@ -21,6 +21,8 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Checkbox } from '@/components/ui/checkbox';
 import { Slider } from '@/components/ui/slider';
 import { useLanguage } from '@/hooks/use-language';
+import { useCurrency } from '@/hooks/use-currency';
+import { formatPrice } from '@/lib/utils';
 
 const uniqueSizes = [...new Set(products.flatMap(p => p.variants.map(v => v.size)))];
 const uniqueColors = [...new Set(products.flatMap(p => p.variants.map(v => v.colorName)))];
@@ -33,7 +35,8 @@ type FilterState = {
 }
 
 const Filters = ({ filters, setFilters }: { filters: FilterState, setFilters: React.Dispatch<React.SetStateAction<FilterState>> }) => {
-    const { t } = useLanguage();
+    const { t, language } = useLanguage();
+    const { currency, convertPrice } = useCurrency();
 
     const handleCategoryChange = (categoryId: string, checked: boolean) => {
         setFilters(prev => ({
@@ -62,6 +65,9 @@ const Filters = ({ filters, setFilters }: { filters: FilterState, setFilters: Re
         }));
     };
 
+    const displayPrice = convertPrice(filters.price);
+    const maxDisplayPrice = convertPrice(500);
+
     return (
         <div className="space-y-6">
             <Accordion type="multiple" defaultValue={['category', 'price']} className="w-full">
@@ -80,7 +86,7 @@ const Filters = ({ filters, setFilters }: { filters: FilterState, setFilters: Re
                                     htmlFor={`cat-${category.id}`}
                                     className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                                 >
-                                    {t(`filter.${category.id}`)}
+                                    {t(category.nameKey)}
                                 </label>
                             </div>
                         ))}
@@ -98,8 +104,8 @@ const Filters = ({ filters, setFilters }: { filters: FilterState, setFilters: Re
                                 onValueChange={(value) => setFilters(prev => ({ ...prev, price: value[0] }))}
                             />
                             <div className="flex justify-between mt-2 text-sm text-muted-foreground">
-                                <span>$0</span>
-                                <span>${filters.price}</span>
+                                <span>{formatPrice(convertPrice(0), language, currency)}</span>
+                                <span>{formatPrice(displayPrice, language, currency)}</span>
                             </div>
                         </div>
                     </AccordionContent>
@@ -160,7 +166,7 @@ export default function ShopPage() {
   const pageTitle = useMemo(() => {
     if (filters.categories.length === 1) {
         const category = categories.find(c => c.id === filters.categories[0]);
-        return t(`filter.${category?.id || ''}`) || t('shop.all_products');
+        return category ? t(category.nameKey) : t('shop.all_products');
     }
     return t('shop.all_products');
   }, [filters.categories, t]);
@@ -205,14 +211,14 @@ export default function ShopPage() {
                 <SheetTrigger asChild>
                   <Button variant="outline" size="icon">
                     <Filter className="h-4 w-4" />
-                    <span className="sr-only">Filters</span>
+                    <span className="sr-only">{t('shop.filters')}</span>
                   </Button>
                 </SheetTrigger>
                 <SheetContent side="left">
                     <SheetHeader>
                         <SheetTitle>{t('shop.filters')}</SheetTitle>
                         <SheetDescription className="sr-only">
-                            Filter products by category, price, size, and color.
+                            {t('shop.filters_description')}
                         </SheetDescription>
                     </SheetHeader>
                   <ScrollArea className="h-full pr-4 mt-4">
@@ -246,3 +252,5 @@ export default function ShopPage() {
     </div>
   );
 }
+
+    

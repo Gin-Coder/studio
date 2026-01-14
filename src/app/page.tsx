@@ -79,14 +79,14 @@ export default function Home() {
                   <CardContent className="relative aspect-square p-0">
                     <Image
                       src={category.imageUrl}
-                      alt={t(`filter.${category.id}`)}
+                      alt={t(category.nameKey)}
                       fill
                       className="object-cover transition-transform duration-300 group-hover:scale-105"
                       data-ai-hint={category.imageHint}
                     />
                     <div className="absolute inset-0 bg-black/30" />
                     <h3 className="absolute bottom-4 left-4 font-headline text-xl font-semibold text-white md:text-2xl">
-                      {t(`filter.${category.id}`)}
+                      {t(category.nameKey)}
                     </h3>
                   </CardContent>
                 </Card>
@@ -234,7 +234,7 @@ export default function Home() {
                             ))}
                         </div>
                         <p className="mb-4 italic text-muted-foreground">
-                          "{review.text}"
+                          "{t(review.textKey)}"
                         </p>
                         <div className="flex items-center">
                           <Image
@@ -261,3 +261,5 @@ export default function Home() {
     </div>
   );
 }
+
+    

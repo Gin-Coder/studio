@@ -14,6 +14,7 @@ import ProductActions from './ProductActions';
 import OutfitSuggestions from './OutfitSuggestions';
 import VirtualTryOn from './VirtualTryOn';
 import ProductPrice from './ProductPrice';
+import { ClientSideTranslator } from '@/components/ClientSideTranslator';
 
 
 // This function allows Next.js to generate static pages for each product at build time
@@ -62,60 +63,78 @@ export default function ProductDetailPage({ params }: { params: { slug: string }
                 />
               ))}
             </div>
-            <a href="#reviews" className="text-sm text-muted-foreground hover:underline">
-              ({product.reviewCount} reviews)
-            </a>
+            <ClientSideTranslator>
+              {t => (
+                <a href="#reviews" className="text-sm text-muted-foreground hover:underline">
+                  {t('product.reviews_link', { count: product.reviewCount })}
+                </a>
+              )}
+            </ClientSideTranslator>
           </div>
           <ProductPrice price={product.price} />
-          <p className="mt-4 text-muted-foreground">{product.description}</p>
+          <ClientSideTranslator>
+            {t => (
+              <p className="mt-4 text-muted-foreground">{t(product.descriptionKey)}</p>
+            )}
+          </ClientSideTranslator>
           
           <ProductActions product={product} />
           
           <div className="mt-8 space-y-4">
-            <div className="flex items-center gap-3">
-              <Truck className="h-6 w-6 text-primary" />
-              <p className="text-sm">Delivery confirmed via WhatsApp</p>
-            </div>
-             <div className="flex items-center gap-3">
-              <ShieldCheck className="h-6 w-6 text-primary" />
-              <p className="text-sm">Premium Quality Guaranteed</p>
-            </div>
+            <ClientSideTranslator>
+              {t => (
+                <>
+                  <div className="flex items-center gap-3">
+                    <Truck className="h-6 w-6 text-primary" />
+                    <p className="text-sm">{t('product.delivery_info')}</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <ShieldCheck className="h-6 w-6 text-primary" />
+                    <p className="text-sm">{t('product.quality_guarantee')}</p>
+                  </div>
+                </>
+              )}
+            </ClientSideTranslator>
           </div>
 
           <div className="mt-8">
-            <Accordion type="single" collapsible defaultValue="description">
-              <AccordionItem value="description">
-                <AccordionTrigger>Description</AccordionTrigger>
-                <AccordionContent>{product.longDescription}</AccordionContent>
-              </AccordionItem>
-              <AccordionItem value="details">
-                <AccordionTrigger>Details & Care</AccordionTrigger>
-                <AccordionContent>
-                  - 100% Premium Fabric <br />- Machine wash cold, tumble dry low <br />- Imported
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
+            <ClientSideTranslator>
+              {t => (
+                <Accordion type="single" collapsible defaultValue="description">
+                  <AccordionItem value="description">
+                    <AccordionTrigger>{t('product.description')}</AccordionTrigger>
+                    <AccordionContent>{t(product.longDescriptionKey)}</AccordionContent>
+                  </AccordionItem>
+                  <AccordionItem value="details">
+                    <AccordionTrigger>{t('product.details_care')}</AccordionTrigger>
+                    <AccordionContent>
+                      <span dangerouslySetInnerHTML={{ __html: t('product.details_care_content') }} />
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+              )}
+            </ClientSideTranslator>
           </div>
         </div>
       </div>
       
-      {/* Virtual Try-On */}
-      <VirtualTryOn product={product} />
+      <VirtualTryOn />
 
-      {/* Outfit Suggestions */}
       <OutfitSuggestions product={product} />
 
-      {/* Related Products */}
       <div className="mt-16">
-        <h2 className="mb-8 text-center font-headline text-3xl font-bold">You Might Also Like</h2>
+        <ClientSideTranslator>
+          {t => <h2 className="mb-8 text-center font-headline text-3xl font-bold">{t('product.you_might_also_like')}</h2>}
+        </ClientSideTranslator>
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           {relatedProducts.map(p => <ProductCard key={p.id} product={p} />)}
         </div>
       </div>
 
-       {/* Reviews Section */}
       <div id="reviews" className="mt-16">
-        <h2 className="mb-8 text-center font-headline text-3xl font-bold">Customer Reviews</h2>
+        <ClientSideTranslator>
+          {t => <h2 className="mb-8 text-center font-headline text-3xl font-bold">{t('product.customer_reviews')}</h2>}
+        </ClientSideTranslator>
         <div className="mx-auto max-w-3xl space-y-8">
           {reviews.filter(r => r.productId === product.id).map(review => (
              <div key={review.id} className="rounded-lg border p-6">
@@ -138,7 +157,9 @@ export default function ProductDetailPage({ params }: { params: { slug: string }
                         />
                       ))}
                     </div>
-                    <p className="mt-2 italic text-muted-foreground">"{review.text}"</p>
+                    <ClientSideTranslator>
+                      {t => <p className="mt-2 italic text-muted-foreground">"{t(review.textKey)}"</p>}
+                    </ClientSideTranslator>
                   </div>
                </div>
              </div>
@@ -148,3 +169,5 @@ export default function ProductDetailPage({ params }: { params: { slug: string }
     </div>
   );
 }
+
+    

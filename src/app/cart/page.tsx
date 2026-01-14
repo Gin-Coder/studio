@@ -73,7 +73,7 @@ export default function CartPage() {
       <div className="container mx-auto flex flex-col items-center justify-center py-24 text-center">
         <ShoppingCart className="h-24 w-24 text-muted-foreground" />
         <h1 className="mt-8 font-headline text-3xl font-bold">{t('cart.empty')}</h1>
-        <p className="mt-2 text-muted-foreground">Looks like you haven't added anything yet.</p>
+        <p className="mt-2 text-muted-foreground">{t('cart.empty_subtitle')}</p>
         <Button asChild className="mt-6">
           <Link href="/shop">{t('cart.continue_shopping')}</Link>
         </Button>
@@ -83,7 +83,7 @@ export default function CartPage() {
 
   return (
     <div className="container mx-auto py-8 sm:py-12">
-      <h1 className="mb-8 font-headline text-3xl sm:text-4xl font-bold">{t('cart.title')} ({cartCount})</h1>
+      <h1 className="mb-8 font-headline text-3xl sm:text-4xl font-bold">{t('cart.title')} {t('cart.item_count', { count: cartCount })}</h1>
       <div className="grid grid-cols-1 gap-8 md:gap-12 lg:grid-cols-3">
         <div className="lg:col-span-2">
            <Card>
@@ -111,7 +111,7 @@ export default function CartPage() {
                                       {item.color} / {item.size}
                                     </p>
                                   </div>
-                                  <Button variant="ghost" size="icon" onClick={() => removeFromCart(item.variantId)} aria-label="Remove item from cart" className="sm:hidden -mt-2 -mr-2">
+                                  <Button variant="ghost" size="icon" onClick={() => removeFromCart(item.variantId)} aria-label={t('cart.remove_item')} className="sm:hidden -mt-2 -mr-2">
                                       <Trash2 className="h-5 w-5 text-muted-foreground hover:text-destructive" />
                                   </Button>
                                 </div>
@@ -121,7 +121,7 @@ export default function CartPage() {
                                       variant="ghost"
                                       size="icon"
                                       onClick={() => updateQuantity(item.variantId, Math.max(1, item.quantity - 1))}
-                                      aria-label="Decrease quantity"
+                                      aria-label={t('cart.decrease_quantity')}
                                     >
                                       <Minus className="h-4 w-4" />
                                     </Button>
@@ -130,24 +130,24 @@ export default function CartPage() {
                                       value={item.quantity}
                                       onChange={(e) => updateQuantity(item.variantId, parseInt(e.target.value) || 1)}
                                       className="h-8 w-12 border-0 bg-transparent text-center"
-                                      aria-label="Item quantity"
+                                      aria-label={t('cart.item_quantity')}
                                     />
                                     <Button
                                       variant="ghost"
                                       size="icon"
                                       onClick={() => updateQuantity(item.variantId, item.quantity + 1)}
-                                      aria-label="Increase quantity"
+                                      aria-label={t('cart.increase_quantity')}
                                     >
                                       <Plus className="h-4 w-4" />
                                     </Button>
                                   </div>
                                   <div className="text-right">
                                     <p className="font-bold text-base sm:text-lg">{formatPrice(itemDisplayPrice, language, currency)}</p>
-                                    {item.quantity > 1 && <p className="text-xs text-muted-foreground">{formatPrice(eachDisplayPrice, language, currency)} each</p>}
+                                    {item.quantity > 1 && <p className="text-xs text-muted-foreground">{formatPrice(eachDisplayPrice, language, currency)} {t('cart.each')}</p>}
                                   </div>
                                 </div>
                               </div>
-                              <Button variant="ghost" size="icon" onClick={() => removeFromCart(item.variantId)} aria-label="Remove item from cart" className="hidden sm:flex">
+                              <Button variant="ghost" size="icon" onClick={() => removeFromCart(item.variantId)} aria-label={t('cart.remove_item')} className="hidden sm:flex">
                                 <Trash2 className="h-5 w-5 text-muted-foreground hover:text-destructive" />
                               </Button>
                             {index < cartItems.length - 1 && <Separator className="mt-6 sm:hidden" />}
@@ -161,7 +161,7 @@ export default function CartPage() {
         <div className="lg:col-span-1 space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Order Summary</CardTitle>
+              <CardTitle>{t('cart.order_summary')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex justify-between">
@@ -178,7 +178,7 @@ export default function CartPage() {
                 <span>{formatPrice(displayTotalPrice, language, currency)}</span>
               </div>
                <Button size="lg" className="w-full mt-4" onClick={handleWhatsappCheckout} disabled={isGenerating}>
-                 {isGenerating ? "Generating..." : t('cart.checkout_whatsapp')}
+                 {isGenerating ? t('cart.generating_message') : t('cart.checkout_whatsapp')}
                </Button>
                <Button variant="outline" size="lg" className="w-full" onClick={handleOtherCheckout}>
                  {t('cart.checkout_other')}
@@ -188,10 +188,10 @@ export default function CartPage() {
            <Card className="mt-4">
             <CardContent className="p-6 text-center">
               <Sparkles className="mx-auto h-8 w-8 text-primary" />
-              <h3 className="mt-2 font-headline font-semibold">{t('vto.title')}</h3>
-              <p className="text-muted-foreground text-sm mt-1 mb-4">{t('vto.coming_soon_desc_short')}</p>
+              <h3 className="mt-2 font-headline font-semibold">{t('cart.vto_prompt.title')}</h3>
+              <p className="text-muted-foreground text-sm mt-1 mb-4">{t('cart.vto_prompt.desc')}</p>
               <Button asChild>
-                <Link href="/virtual-try-on">{t('vto.coming_soon_button')}</Link>
+                <Link href="/virtual-try-on">{t('cart.vto_prompt.button')}</Link>
               </Button>
             </CardContent>
           </Card>
@@ -200,3 +200,5 @@ export default function CartPage() {
     </div>
   );
 }
+
+    

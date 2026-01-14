@@ -5,8 +5,8 @@ export type Product = {
   id: string;
   slug: string;
   name: string;
-  description: string;
-  longDescription: string;
+  descriptionKey: string;
+  longDescriptionKey: string;
   images: string[];
   imageHints: string[];
   price: number;
@@ -27,7 +27,7 @@ export type Variant = {
 
 export type Category = {
   id: string;
-  name: string;
+  nameKey: string;
   imageUrl: string;
   imageHint: string;
 };
@@ -38,7 +38,7 @@ export type Review = {
   author: string;
   avatarUrl: string;
   rating: number;
-  text: string;
+  textKey: string;
   date: string;
 };
 
@@ -79,3 +79,5 @@ export type SavedOutfit = {
   items: Product[];
   imageUrl: string;
 };
+
+    

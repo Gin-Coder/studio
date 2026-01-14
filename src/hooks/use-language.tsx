@@ -1,3 +1,4 @@
+
 'use client';
 
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
@@ -7,7 +8,7 @@ import { dictionaries } from '@/lib/dictionaries';
 type LanguageContextType = {
   language: Language;
   setLanguage: (lang: Language) => void;
-  t: (key: string) => string;
+  t: (key: string, params?: Record<string, string | number>) => string;
 };
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -30,11 +31,18 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const setLanguage = (lang: Language) => {
     setLanguageState(lang);
     localStorage.setItem('language', lang);
+    document.documentElement.lang = lang;
   };
 
   const t = useCallback(
-    (key: string): string => {
-      return dictionaries[language]?.[key] || dictionaries['en'][key] || key;
+    (key: string, params?: Record<string, string | number>): string => {
+      let translation = dictionaries[language]?.[key] || dictionaries['en'][key] || key;
+      if (params) {
+        Object.entries(params).forEach(([paramKey, paramValue]) => {
+          translation = translation.replace(`{{${paramKey}}}`, String(paramValue));
+        });
+      }
+      return translation;
     },
     [language]
   );
@@ -53,3 +61,5 @@ export function useLanguage() {
   }
   return context;
 }
+
+    

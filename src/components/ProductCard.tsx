@@ -23,7 +23,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   const { addToCart } = useCart();
   const { addToWishlist, isInWishlist, removeFromWishlist } = useWishlist();
   const { toast } = useToast();
-  const { language } = useLanguage();
+  const { t, language } = useLanguage();
   const { currency, convertPrice } = useCurrency();
 
   const handleAddToCart = (e: React.MouseEvent) => {
@@ -33,8 +33,8 @@ export default function ProductCard({ product }: ProductCardProps) {
     if (firstVariant) {
       addToCart(product, firstVariant, 1);
       toast({
-        title: "Added to cart",
-        description: `${product.name} has been added to your cart.`,
+        title: t('toast.cart.added.title'),
+        description: t('toast.cart.added.description', { itemName: product.name }),
       });
     }
   };
@@ -47,19 +47,20 @@ export default function ProductCard({ product }: ProductCardProps) {
     if(isWishlisted) {
       removeFromWishlist(product.id);
       toast({
-        title: "Removed from wishlist",
-        description: `${product.name} has been removed from your wishlist.`,
+        title: t('toast.wishlist.removed.title'),
+        description: t('toast.wishlist.removed.description', { itemName: product.name }),
       });
     } else {
       addToWishlist(product.id);
       toast({
-        title: "Added to wishlist",
-        description: `${product.name} has been added to your wishlist.`,
+        title: t('toast.wishlist.added.title'),
+        description: t('toast.wishlist.added.description', { itemName: product.name }),
       });
     }
   };
   
   const displayPrice = convertPrice(product.price);
+  const category = product.category.charAt(0).toUpperCase() + product.category.slice(1);
 
   return (
     <Card className="group w-full overflow-hidden flex flex-col">
@@ -73,13 +74,13 @@ export default function ProductCard({ product }: ProductCardProps) {
             className="object-cover transition-transform duration-300 group-hover:scale-105"
             data-ai-hint={product.imageHints[0]}
           />
-          <Badge variant="secondary" className="absolute top-2 left-2">{product.category}</Badge>
+          <Badge variant="secondary" className="absolute top-2 left-2">{t(`filter.${product.category}`)}</Badge>
           <Button
             size="icon"
             variant="ghost"
             className="absolute top-2 right-2 bg-background/60 hover:bg-background/80 rounded-full"
             onClick={handleWishlistToggle}
-            aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
+            aria-label={isWishlisted ? t('product.remove_from_wishlist') : t('product.add_to_wishlist')}
           >
             <Heart className={cn("h-5 w-5", isWishlisted ? 'fill-destructive text-destructive' : 'text-foreground')} />
           </Button>
@@ -95,10 +96,12 @@ export default function ProductCard({ product }: ProductCardProps) {
               onClick={handleAddToCart}
             >
               <ShoppingCart className="mr-2 h-4 w-4" /> 
-              <span>{language === 'en' ? 'Add to cart' : language === 'fr' ? 'Ajouter' : 'Ajoute'}</span>
+              <span>{t('product.add_to_cart_short')}</span>
             </Button>
         </div>
       </div>
     </Card>
   );
 }
+
+    

@@ -71,6 +71,7 @@ const NavLinks = ({ inSheet = false }: { inSheet?: boolean }) => {
 export default function Header() {
   const { cartCount } = useCart();
   const { wishlistCount } = useWishlist();
+  const { t } = useLanguage();
   const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -103,7 +104,7 @@ export default function Header() {
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon">
                 <Menu className="h-6 w-6" />
-                <span className="sr-only">Ouvrir le menu</span>
+                <span className="sr-only">{t('nav.open_menu')}</span>
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="w-full max-w-sm p-0">
@@ -127,18 +128,18 @@ export default function Header() {
 
                <div className="p-4 space-y-4">
                  <p className="text-sm font-medium text-muted-foreground">
-                   Paramètres
+                   {t('nav.settings_title')}
                  </p>
                  <div className="flex items-center justify-between">
-                   <p>Langue</p>
+                   <p>{t('nav.language')}</p>
                    <LanguageSwitcher />
                  </div>
                  <div className="flex items-center justify-between">
-                   <p>Thème</p>
+                   <p>{t('nav.theme')}</p>
                    <ThemeToggle />
                  </div>
                  <div className="flex items-center justify-between">
-                   <p>Devise</p>
+                   <p>{t('nav.currency')}</p>
                    <CurrencySwitcher />
                  </div>
                </div>
@@ -161,7 +162,7 @@ export default function Header() {
         <div className="flex-1 flex justify-center items-center md:hidden">
             <Link href="/#" className="flex items-center justify-center">
                 <span className={cn(
-                    "font-headline text-xl font-bold text-accent transition-opacity duration-300",
+                    "font-headline text-xl font-bold text-accent transition-opacity duration-300 md:hidden",
                     isScrolled ? "opacity-100" : "opacity-0"
                 )}>
                     Danny Store
@@ -176,7 +177,7 @@ export default function Header() {
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="search"
-                  placeholder="Rechercher des produits..."
+                  placeholder={t('nav.search_placeholder')}
                   className="w-full rounded-lg bg-secondary pl-8 md:w-[200px] lg:w-[320px]"
                 />
               </div>
@@ -186,7 +187,7 @@ export default function Header() {
             <Button variant="ghost" size="icon" asChild>
               <Link href="/virtual-try-on">
                 <Sparkles />
-                <span className="sr-only">Virtual Try-On</span>
+                <span className="sr-only">{t('nav.vto_link')}</span>
               </Link>
             </Button>
             <Button variant="ghost" size="icon" asChild className="relative">
@@ -200,7 +201,7 @@ export default function Header() {
                     {wishlistCount}
                   </Badge>
                 )}
-                <span className="sr-only">Liste de souhaits</span>
+                <span className="sr-only">{t('nav.wishlist_link')}</span>
               </Link>
             </Button>
             <Button variant="ghost" size="icon" asChild className="relative">
@@ -214,7 +215,7 @@ export default function Header() {
                     {cartCount}
                   </Badge>
                 )}
-                <span className="sr-only">Panier</span>
+                <span className="sr-only">{t('nav.cart_link')}</span>
               </Link>
             </Button>
             <div className="hidden md:flex">
@@ -228,3 +229,5 @@ export default function Header() {
     </header>
   );
 }
+
+    
