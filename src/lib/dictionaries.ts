@@ -172,7 +172,9 @@ export const dictionaries: Dictionaries = {
     'whatsapp.order.valued_customer': 'Valued Customer',
     'whatsapp.order.items': 'Items',
     'whatsapp.order.delivery_note': 'Delivery to be confirmed',
-    'whatsapp.order.confirmation_prompt': 'Hello, I would like to confirm this order.'
+    'whatsapp.order.confirmation_prompt': 'Hello, I would like to confirm this order.',
+    'search.no_results': 'No results found.',
+    'search.suggestions': 'Suggestions'
   },
   fr: {
     'nav.home': 'Accueil',
@@ -338,7 +340,9 @@ export const dictionaries: Dictionaries = {
     'whatsapp.order.valued_customer': 'Client Apprécié',
     'whatsapp.order.items': 'Articles',
     'whatsapp.order.delivery_note': 'Livraison à confirmer',
-    'whatsapp.order.confirmation_prompt': 'Bonjour, je voudrais confirmer cette commande.'
+    'whatsapp.order.confirmation_prompt': 'Bonjour, je voudrais confirmer cette commande.',
+    'search.no_results': 'Aucun résultat trouvé.',
+    'search.suggestions': 'Suggestions'
   },
   ht: {
     'nav.home': 'Akèy',
@@ -504,6 +508,8 @@ export const dictionaries: Dictionaries = {
     'whatsapp.order.valued_customer': 'Kliyan Nou Apresye',
     'whatsapp.order.items': 'Atik yo',
     'whatsapp.order.delivery_note': 'Livrezon an ap konfime',
-    'whatsapp.order.confirmation_prompt': 'Bonjou, mwen ta renmen konfime kòmand sa a.'
+    'whatsapp.order.confirmation_prompt': 'Bonjou, mwen ta renmen konfime kòmand sa a.',
+    'search.no_results': 'Nou pa jwenn okenn rezilta.',
+    'search.suggestions': 'Sijesyon'
   },
 };

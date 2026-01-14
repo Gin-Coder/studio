@@ -14,13 +14,11 @@ import {
 import { Button } from '@/components/ui/button';
 import {
   Menu,
-  Search,
   ShoppingCart,
   Heart,
   Sparkles,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
 import { Logo } from '@/components/ui/logo';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { CurrencySwitcher } from '@/components/CurrencySwitcher';
@@ -32,6 +30,7 @@ import { Separator } from '../ui/separator';
 import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { useTheme } from 'next-themes';
+import { AISearch } from '../AISearch';
 
 const NavLinks = ({ inSheet = false }: { inSheet?: boolean }) => {
   const { t } = useLanguage();
@@ -172,18 +171,9 @@ export default function Header() {
             </Link>
         </div>
 
-        <div className="flex items-center justify-end space-x-0 md:space-x-2">
-          <div className="hidden sm:block w-full flex-1 md:w-auto md:flex-none">
-            <form>
-              <div className="relative">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="search"
-                  placeholder={t('nav.search_placeholder')}
-                  className="w-full rounded-lg bg-secondary pl-8 md:w-[200px] lg:w-[320px]"
-                />
-              </div>
-            </form>
+        <div className="flex flex-1 items-center justify-end space-x-0 md:space-x-2">
+          <div className="w-full flex-1 md:w-auto md:flex-none">
+            <AISearch />
           </div>
           <div className="flex items-center">
             <Button variant="ghost" size="icon" asChild>
