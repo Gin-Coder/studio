@@ -13,6 +13,7 @@ import { useWishlist } from '@/hooks/use-wishlist';
 import { useToast } from '@/hooks/use-toast';
 import { cn, formatPrice } from '@/lib/utils';
 import { useLanguage } from '@/hooks/use-language';
+import { useCurrency } from '@/hooks/use-currency';
 
 interface ProductCardProps {
   product: Product;
@@ -23,6 +24,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   const { addToWishlist, isInWishlist, removeFromWishlist } = useWishlist();
   const { toast } = useToast();
   const { language } = useLanguage();
+  const { currency } = useCurrency();
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -84,7 +86,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       <div className="p-2 md:p-4 flex-shrink-0">
         <h3 className="truncate font-headline text-base md:text-lg font-semibold">{product.name}</h3>
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mt-2">
-            <p className="font-semibold text-sm md:text-base">{formatPrice(product.price, language)}</p>
+            <p className="font-semibold text-sm md:text-base">{formatPrice(product.price, language, currency)}</p>
             <Button
               size="sm"
               className="w-full md:flex-1 md:max-w-[140px]"

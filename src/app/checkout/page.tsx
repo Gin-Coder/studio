@@ -10,10 +10,12 @@ import { useCart } from "@/hooks/use-cart";
 import Image from "next/image";
 import { formatPrice } from "@/lib/utils";
 import { useLanguage } from "@/hooks/use-language";
+import { useCurrency } from "@/hooks/use-currency";
 
 export default function CheckoutPage() {
     const { cartItems, totalPrice } = useCart();
     const { language } = useLanguage();
+    const { currency } = useCurrency();
 
     return (
         <div className="container mx-auto py-12">
@@ -102,7 +104,7 @@ export default function CheckoutPage() {
                                                 <p className="text-sm text-muted-foreground">{item.color} / {item.size}</p>
                                             </div>
                                         </div>
-                                        <p className="font-medium">{formatPrice(item.price * item.quantity, language)}</p>
+                                        <p className="font-medium">{formatPrice(item.price * item.quantity, language, currency)}</p>
                                     </div>
                                 ))}
                             </div>
@@ -110,7 +112,7 @@ export default function CheckoutPage() {
                             <div className="space-y-2">
                                 <div className="flex justify-between">
                                     <p className="text-muted-foreground">Subtotal</p>
-                                    <p>{formatPrice(totalPrice, language)}</p>
+                                    <p>{formatPrice(totalPrice, language, currency)}</p>
                                 </div>
                                 <div className="flex justify-between">
                                     <p className="text-muted-foreground">Shipping</p>
@@ -120,7 +122,7 @@ export default function CheckoutPage() {
                              <Separator className="my-4" />
                             <div className="flex justify-between font-bold text-lg">
                                 <p>Total</p>
-                                <p>{formatPrice(totalPrice, language)}</p>
+                                <p>{formatPrice(totalPrice, language, currency)}</p>
                             </div>
                         </CardContent>
                     </Card>

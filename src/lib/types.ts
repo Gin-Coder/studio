@@ -1,4 +1,5 @@
 export type Language = 'en' | 'fr' | 'ht';
+export type Currency = 'USD' | 'EUR' | 'HTG';
 
 export type Product = {
   id: string;

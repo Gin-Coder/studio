@@ -14,10 +14,12 @@ import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { formatPrice } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
+import { useCurrency } from '@/hooks/use-currency';
 
 export default function CartPage() {
   const { cartItems, updateQuantity, removeFromCart, cartCount, totalPrice } = useCart();
   const { t, language } = useLanguage();
+  const { currency } = useCurrency();
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
@@ -35,11 +37,11 @@ export default function CartPage() {
         message += `*Items:*\n`;
         
         cartItems.forEach(item => {
-            message += `- ${item.name} (${item.color}, ${item.size}) x ${item.quantity} - ${formatPrice(item.price * item.quantity, language)}\n`;
+            message += `- ${item.name} (${item.color}, ${item.size}) x ${item.quantity} - ${formatPrice(item.price * item.quantity, language, currency)}\n`;
         });
 
-        message += `\n*Subtotal:* ${formatPrice(totalPrice, language)}\n`;
-        message += `*Total:* ${formatPrice(totalPrice, language)} (Delivery to be confirmed)\n\n`;
+        message += `\n*Subtotal:* ${formatPrice(totalPrice, language, currency)}\n`;
+        message += `*Total:* ${formatPrice(totalPrice, language, currency)} (Delivery to be confirmed)\n\n`;
         message += `Hello, I would like to confirm this order.`;
 
         const encodedMessage = encodeURIComponent(message);
@@ -81,11 +83,10 @@ export default function CartPage() {
       <div className="grid grid-cols-1 gap-8 md:gap-12 lg:grid-cols-3">
         <div className="lg:col-span-2">
            <Card>
-              <CardContent className="p-4 sm:p-6">
-                  <div className="space-y-6">
+              <CardContent className="p-0 sm:p-6">
+                  <div className="space-y-6 sm:space-y-0">
                     {cartItems.map((item, index) => (
-                      <>
-                        <div key={item.variantId} className="flex flex-col sm:flex-row items-start gap-4">
+                      <div key={item.variantId} className="flex flex-col sm:flex-row items-start gap-4 p-4 sm:p-0 sm:mb-6">
                           <div className="relative w-full sm:w-24 aspect-[3/4] sm:aspect-square flex-shrink-0">
                             <Image
                               src={item.image}
@@ -133,17 +134,16 @@ export default function CartPage() {
                                 </Button>
                               </div>
                               <div className="text-right">
-                                <p className="font-bold text-base sm:text-lg">{formatPrice(item.price * item.quantity, language)}</p>
-                                {item.quantity > 1 && <p className="text-xs text-muted-foreground">{formatPrice(item.price, language)} each</p>}
+                                <p className="font-bold text-base sm:text-lg">{formatPrice(item.price * item.quantity, language, currency)}</p>
+                                {item.quantity > 1 && <p className="text-xs text-muted-foreground">{formatPrice(item.price, language, currency)} each</p>}
                               </div>
                             </div>
                           </div>
                           <Button variant="ghost" size="icon" onClick={() => removeFromCart(item.variantId)} aria-label="Remove item from cart" className="hidden sm:flex">
                             <Trash2 className="h-5 w-5 text-muted-foreground hover:text-destructive" />
                           </Button>
-                        </div>
-                        {index < cartItems.length - 1 && <Separator />}
-                      </>
+                        {index < cartItems.length - 1 && <Separator className="mt-6 sm:hidden" />}
+                      </div>
                     ))}
                   </div>
               </CardContent>
@@ -157,7 +157,7 @@ export default function CartPage() {
             <CardContent className="space-y-4">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">{t('cart.subtotal')}</span>
-                <span>{formatPrice(totalPrice, language)}</span>
+                <span>{formatPrice(totalPrice, language, currency)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">{t('cart.delivery')}</span>
@@ -166,7 +166,7 @@ export default function CartPage() {
               <Separator />
               <div className="flex justify-between font-bold text-lg">
                 <span>{t('cart.total')}</span>
-                <span>{formatPrice(totalPrice, language)}</span>
+                <span>{formatPrice(totalPrice, language, currency)}</span>
               </div>
                <Button size="lg" className="w-full mt-4" onClick={handleWhatsappCheckout} disabled={isGenerating}>
                  {isGenerating ? "Generating..." : t('cart.checkout_whatsapp')}
@@ -179,9 +179,9 @@ export default function CartPage() {
            <Card className="mt-4">
             <CardContent className="p-6 text-center">
               <Sparkles className="mx-auto h-8 w-8 text-primary" />
-              <h3 className="mt-2 font-headline font-semibold">Essayage Virtuel</h3>
-              <p className="text-muted-foreground text-sm mt-1 mb-4">Bientôt disponible! Visualisez vos tenues avant d'acheter.</p>
-              <Button disabled>Prochainement</Button>
+              <h3 className="mt-2 font-headline font-semibold">{t('vto.title')}</h3>
+              <p className="text-muted-foreground text-sm mt-1 mb-4">{t('vto.coming_soon_desc_short')}</p>
+              <Button disabled>{t('vto.coming_soon_button')}</Button>
             </CardContent>
           </Card>
         </div>

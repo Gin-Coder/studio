@@ -23,6 +23,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Logo } from '@/components/ui/logo';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { CurrencySwitcher } from '@/components/CurrencySwitcher';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useLanguage } from '@/hooks/use-language';
 import { useCart } from '@/hooks/use-cart';
@@ -136,6 +137,10 @@ export default function Header() {
                    <p>Thème</p>
                    <ThemeToggle />
                  </div>
+                 <div className="flex items-center justify-between">
+                   <p>Devise</p>
+                   <CurrencySwitcher />
+                 </div>
                </div>
 
             </SheetContent>
@@ -214,6 +219,7 @@ export default function Header() {
             </Button>
             <div className="hidden md:flex">
               <LanguageSwitcher />
+              <CurrencySwitcher />
               <ThemeToggle />
             </div>
           </div>
