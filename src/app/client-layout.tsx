@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, type ReactNode, useState } from 'react';
@@ -10,7 +9,7 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { Toaster } from '@/components/ui/toaster';
 import { CurrencyProvider } from '@/hooks/use-currency';
-import { FirebaseClientProvider } from '@/firebase';
+import { FirebaseClientProvider } from '@/firebase/client-provider';
 
 function LanguageAttributeUpdater() {
   const { language } = useLanguage();
@@ -30,21 +29,26 @@ export function ClientLayout({ children }: { children: ReactNode }) {
     setIsMounted(true);
   }, []);
 
+  // Until the component is mounted, we can't be sure we're on the client,
+  // so we'll render a simplified version. This avoids hydration mismatches
+  // with things like theme, language, etc.
   if (!isMounted) {
     return (
-      <FirebaseClientProvider>
-        {children}
-      </FirebaseClientProvider>
-    )
+      <>
+        <Header />
+        <main className="flex-grow">{children}</main>
+        <Footer />
+      </>
+    );
   }
 
   return (
-    <FirebaseClientProvider>
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        <LanguageProvider>
-          <CurrencyProvider>
-            {/* The component below will update the lang attribute, and it needs to be a child of LanguageProvider */}
-            <LanguageAttributeUpdater />
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <LanguageProvider>
+        <CurrencyProvider>
+          {/* This component needs to be a child of LanguageProvider to work */}
+          <LanguageAttributeUpdater />
+          <FirebaseClientProvider>
             <CartProvider>
               <WishlistProvider>
                 <div className="flex min-h-screen flex-col">
@@ -55,9 +59,9 @@ export function ClientLayout({ children }: { children: ReactNode }) {
                 <Toaster />
               </WishlistProvider>
             </CartProvider>
-          </CurrencyProvider>
-        </LanguageProvider>
-      </ThemeProvider>
-    </FirebaseClientProvider>
+          </FirebaseClientProvider>
+        </CurrencyProvider>
+      </LanguageProvider>
+    </ThemeProvider>
   );
 }
