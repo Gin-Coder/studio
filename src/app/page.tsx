@@ -4,7 +4,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRef } from 'react';
 import Autoplay from 'embla-carousel-autoplay';
-import Fade from 'embla-carousel-fade';
 import {
   Carousel,
   CarouselContent,
@@ -29,7 +28,7 @@ export default function Home() {
     );
 
     const continuousAutoplay = useRef(
-        Autoplay({ delay: 0, stopOnInteraction: false })
+        Autoplay({ delay: 3000, stopOnInteraction: false, stopOnMouseEnter: true })
     )
 
   const heroImage = PlaceHolderImages.find(p => p.id === 'hero-main') || { src: '', alt: '', hint: '' };
@@ -103,7 +102,7 @@ export default function Home() {
             {t('home.bestsellers.title')}
           </h2>
           <Carousel
-            plugins={[autoplay.current, Fade()]}
+            plugins={[autoplay.current]}
             opts={{
               align: 'start',
               loop: true,
@@ -134,7 +133,7 @@ export default function Home() {
             {t('home.newarrivals.title')}
           </h2>
            <Carousel
-             plugins={[autoplay.current, Fade()]}
+             plugins={[autoplay.current]}
             opts={{
               align: 'start',
               loop: true,
@@ -210,10 +209,8 @@ export default function Home() {
           </h2>
           <Carousel
             plugins={[continuousAutoplay.current]}
-            opts={{ align: 'start', loop: true, duration: 50 }}
+            opts={{ align: 'start', loop: true }}
             className="w-full max-w-4xl mx-auto"
-            onMouseEnter={continuousAutoplay.current.stop}
-            onMouseLeave={continuousAutoplay.current.play}
           >
             <CarouselContent>
               {reviews.map((review) => (
