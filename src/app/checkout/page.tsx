@@ -13,7 +13,7 @@ import { formatPrice } from "@/lib/utils";
 import { useLanguage } from "@/hooks/use-language";
 import { useCurrency } from "@/hooks/use-currency";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { ShoppingCart, ArrowLeft, CreditCard, Smartphone } from "lucide-react";
+import { ShoppingCart, ArrowLeft, CreditCard, Smartphone, MessageCircle } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import Link from "next/link";
 import { ClientSideTranslator } from "@/components/ClientSideTranslator";
@@ -236,11 +236,23 @@ export default function CheckoutPage() {
                         </ClientSideTranslator>
                     )}
                 </div>
-                <div>
+                <div className="flex items-center gap-4">
                     {currentStep < STEPS.length ? (
                         <Button size="lg" onClick={nextStep}>{t('checkout.continue')}</Button>
                     ) : (
-                        <Button size="lg" disabled>{t('checkout.pay_button')}</Button>
+                        <>
+                           <Button size="lg" disabled>{t('checkout.pay_button')}</Button>
+                           <ClientSideTranslator>
+                                {t => (
+                                    <Button size="lg" variant="secondary" asChild>
+                                        <Link href="/cart">
+                                            <MessageCircle className="mr-2 h-4 w-4" />
+                                            {t('checkout.order_on_whatsapp')}
+                                        </Link>
+                                    </Button>
+                                )}
+                            </ClientSideTranslator>
+                        </>
                     )}
                 </div>
             </div>
