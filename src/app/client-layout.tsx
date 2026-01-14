@@ -10,6 +10,7 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { Toaster } from '@/components/ui/toaster';
 import { CurrencyProvider } from '@/hooks/use-currency';
+import { FirebaseClientProvider } from '@/firebase';
 
 function LanguageAttributeUpdater() {
   const { language } = useLanguage();
@@ -30,10 +31,15 @@ export function ClientLayout({ children }: { children: ReactNode }) {
   }, []);
 
   if (!isMounted) {
-    return null;
+    return (
+      <FirebaseClientProvider>
+        {children}
+      </FirebaseClientProvider>
+    )
   }
 
   return (
+    <FirebaseClientProvider>
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
         <LanguageProvider>
           <CurrencyProvider>
@@ -52,5 +58,6 @@ export function ClientLayout({ children }: { children: ReactNode }) {
           </CurrencyProvider>
         </LanguageProvider>
       </ThemeProvider>
+    </FirebaseClientProvider>
   );
 }

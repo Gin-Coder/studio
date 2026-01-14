@@ -5,10 +5,15 @@ import { Logo } from '@/components/ui/logo';
 import { useLanguage } from '@/hooks/use-language';
 import { Button } from '../ui/button';
 import { Github, Twitter, Instagram } from 'lucide-react';
-import { LanguageSwitcher } from '../LanguageSwitcher';
+import { usePathname } from 'next/navigation';
 
 export default function Footer() {
   const { t } = useLanguage();
+  const pathname = usePathname();
+
+  if (pathname.startsWith('/admin')) {
+    return null;
+  }
 
   return (
     <footer className="border-t bg-secondary">

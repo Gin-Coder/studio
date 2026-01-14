@@ -2,7 +2,6 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import {
   Sheet,
   SheetContent,
@@ -29,14 +28,13 @@ import { useCart } from '@/hooks/use-cart';
 import { useWishlist } from '@/hooks/use-wishlist';
 import { Separator } from '../ui/separator';
 import { useState, useEffect } from 'react';
-import { cn } from '@/lib/utils';
-import { useTheme } from 'next-themes';
 import { AISearch } from '../AISearch';
 import {
   Dialog,
   DialogContent,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import { usePathname } from 'next/navigation';
 
 
 const NavLinks = ({ inSheet = false }: { inSheet?: boolean }) => {
@@ -80,11 +78,16 @@ export default function Header() {
   const { wishlistCount } = useWishlist();
   const { t } = useLanguage();
   const [isMounted, setIsMounted] = useState(false);
-  const { theme } = useTheme();
+  const pathname = usePathname();
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
+  
+  // Don't render header on admin pages
+  if (pathname.startsWith('/admin')) {
+    return null;
+  }
   
   if (!isMounted) {
     return (
