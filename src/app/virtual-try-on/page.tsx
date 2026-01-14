@@ -23,6 +23,7 @@ import { Separator } from '@/components/ui/separator';
 import { useCart } from '@/hooks/use-cart';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/hooks/use-language';
+import { virtualTryOn } from '@/ai/flows/virtual-try-on-flow';
 
 
 const MAX_FREE_USES = 5;
@@ -101,7 +102,7 @@ export default function VirtualTryOnPage() {
         return;
     }
 
-    const modelImage = userImage || selectedAvatar?.imageUrl;
+    const modelImageUri = userImage || selectedAvatar?.imageUrl;
 
     if (selectedItems.length === 0) {
       toast({
@@ -111,7 +112,7 @@ export default function VirtualTryOnPage() {
       });
       return;
     }
-    if (!modelImage) {
+    if (!modelImageUri) {
         toast({
             variant: 'destructive',
             title: t('vto.toast.no_model.title'),
@@ -123,13 +124,11 @@ export default function VirtualTryOnPage() {
     setIsGenerating(true);
     setGeneratedImage(null);
 
-    // Simulate AI generation
-    setTimeout(() => {
-        // In a real scenario, this would be the result from the AI
-        // For simulation, we just use the model image as the base
-        setGeneratedImage(modelImage); 
-        setIsGenerating(false);
-
+    try {
+        const itemImageUris = selectedItems.map(item => item.images[0]);
+        const result = await virtualTryOn({ modelImageUri, itemImageUris });
+        setGeneratedImage(result.imageUrl);
+        
         const newCount = tryOnCount + 1;
         setTryOnCount(newCount);
         localStorage.setItem('tryOnCount', newCount.toString());
@@ -138,7 +137,16 @@ export default function VirtualTryOnPage() {
             description: `${t('vto.toast.generated.description')} (${MAX_FREE_USES - newCount} essais restants)`,
         });
 
-    }, 2000); // Simulate a 2-second generation time
+    } catch (error: any) {
+        console.error(error);
+        toast({
+            variant: 'destructive',
+            title: 'Erreur de Génération',
+            description: error.message || 'Une erreur est survenue lors de la génération de l\'image.',
+        });
+    } finally {
+        setIsGenerating(false);
+    }
   };
 
   const handleSaveOutfit = () => {
@@ -279,40 +287,12 @@ export default function VirtualTryOnPage() {
                             </div>
                         )}
                          {generatedImage && (
-                             <>
-                                <Image
-                                    src={generatedImage}
-                                    alt={t('vto.your_look.alt')}
-                                    fill
-                                    className="object-cover rounded-lg"
-                                />
-                                {/* Container for top items */}
-                                <div className="absolute inset-0 flex flex-col justify-start items-center">
-                                    {topItems.map((item) => (
-                                        <div key={item.id} className="relative w-full h-2/3">
-                                            <Image 
-                                                src={item.images[0]}
-                                                alt={item.name}
-                                                fill
-                                                className="object-contain"
-                                            />
-                                        </div>
-                                    ))}
-                                </div>
-                                {/* Container for shoe items */}
-                                <div className="absolute inset-0 flex flex-col justify-end items-center">
-                                    {shoeItems.map((item) => (
-                                        <div key={item.id} className="relative w-full h-1/4">
-                                            <Image 
-                                                src={item.images[0]}
-                                                alt={item.name}
-                                                fill
-                                                className="object-contain"
-                                            />
-                                        </div>
-                                    ))}
-                                </div>
-                             </>
+                             <Image
+                                src={generatedImage}
+                                alt={t('vto.your_look.alt')}
+                                fill
+                                className="object-contain rounded-lg"
+                            />
                         )}
                     </div>
 
