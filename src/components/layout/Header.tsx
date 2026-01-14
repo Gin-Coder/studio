@@ -17,6 +17,7 @@ import {
   ShoppingCart,
   Heart,
   Sparkles,
+  Search,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Logo } from '@/components/ui/logo';
@@ -31,6 +32,12 @@ import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { useTheme } from 'next-themes';
 import { AISearch } from '../AISearch';
+import {
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+
 
 const NavLinks = ({ inSheet = false }: { inSheet?: boolean }) => {
   const { t } = useLanguage();
@@ -72,20 +79,11 @@ export default function Header() {
   const { cartCount } = useCart();
   const { wishlistCount } = useWishlist();
   const { t } = useLanguage();
-  const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
   const { theme } = useTheme();
 
   useEffect(() => {
     setIsMounted(true);
-
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
   
   if (!isMounted) {
@@ -100,10 +98,11 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center">
-        <div className="flex items-center md:hidden">
+        {/* Left Side: Mobile Menu & Desktop Logo/Nav */}
+        <div className="flex items-center">
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" className="md:hidden">
                 <Menu className="h-6 w-6" />
                 <span className="sr-only">{t('nav.open_menu')}</span>
               </Button>
@@ -144,37 +143,48 @@ export default function Header() {
                    <CurrencySwitcher />
                  </div>
                </div>
-
             </SheetContent>
           </Sheet>
+
+          <div className="hidden md:flex md:items-center">
+            <Link href="/" className="mr-6 flex items-center gap-2">
+              <Logo />
+              <span className="font-headline text-lg font-bold text-primary">Danny Store</span>
+            </Link>
+            <nav className="flex items-center space-x-1 text-sm font-medium">
+              <NavLinks />
+            </nav>
+          </div>
         </div>
 
-        <div className="hidden md:flex md:items-center">
-          <Link href="/" className="mr-6 flex items-center gap-2">
-            <Logo />
-            <span className="font-headline text-lg font-bold text-primary">Danny Store</span>
-          </Link>
-          <nav className="flex items-center space-x-1 text-sm font-medium">
-             {/* Main nav links for desktop */}
-            <NavLinks />
-          </nav>
-        </div>
-        
-        <div className="flex-1 flex justify-center items-center md:hidden">
-            <Link href="/#" className="flex items-center justify-center">
-                <span style={theme === 'light' ? { textShadow: '0 0 5px rgba(0,0,0,0.5)' } : {}} className={cn(
-                    "font-headline text-xl font-bold text-accent transition-opacity duration-300 md:hidden",
-                    isScrolled ? "opacity-100" : "opacity-0"
-                )}>
-                    Danny Store
-                </span>
+        {/* Center: Mobile Logo */}
+         <div className="flex-1 flex justify-center md:hidden">
+            <Link href="/" className="flex items-center gap-2">
+              <Logo />
             </Link>
         </div>
 
-        <div className="flex flex-1 items-center justify-end space-x-0 md:space-x-2">
-          <div className="w-full flex-1 md:w-auto md:flex-none">
+
+        {/* Right Side: Search, Actions, Settings */}
+        <div className="flex flex-1 items-center justify-end space-x-1">
+          <div className="hidden md:block md:w-auto md:flex-none">
             <AISearch />
           </div>
+          
+          {/* Mobile Search */}
+          <Dialog>
+            <DialogTrigger asChild>
+               <Button variant="ghost" size="icon" className="md:hidden">
+                  <Search />
+                  <span className="sr-only">Rechercher</span>
+               </Button>
+            </DialogTrigger>
+            <DialogContent className="p-0 top-0 translate-y-0 h-screen max-h-screen max-w-full rounded-none sm:rounded-none">
+              <AISearch isDialog={true} />
+            </DialogContent>
+          </Dialog>
+
+
           <div className="flex items-center">
             <Button variant="ghost" size="icon" asChild>
               <Link href="/virtual-try-on">

@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useTransition, useCallback, useRef } from 'react';
+import { useState, useTransition, useCallback, useRef, useEffect } from 'react';
 import { Search, Loader2 } from 'lucide-react';
 import {
   Command,
@@ -11,7 +11,7 @@ import {
   CommandEmpty,
   CommandGroup,
 } from '@/components/ui/command';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { useLanguage } from '@/hooks/use-language';
 import { searchProducts } from '@/ai/flows/product-search-flow';
 import type { ProductSearchResult } from '@/ai/flows/product-search-flow';
@@ -20,15 +20,28 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { formatPrice } from '@/lib/utils';
 import { useCurrency } from '@/hooks/use-currency';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Button } from './ui/button';
 
-export function AISearch() {
+interface AISearchProps {
+  isDialog?: boolean;
+}
+
+export function AISearch({ isDialog = false }: AISearchProps) {
   const { t, language } = useLanguage();
   const { currency, convertPrice } = useCurrency();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(isDialog);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<ProductSearchResult[]>([]);
   const [isPending, startTransition] = useTransition();
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (open) {
+        // slight delay to allow dialog to render
+        setTimeout(() => inputRef.current?.focus(), 100);
+    }
+  }, [open]);
 
   const fetchResults = async (searchQuery: string) => {
     if (searchQuery.length < 2) {
@@ -54,24 +67,8 @@ export function AISearch() {
     setResults([]);
   }
 
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <div className="relative w-full md:w-[200px] lg:w-[320px]">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <button
-             onClick={() => setOpen(true)}
-             className="w-full text-left h-9 rounded-md px-8 bg-secondary text-sm text-muted-foreground truncate"
-          >
-            {t('nav.search_placeholder')}
-          </button>
-        </div>
-      </PopoverTrigger>
-      <PopoverContent className="w-full p-0" style={{width: 'var(--radix-popover-trigger-width)'}} onOpenAutoFocus={(e) => {
-        e.preventDefault();
-        inputRef.current?.focus();
-      }}>
-        <Command shouldFilter={false}>
+  const SearchContent = (
+      <Command shouldFilter={false}>
           <div className="flex items-center border-b px-3">
              <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
               <CommandInput
@@ -104,6 +101,26 @@ export function AISearch() {
             )}
           </CommandList>
         </Command>
+  );
+
+  if (isDialog) {
+    return SearchContent;
+  }
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+         <Button
+             variant="outline"
+             className="w-full md:w-[200px] lg:w-[320px] justify-start text-sm text-muted-foreground"
+          >
+            <Search className="mr-2 h-4 w-4" />
+            <span className="hidden lg:inline-flex">{t('nav.search_placeholder')}</span>
+            <span className="inline-flex lg:hidden">Search...</span>
+          </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" onOpenAutoFocus={(e) => e.preventDefault()}>
+        {SearchContent}
       </PopoverContent>
     </Popover>
   );
