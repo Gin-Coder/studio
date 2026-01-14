@@ -105,7 +105,7 @@ export default function Home() {
           <Carousel
             plugins={[autoplay.current, Fade()]}
             opts={{
-              align: 'start',
+              align: 'center',
               loop: true,
             }}
             className="w-full"
@@ -136,7 +136,7 @@ export default function Home() {
            <Carousel
              plugins={[autoplay.current, Fade()]}
             opts={{
-              align: 'start',
+              align: 'center',
               loop: true,
             }}
             className="w-full"
