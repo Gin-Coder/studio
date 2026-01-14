@@ -225,16 +225,12 @@ export default function CheckoutPage() {
                                 {t('checkout.back')}
                             </Button>
                         ) : (
-                            <ClientSideTranslator>
-                                {t => (
-                                    <Button variant="ghost" asChild>
-                                        <Link href="/cart">
-                                            <ArrowLeft className="mr-2 h-4 w-4" />
-                                            {t('checkout.back_to_cart')}
-                                        </Link>
-                                    </Button>
-                                )}
-                            </ClientSideTranslator>
+                            <Button variant="ghost" asChild>
+                                <Link href="/cart">
+                                    <ArrowLeft className="mr-2 h-4 w-4" />
+                                    {t('checkout.back_to_cart')}
+                                </Link>
+                            </Button>
                         )}
                     </div>
                     <div>
@@ -246,16 +242,12 @@ export default function CheckoutPage() {
                     </div>
                 </div>
                 {currentStep === STEPS.length && (
-                     <ClientSideTranslator>
-                        {t => (
-                            <Button size="lg" variant="secondary" asChild className="w-full">
-                                <Link href="/cart">
-                                    <MessageCircle className="mr-2 h-4 w-4" />
-                                    {t('checkout.order_on_whatsapp')}
-                                </Link>
-                            </Button>
-                        )}
-                    </ClientSideTranslator>
+                     <Button size="lg" variant="secondary" asChild className="w-full">
+                        <Link href="/cart">
+                            <MessageCircle className="mr-2 h-4 w-4" />
+                            {t('checkout.order_on_whatsapp')}
+                        </Link>
+                    </Button>
                 )}
             </div>
         </div>
