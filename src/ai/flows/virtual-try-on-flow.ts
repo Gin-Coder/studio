@@ -35,50 +35,6 @@ export async function generateVirtualTryOnImage(
   return generateVirtualTryOnImageFlow(input);
 }
 
-const prompt = ai.definePrompt({
-    name: 'virtualTryOnPrompt',
-    input: { schema: GenerateVirtualTryOnImageInputSchema },
-    output: { schema: GenerateVirtualTryOnImageOutputSchema },
-    prompt: `
-You are a virtual stylist. Your task is to generate a realistic image of a person wearing the provided clothing items.
-- The base image is the model.
-- The other images are clothing items.
-- Place the clothing items onto the model realistically. The generated image should show the full body of the model wearing the clothes.
-
-Model:
-{{media url=modelImageUri}}
-
-Clothing Items:
-{{#each clothingItems}}
-- Category: {{this.category}}
-  Image: {{media url=this.imageUri}}
-{{/each}}
-`,
-    config: {
-        model: 'googleai/gemini-2.5-flash-image-preview',
-        responseModalities: ['IMAGE'],
-        safetySettings: [
-          {
-            category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
-            threshold: 'BLOCK_NONE',
-          },
-          {
-            category: 'HARM_CATEGORY_HARASSMENT',
-            threshold: 'BLOCK_NONE',
-          },
-          {
-            category: 'HARM_CATEGORY_HATE_SPEECH',
-            threshold: 'BLOCK_NONE',
-          },
-          {
-            category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
-            threshold: 'BLOCK_NONE',
-          },
-        ]
-    }
-});
-
-
 const generateVirtualTryOnImageFlow = ai.defineFlow(
   {
     name: 'generateVirtualTryOnImageFlow',
@@ -86,7 +42,41 @@ const generateVirtualTryOnImageFlow = ai.defineFlow(
     outputSchema: GenerateVirtualTryOnImageOutputSchema,
   },
   async (input) => {
-    const { media } = await prompt(input);
+    
+    const { media } = await ai.generate({
+        model: 'googleai/gemini-2.5-flash-image-preview',
+        prompt: [
+            { text: `
+You are a virtual stylist. Your task is to generate a realistic image of a person wearing the provided clothing items.
+- The first image is the model.
+- The subsequent images are clothing items.
+- Place the clothing items onto the model realistically. The generated image should show the full body of the model wearing the clothes.
+`},
+            { media: { url: input.modelImageUri } },
+            ...input.clothingItems.map(item => ({ media: { url: item.imageUri } })),
+        ],
+        config: {
+            responseModalities: ['IMAGE', 'TEXT'],
+            safetySettings: [
+              {
+                category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
+                threshold: 'BLOCK_NONE',
+              },
+              {
+                category: 'HARM_CATEGORY_HARASSMENT',
+                threshold: 'BLOCK_NONE',
+              },
+              {
+                category: 'HARM_CATEGORY_HATE_SPEECH',
+                threshold: 'BLOCK_NONE',
+              },
+              {
+                category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+                threshold: 'BLOCK_NONE',
+              },
+            ]
+        }
+    });
 
     if (!media?.url) {
       throw new Error('Image generation failed to return an image.');
