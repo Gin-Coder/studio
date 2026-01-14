@@ -188,7 +188,7 @@ export default function ShopPage() {
   }, [filteredProducts, sortOption]);
 
   return (
-    <div className="container mx-auto py-8">
+    <div className="container mx-auto py-4 sm:py-8">
       <div className="mb-8">
         <h1 className="text-4xl font-headline font-bold">{pageTitle}</h1>
         <p className="text-muted-foreground">{t('shop.browse_collection')}</p>
