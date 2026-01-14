@@ -9,7 +9,7 @@
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import {z} from 'zod';
 
 const GenerateWhatsAppCheckoutMessageInputSchema = z.object({
   language: z.enum(['FR', 'EN', 'Kreyòl']).describe('The preferred language for the message.'),
