@@ -144,9 +144,9 @@ export default function Header() {
           </nav>
         </div>
         
-        <div className="flex-1 md:hidden">
+        <div className="flex-1 flex justify-center items-center md:hidden">
           <Link href="/" className="flex items-center justify-center">
-            <span className="font-headline text-2xl font-bold text-primary">Danny Store</span>
+            <span className="font-headline text-xl font-bold text-accent">Danny Store</span>
           </Link>
         </div>
 
