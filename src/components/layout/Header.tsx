@@ -88,7 +88,7 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center">
-        <div className="md:hidden">
+        <div className="flex items-center md:hidden">
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon">
@@ -133,20 +133,24 @@ export default function Header() {
           </Sheet>
         </div>
 
-        <div className="ml-4 hidden md:flex">
-          <Link href="/" className="mr-6">
+        <div className="hidden md:flex md:items-center">
+          <Link href="/" className="mr-6 flex items-center gap-2">
             <Logo />
+            <span className="font-headline text-lg font-bold text-primary">Danny Store</span>
           </Link>
           <nav className="flex items-center space-x-1 text-sm font-medium">
              {/* Main nav links for desktop */}
-            <Button variant="ghost" asChild><Link href="/">Accueil</Link></Button>
-            <Button variant="ghost" asChild><Link href="/shop">Boutique</Link></Button>
-            <Button variant="ghost" asChild><Link href="/about">À Propos</Link></Button>
-            <Button variant="ghost" asChild><Link href="/contact">Contact</Link></Button>
+            <NavLinks />
           </nav>
         </div>
+        
+        <div className="flex-1 md:hidden">
+          <Link href="/" className="flex items-center justify-center">
+            <span className="font-headline text-2xl font-bold text-primary">Danny Store</span>
+          </Link>
+        </div>
 
-        <div className="flex flex-1 items-center justify-end space-x-2 md:space-x-4">
+        <div className="flex items-center justify-end space-x-0 md:space-x-2">
           <div className="hidden sm:block w-full flex-1 md:w-auto md:flex-none">
             <form>
               <div className="relative">
