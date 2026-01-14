@@ -17,10 +17,7 @@ import {
   Search,
   ShoppingCart,
   Heart,
-  User,
   Sparkles,
-  LogIn,
-  LogOut,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -31,7 +28,6 @@ import { useLanguage } from '@/hooks/use-language';
 import { useCart } from '@/hooks/use-cart';
 import { useWishlist } from '@/hooks/use-wishlist';
 import { Separator } from '../ui/separator';
-import { useFirebase } from '@/firebase';
 import { useState, useEffect } from 'react';
 
 const NavLinks = ({ inSheet = false }: { inSheet?: boolean }) => {
@@ -46,11 +42,9 @@ const NavLinks = ({ inSheet = false }: { inSheet?: boolean }) => {
   const content = (
     <>
       {links.map((link) => (
-        <SheetClose asChild key={link.href}>
-            <Button variant="ghost" asChild className="justify-start">
-              <Link href={link.href}>{link.label}</Link>
-            </Button>
-        </SheetClose>
+          <Button variant="ghost" asChild key={link.href} className="justify-start">
+            <Link href={link.href}>{link.label}</Link>
+          </Button>
       ))}
     </>
   );
@@ -75,20 +69,12 @@ const NavLinks = ({ inSheet = false }: { inSheet?: boolean }) => {
 export default function Header() {
   const { cartCount } = useCart();
   const { wishlistCount } = useWishlist();
-  const { user, isUserLoading, auth } = useFirebase();
   const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
-
-   const handleSignOut = async () => {
-    if (auth) {
-      await auth.signOut();
-      router.push('/login');
-    }
-  };
   
   if (!isMounted) {
     return (
@@ -126,30 +112,6 @@ export default function Header() {
                    <NavLinks inSheet />
                  </nav>
                </div>
-
-                {!isUserLoading && !user && (
-                    <div className="p-4 pt-0">
-                      <SheetClose asChild>
-                        <Button asChild className="w-full">
-                            <Link href="/login">
-                                <LogIn className="mr-2 h-4 w-4" />
-                                Se connecter
-                            </Link>
-                        </Button>
-                      </SheetClose>
-                    </div>
-                )}
-                
-                {user && (
-                   <div className="p-4 pt-0">
-                     <SheetClose asChild>
-                       <Button variant="ghost" className="w-full justify-start text-destructive hover:text-destructive" onClick={handleSignOut}>
-                           <LogOut className="mr-2 h-4 w-4" />
-                           Se déconnecter
-                       </Button>
-                     </SheetClose>
-                   </div>
-                )}
 
                <Separator />
 
@@ -202,12 +164,6 @@ export default function Header() {
               <Link href="/virtual-try-on">
                 <Sparkles />
                 <span className="sr-only">Virtual Try-On</span>
-              </Link>
-            </Button>
-            <Button variant="ghost" size="icon" asChild>
-              <Link href="/account">
-                <User />
-                <span className="sr-only">Compte</span>
               </Link>
             </Button>
             <Button variant="ghost" size="icon" asChild className="relative">

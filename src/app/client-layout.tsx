@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, type ReactNode, useState } from 'react';
 import { useLanguage, LanguageProvider } from '@/hooks/use-language';
 import { ThemeProvider } from 'next-themes';
 import { CartProvider } from '@/hooks/use-cart';
@@ -8,7 +9,6 @@ import { WishlistProvider } from '@/hooks/use-wishlist';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { Toaster } from '@/components/ui/toaster';
-import { FirebaseClientProvider } from '@/firebase';
 
 function LanguageAttributeUpdater() {
   const { language } = useLanguage();
@@ -22,8 +22,17 @@ function LanguageAttributeUpdater() {
 
 // This component runs only on the client and provides all the context.
 export function ClientLayout({ children }: { children: ReactNode }) {
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted) {
+    return null;
+  }
+
   return (
-    <FirebaseClientProvider>
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
         <LanguageProvider>
           {/* The component below will update the lang attribute, and it needs to be a child of LanguageProvider */}
@@ -40,6 +49,5 @@ export function ClientLayout({ children }: { children: ReactNode }) {
           </CartProvider>
         </LanguageProvider>
       </ThemeProvider>
-    </FirebaseClientProvider>
   );
 }
