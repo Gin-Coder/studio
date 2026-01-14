@@ -16,7 +16,6 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { ShoppingCart, ArrowLeft, CreditCard, Smartphone, MessageCircle } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import Link from "next/link";
-import { ClientSideTranslator } from "@/components/ClientSideTranslator";
 
 const STEPS = [
   { id: 1, nameKey: 'checkout.contact_info' },
