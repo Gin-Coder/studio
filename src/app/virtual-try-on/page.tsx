@@ -16,7 +16,7 @@ export default function VirtualTryOnPage() {
         {t('vto.title')} - Bientôt disponible!
       </h1>
       <p className="mt-4 max-w-2xl text-lg text-muted-foreground">
-        Nous travaillons sur une fonctionnalité révolutionnaire d'essayage virtuel qui vous permettra de visualiser vos tenues comme jamais auparavant. Revenez bientôt pour découvrir le futur du shopping.
+        {t('vto.coming_soon_desc')}
       </p>
        <Button asChild className="mt-8">
           <Link href="/shop">{t('cart.continue_shopping')}</Link>
