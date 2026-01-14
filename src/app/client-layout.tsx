@@ -22,6 +22,29 @@ function LanguageAttributeUpdater() {
   return null;
 }
 
+function Providers({ children }: { children: ReactNode }) {
+    return (
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <CurrencyProvider>
+        <FirebaseClientProvider>
+          <CartProvider>
+            <WishlistProvider>
+              {/* This component needs to be a child of LanguageProvider to work */}
+              <LanguageAttributeUpdater />
+              <div className="flex min-h-screen flex-col">
+                <Header />
+                <main className="flex-grow">{children}</main>
+                <Footer />
+              </div>
+              <Toaster />
+            </WishlistProvider>
+          </CartProvider>
+        </FirebaseClientProvider>
+      </CurrencyProvider>
+    </ThemeProvider>
+    )
+}
+
 // This component runs only on the client and provides all the context.
 export function ClientLayout({ children }: { children: ReactNode }) {
   const [isMounted, setIsMounted] = useState(false);
@@ -44,25 +67,10 @@ export function ClientLayout({ children }: { children: ReactNode }) {
   }
 
   return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-      <LanguageProvider>
-        <CurrencyProvider>
-          {/* This component needs to be a child of LanguageProvider to work */}
-          <LanguageAttributeUpdater />
-          <FirebaseClientProvider>
-            <CartProvider>
-              <WishlistProvider>
-                <div className="flex min-h-screen flex-col">
-                  <Header />
-                  <main className="flex-grow">{children}</main>
-                  <Footer />
-                </div>
-                <Toaster />
-              </WishlistProvider>
-            </CartProvider>
-          </FirebaseClientProvider>
-        </CurrencyProvider>
-      </LanguageProvider>
-    </ThemeProvider>
+    <LanguageProvider>
+        <Providers>
+            {children}
+        </Providers>
+    </LanguageProvider>
   );
 }
