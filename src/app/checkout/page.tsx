@@ -216,45 +216,47 @@ export default function CheckoutPage() {
                 )}
             </div>
 
-             <div className="mt-8 flex items-center justify-between">
-                <div>
-                   {currentStep > 1 ? (
-                        <Button variant="ghost" onClick={prevStep}>
-                            <ArrowLeft className="mr-2 h-4 w-4" />
-                            {t('checkout.back')}
-                        </Button>
-                    ) : (
-                        <ClientSideTranslator>
-                            {t => (
-                                <Button variant="ghost" asChild>
-                                    <Link href="/cart">
-                                        <ArrowLeft className="mr-2 h-4 w-4" />
-                                        {t('checkout.back_to_cart')}
-                                    </Link>
-                                </Button>
-                            )}
-                        </ClientSideTranslator>
-                    )}
-                </div>
-                <div className="flex items-center gap-4">
-                    {currentStep < STEPS.length ? (
-                        <Button size="lg" onClick={nextStep}>{t('checkout.continue')}</Button>
-                    ) : (
-                        <>
-                           <Button size="lg" disabled>{t('checkout.pay_button')}</Button>
-                           <ClientSideTranslator>
+             <div className="mt-8 flex flex-col gap-4">
+                <div className="flex items-center justify-between">
+                    <div>
+                    {currentStep > 1 ? (
+                            <Button variant="ghost" onClick={prevStep}>
+                                <ArrowLeft className="mr-2 h-4 w-4" />
+                                {t('checkout.back')}
+                            </Button>
+                        ) : (
+                            <ClientSideTranslator>
                                 {t => (
-                                    <Button size="lg" variant="secondary" asChild>
+                                    <Button variant="ghost" asChild>
                                         <Link href="/cart">
-                                            <MessageCircle className="mr-2 h-4 w-4" />
-                                            {t('checkout.order_on_whatsapp')}
+                                            <ArrowLeft className="mr-2 h-4 w-4" />
+                                            {t('checkout.back_to_cart')}
                                         </Link>
                                     </Button>
                                 )}
                             </ClientSideTranslator>
-                        </>
-                    )}
+                        )}
+                    </div>
+                    <div>
+                        {currentStep < STEPS.length ? (
+                            <Button size="lg" onClick={nextStep}>{t('checkout.continue')}</Button>
+                        ) : (
+                            <Button size="lg" disabled>{t('checkout.pay_button')}</Button>
+                        )}
+                    </div>
                 </div>
+                {currentStep === STEPS.length && (
+                     <ClientSideTranslator>
+                        {t => (
+                            <Button size="lg" variant="secondary" asChild className="w-full">
+                                <Link href="/cart">
+                                    <MessageCircle className="mr-2 h-4 w-4" />
+                                    {t('checkout.order_on_whatsapp')}
+                                </Link>
+                            </Button>
+                        )}
+                    </ClientSideTranslator>
+                )}
             </div>
         </div>
     );
