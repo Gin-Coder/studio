@@ -154,7 +154,7 @@ export default function Header() {
         </div>
         
         <div className="flex-1 flex justify-center items-center md:hidden">
-            <Link href="/" className="flex items-center justify-center">
+            <Link href="/#" className="flex items-center justify-center">
                 <span className={cn(
                     "font-headline text-xl font-bold text-accent transition-opacity duration-300",
                     isScrolled ? "opacity-100" : "opacity-0"
