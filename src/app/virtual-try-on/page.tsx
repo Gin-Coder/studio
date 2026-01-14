@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, ChangeEvent, useRef } from 'react';
 import Image from 'next/image';
 import {
   Card,
@@ -23,6 +23,9 @@ import { Separator } from '@/components/ui/separator';
 import { useCart } from '@/hooks/use-cart';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/hooks/use-language';
+import { generateVirtualTryOnImage } from '@/ai/flows/virtual-try-on-flow';
+
+const MAX_FREE_USES = 5;
 
 export default function VirtualTryOnPage() {
   const { cartItems } = useCart();
@@ -33,6 +36,22 @@ export default function VirtualTryOnPage() {
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [tryOnCount, setTryOnCount] = useState(0);
+
+  useEffect(() => {
+    const storedCount = localStorage.getItem('tryOnCount');
+    const lastResetDate = localStorage.getItem('tryOnLastReset');
+    const today = new Date().toDateString();
+
+    if (lastResetDate !== today) {
+        localStorage.setItem('tryOnCount', '0');
+        localStorage.setItem('tryOnLastReset', today);
+        setTryOnCount(0);
+    } else if (storedCount) {
+        setTryOnCount(parseInt(storedCount, 10));
+    }
+  }, []);
   
 
   const cartProducts = useMemo(() => {
@@ -53,8 +72,31 @@ export default function VirtualTryOnPage() {
         : prev.filter((item) => item.id !== product.id)
     );
   };
+
+  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setUserImage(reader.result as string);
+        setSelectedAvatar(null); // Deselect avatar when user uploads an image
+      };
+      reader.readAsDataURL(file);
+    }
+  };
   
   const handleGenerate = async () => {
+    if (tryOnCount >= MAX_FREE_USES) {
+        toast({
+            variant: 'destructive',
+            title: "Limite d'essais atteinte",
+            description: "Vous avez utilisé vos 5 essais gratuits pour aujourd'hui. Revenez demain !",
+        });
+        return;
+    }
+
+    const modelImage = userImage || selectedAvatar?.imageUrl;
+
     if (selectedItems.length === 0) {
       toast({
         variant: 'destructive',
@@ -63,7 +105,7 @@ export default function VirtualTryOnPage() {
       });
       return;
     }
-    if (!selectedAvatar && !userImage) {
+    if (!modelImage) {
         toast({
             variant: 'destructive',
             title: t('vto.toast.no_model.title'),
@@ -75,19 +117,38 @@ export default function VirtualTryOnPage() {
     setIsGenerating(true);
     setGeneratedImage(null);
 
-    // AI generation simulation
-    await new Promise((resolve) => setTimeout(resolve, 3000));
-    
-    // In a real app, you would call your Genkit flow here
-    // const result = await yourGenkitFlow({ items: selectedItems, model: selectedAvatar || userImage });
-    // For now, we'll just use the avatar image as a placeholder result.
-    setGeneratedImage(userImage || selectedAvatar?.imageUrl || '');
+    try {
+        const result = await generateVirtualTryOnImage({
+            modelImageUri: modelImage,
+            clothingItems: selectedItems.map(item => ({
+                imageUri: item.images[0], // Assuming the first image is the primary one
+                category: item.category,
+            }))
+        });
 
-    setIsGenerating(false);
-    toast({
-        title: t('vto.toast.generated.title'),
-        description: t('vto.toast.generated.description'),
-    });
+        if (result.generatedImageUri) {
+            setGeneratedImage(result.generatedImageUri);
+            const newCount = tryOnCount + 1;
+            setTryOnCount(newCount);
+            localStorage.setItem('tryOnCount', newCount.toString());
+            toast({
+                title: t('vto.toast.generated.title'),
+                description: `${t('vto.toast.generated.description')} (${MAX_FREE_USES - newCount} essais restants)`,
+            });
+        } else {
+            throw new Error("La génération d'image a échoué.");
+        }
+
+    } catch (error) {
+        console.error("Virtual Try-On Error:", error);
+        toast({
+            variant: 'destructive',
+            title: 'Erreur de Génération',
+            description: "Désolé, une erreur est survenue lors de la création de votre look. Veuillez réessayer."
+        });
+    } finally {
+        setIsGenerating(false);
+    }
   };
 
   const handleSaveOutfit = () => {
@@ -98,6 +159,8 @@ export default function VirtualTryOnPage() {
       // Logic to save the outfit
       toast({ title: t('vto.toast.saved.title'), description: t('vto.toast.saved.description') });
   }
+
+  const remainingTries = MAX_FREE_USES - tryOnCount;
 
   return (
     <div className="container mx-auto py-12">
@@ -150,12 +213,25 @@ export default function VirtualTryOnPage() {
               <CardDescription>{t('vto.choose_model.description')}</CardDescription>
             </CardHeader>
             <CardContent>
+                 {userImage && (
+                    <div className="mb-4 text-center">
+                        <div className="relative w-32 h-32 mx-auto rounded-full border-2 border-primary overflow-hidden">
+                            <Image src={userImage} alt="Your photo" layout="fill" objectFit="cover" />
+                        </div>
+                        <Button variant="link" size="sm" onClick={() => setUserImage(null)}>Changer de photo</Button>
+                    </div>
+                )}
+
                 <RadioGroup 
                     onValueChange={(value) => {
-                        setSelectedAvatar(avatars.find(a => a.id === value) || null);
-                        setUserImage(null);
+                        if (value === 'upload') {
+                            fileInputRef.current?.click();
+                        } else {
+                            setSelectedAvatar(avatars.find(a => a.id === value) || null);
+                            setUserImage(null);
+                        }
                     }}
-                    defaultValue={selectedAvatar?.id}
+                    value={userImage ? 'upload' : selectedAvatar?.id || ''}
                     className="grid grid-cols-2 gap-4 mb-4"
                 >
                     {avatars.map(avatar => (
@@ -179,11 +255,13 @@ export default function VirtualTryOnPage() {
                     ))}
                 </RadioGroup>
                 <Separator className="my-4"/>
-                <Button variant="outline" className="w-full" onClick={() => document.getElementById('file-upload')?.click()}>
+                <Button variant="outline" className="w-full" onClick={() => fileInputRef.current?.click()}>
                     <Upload className="mr-2 h-4 w-4" /> {t('vto.choose_model.upload')}
                 </Button>
-                <input type="file" id="file-upload" className="hidden" accept="image/*" />
-                 <p className="text-xs text-muted-foreground mt-2 text-center">{t('vto.choose_model.disclaimer')}</p>
+                <input ref={fileInputRef} type="file" id="file-upload" className="hidden" accept="image/*" onChange={handleFileChange} />
+                 <p className="text-xs text-muted-foreground mt-2 text-center">
+                    {t('vto.choose_model.disclaimer')} ({remainingTries} restants)
+                 </p>
             </CardContent>
           </Card>
         </div>
@@ -222,7 +300,7 @@ export default function VirtualTryOnPage() {
 
                     {/* Actions & Selected Items */}
                     <div className="md:col-span-1 space-y-6">
-                       <Button size="lg" className="w-full" onClick={handleGenerate} disabled={isGenerating}>
+                       <Button size="lg" className="w-full" onClick={handleGenerate} disabled={isGenerating || remainingTries <= 0}>
                             <Sparkles className="mr-2 h-4 w-4" />
                             {isGenerating ? t('vto.generating_button') : t('vto.generate_button')}
                        </Button>
