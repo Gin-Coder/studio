@@ -31,6 +31,7 @@ import { useWishlist } from '@/hooks/use-wishlist';
 import { Separator } from '../ui/separator';
 import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
+import { useTheme } from 'next-themes';
 
 const NavLinks = ({ inSheet = false }: { inSheet?: boolean }) => {
   const { t } = useLanguage();
@@ -75,6 +76,7 @@ export default function Header() {
   const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const { theme } = useTheme();
 
   useEffect(() => {
     setIsMounted(true);
@@ -161,7 +163,7 @@ export default function Header() {
         
         <div className="flex-1 flex justify-center items-center md:hidden">
             <Link href="/#" className="flex items-center justify-center">
-                <span className={cn(
+                <span style={theme === 'light' ? { textShadow: '0 0 5px rgba(0,0,0,0.5)' } : {}} className={cn(
                     "font-headline text-xl font-bold text-accent transition-opacity duration-300 md:hidden",
                     isScrolled ? "opacity-100" : "opacity-0"
                 )}>
@@ -229,5 +231,3 @@ export default function Header() {
     </header>
   );
 }
-
-    
