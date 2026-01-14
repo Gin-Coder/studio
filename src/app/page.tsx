@@ -29,7 +29,7 @@ export default function Home() {
     );
 
     const continuousAutoplay = useRef(
-        Autoplay({ delay: 0, stopOnInteraction: false, stopOnMouseEnter: true })
+        Autoplay({ delay: 4000, stopOnInteraction: false, stopOnMouseEnter: true })
     )
 
   const heroImage = PlaceHolderImages.find(p => p.id === 'hero-main') || { src: '', alt: '', hint: '' };
