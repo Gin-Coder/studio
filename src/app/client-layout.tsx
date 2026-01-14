@@ -71,11 +71,13 @@ export function ClientLayout({ children }: { children: ReactNode }) {
   // after the component has mounted.
   if (!isMounted) {
     return (
-      <div className="flex min-h-screen flex-col">
-        <Header />
-        <main className="flex-grow">{children}</main>
-        <Footer />
-      </div>
+      <LanguageProvider>
+        <div className="flex min-h-screen flex-col">
+          <Header />
+          <main className="flex-grow">{children}</main>
+          <Footer />
+        </div>
+      </LanguageProvider>
     );
   }
 
