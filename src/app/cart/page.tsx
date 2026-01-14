@@ -32,21 +32,20 @@ export default function CartPage() {
     try {
         const storeOwnerWhatsApp = '50933377934';
         const orderId = `DS-${Date.now()}`;
-        const customerName = 'Valued Customer';
-
-        let message = `*New Order from Danny Store*\n\n`;
-        message += `*Order ID:* ${orderId}\n`;
-        message += `*Customer:* ${customerName}\n\n`;
-        message += `*Items:*\n`;
+        
+        let message = `*${t('whatsapp.order.title')}*\n\n`;
+        message += `*${t('whatsapp.order.id')}:* ${orderId}\n`;
+        message += `*${t('whatsapp.order.customer')}:* ${t('whatsapp.order.valued_customer')}\n\n`;
+        message += `*${t('whatsapp.order.items')}:*\n`;
         
         cartItems.forEach(item => {
             const itemDisplayPrice = convertPrice(item.price * item.quantity);
             message += `- ${item.name} (${item.color}, ${item.size}) x ${item.quantity} - ${formatPrice(itemDisplayPrice, language, currency)}\n`;
         });
 
-        message += `\n*Subtotal:* ${formatPrice(displayTotalPrice, language, currency)}\n`;
-        message += `*Total:* ${formatPrice(displayTotalPrice, language, currency)} (Delivery to be confirmed)\n\n`;
-        message += `Hello, I would like to confirm this order.`;
+        message += `\n*${t('cart.subtotal')}:* ${formatPrice(displayTotalPrice, language, currency)}\n`;
+        message += `*${t('cart.total')}:* ${formatPrice(displayTotalPrice, language, currency)} (${t('whatsapp.order.delivery_note')})\n\n`;
+        message += `${t('whatsapp.order.confirmation_prompt')}`;
 
         const encodedMessage = encodeURIComponent(message);
         window.open(`https://wa.me/${storeOwnerWhatsApp}?text=${encodedMessage}`, '_blank');
@@ -55,8 +54,8 @@ export default function CartPage() {
         console.error('Failed to generate WhatsApp message', error);
         toast({
             variant: 'destructive',
-            title: 'Error',
-            description: 'Could not generate WhatsApp message. Please try again.',
+            title: t('toast.error.title'),
+            description: t('toast.error.whatsapp_failed'),
         });
     } finally {
         setIsGenerating(false);
@@ -188,8 +187,8 @@ export default function CartPage() {
            <Card className="mt-4">
             <CardContent className="p-6 text-center">
               <Sparkles className="mx-auto h-8 w-8 text-primary" />
-              <h3 className="mt-2 font-headline font-semibold">{t('cart.vto_prompt.title')}</h3>
-              <p className="text-muted-foreground text-sm mt-1 mb-4">{t('cart.vto_prompt.desc')}</p>
+              <h3 className="mt-2 font-headline font-semibold">{t('vto.product_page.title')}</h3>
+              <p className="text-muted-foreground text-sm mt-1 mb-4">{t('vto.product_page.desc')}</p>
               <Button asChild>
                 <Link href="/virtual-try-on">{t('cart.vto_prompt.button')}</Link>
               </Button>
@@ -200,5 +199,3 @@ export default function CartPage() {
     </div>
   );
 }
-
-    
