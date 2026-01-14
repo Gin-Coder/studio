@@ -60,6 +60,12 @@ export default function VirtualTryOnPage() {
       .filter((p): p is Product => p !== undefined);
   }, [cartItems]);
 
+  const { topItems, shoeItems } = useMemo(() => {
+    const tops = selectedItems.filter(item => item.category === 'clothing');
+    const shoes = selectedItems.filter(item => item.category === 'shoes');
+    return { topItems: tops, shoeItems: shoes };
+  }, [selectedItems]);
+
   useEffect(() => {
     // Pre-select all clothing and shoe items from the cart by default
     setSelectedItems(cartProducts.filter(p => ['clothing', 'shoes'].includes(p.category)));
@@ -280,20 +286,32 @@ export default function VirtualTryOnPage() {
                                     fill
                                     className="object-cover rounded-lg"
                                 />
-                                {selectedItems.map((item, index) => (
-                                     <Image 
-                                        key={item.id}
-                                        src={item.images[0]}
-                                        alt={item.name}
-                                        fill
-                                        className="absolute object-contain"
-                                        style={{
-                                            // Basic overlay logic, can be improved
-                                            mixBlendMode: 'multiply',
-                                            opacity: 0.8
-                                        }}
-                                     />
-                                ))}
+                                {/* Container for top items */}
+                                <div className="absolute inset-0 flex flex-col justify-start items-center">
+                                    {topItems.map((item) => (
+                                        <div key={item.id} className="relative w-full h-2/3">
+                                            <Image 
+                                                src={item.images[0]}
+                                                alt={item.name}
+                                                fill
+                                                className="object-contain"
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+                                {/* Container for shoe items */}
+                                <div className="absolute inset-0 flex flex-col justify-end items-center">
+                                    {shoeItems.map((item) => (
+                                        <div key={item.id} className="relative w-full h-1/4">
+                                            <Image 
+                                                src={item.images[0]}
+                                                alt={item.name}
+                                                fill
+                                                className="object-contain"
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
                              </>
                         )}
                     </div>
