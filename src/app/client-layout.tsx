@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect, type ReactNode, useState } from 'react';
-import { useLanguage, LanguageProvider } from '@/hooks/use-language';
+import { LanguageProvider, useLanguage } from '@/hooks/use-language';
 import { ThemeProvider } from 'next-themes';
 import { CartProvider } from '@/hooks/use-cart';
 import { WishlistProvider } from '@/hooks/use-wishlist';
@@ -12,6 +12,8 @@ import { Toaster } from '@/components/ui/toaster';
 import { CurrencyProvider } from '@/hooks/use-currency';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 
+// This component updates the `lang` attribute on the `<html>` tag.
+// It must be a child of LanguageProvider.
 function LanguageAttributeUpdater() {
   const { language } = useLanguage();
 
@@ -22,30 +24,41 @@ function LanguageAttributeUpdater() {
   return null;
 }
 
-function Providers({ children }: { children: ReactNode }) {
-    return (
+// This component contains the main layout of the application.
+// It uses hooks that require various providers, so it must be a child of those providers.
+function MainLayout({ children }: { children: ReactNode }) {
+  return (
+    <>
+      <LanguageAttributeUpdater />
+      <div className="flex min-h-screen flex-col">
+        <Header />
+        <main className="flex-grow">{children}</main>
+        <Footer />
+      </div>
+      <Toaster />
+    </>
+  );
+}
+
+// This component wraps the main layout with all necessary context providers.
+function AppProviders({ children }: { children: ReactNode }) {
+  return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <CurrencyProvider>
         <FirebaseClientProvider>
-          <CartProvider>
-            <WishlistProvider>
-              {/* This component needs to be a child of LanguageProvider to work */}
-              <LanguageAttributeUpdater />
-              <div className="flex min-h-screen flex-col">
-                <Header />
-                <main className="flex-grow">{children}</main>
-                <Footer />
-              </div>
-              <Toaster />
-            </WishlistProvider>
-          </CartProvider>
+          <WishlistProvider>
+            <CartProvider>
+              <MainLayout>{children}</MainLayout>
+            </CartProvider>
+          </WishlistProvider>
         </FirebaseClientProvider>
       </CurrencyProvider>
     </ThemeProvider>
-    )
+  );
 }
 
-// This component runs only on the client and provides all the context.
+
+// This is the top-level client component that ensures providers are only rendered on the client.
 export function ClientLayout({ children }: { children: ReactNode }) {
   const [isMounted, setIsMounted] = useState(false);
 
@@ -53,24 +66,24 @@ export function ClientLayout({ children }: { children: ReactNode }) {
     setIsMounted(true);
   }, []);
 
-  // Until the component is mounted, we can't be sure we're on the client,
-  // so we'll render a simplified version. This avoids hydration mismatches
-  // with things like theme, language, etc.
+  // On the server and during the initial client render, we render a simplified layout
+  // to avoid hydration mismatches. The full provider-wrapped layout is rendered only on the client
+  // after the component has mounted.
   if (!isMounted) {
     return (
-      <>
+      <div className="flex min-h-screen flex-col">
         <Header />
         <main className="flex-grow">{children}</main>
         <Footer />
-      </>
+      </div>
     );
   }
 
+  // The top-level LanguageProvider wraps everything.
+  // AppProviders then wraps the children with all other necessary contexts.
   return (
     <LanguageProvider>
-        <Providers>
-            {children}
-        </Providers>
+      <AppProviders>{children}</AppProviders>
     </LanguageProvider>
   );
 }
