@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 export default function AdminDashboardPage() {
   return (
     <div className="space-y-8">
+        <h1 className="font-headline text-2xl font-bold">Dashboard</h1>
         <Card>
             <CardHeader>
                 <CardTitle>Welcome, Admin!</CardTitle>

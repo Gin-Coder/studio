@@ -1,111 +1,95 @@
-
 'use client';
 
-import { useUser, useAuth, FirebaseClientProvider } from '@/firebase';
-import { useRouter, usePathname } from 'next/navigation';
-import { useEffect } from 'react';
-import { Sidebar, SidebarProvider, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter, SidebarTrigger } from '@/components/ui/sidebar';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { Bell, Home, Newspaper, FileText, Settings, Package, Users, LineChart } from 'lucide-react';
+
 import { Button } from '@/components/ui/button';
-import { LayoutDashboard, LogOut, FileText, Settings, Newspaper } from 'lucide-react';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+
 import { Logo } from '@/components/ui/logo';
-import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils';
 
-function AdminLayoutContent({ children }: { children: React.ReactNode }) {
-    const { user, isUserLoading } = useUser();
-    const auth = useAuth();
-    const router = useRouter();
-    const pathname = usePathname();
+const navLinks = [
+    { href: '/admin/dashboard', icon: Home, label: 'Dashboard' },
+    { href: '/admin/articles', icon: Newspaper, label: 'Articles' },
+    { href: '/admin/pages', icon: FileText, label: 'Pages' },
+    { href: '/admin/configuration', icon: Settings, label: 'Configuration' },
+];
 
-    useEffect(() => {
-        if (!isUserLoading && !user) {
-            router.push('/admin/login');
-        }
-    }, [isUserLoading, user, router]);
+export default function AdminLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const pathname = usePathname();
 
-    const handleSignOut = async () => {
-        if (auth) {
-            await auth.signOut();
-            router.push('/admin/login');
-        }
-    };
-    
-    const getPageTitle = () => {
-        if (pathname.includes('/dashboard')) return 'Dashboard';
-        if (pathname.includes('/articles')) return 'Articles';
-        if (pathname.includes('/pages')) return 'Pages';
-        if (pathname.includes('/configuration')) return 'Configuration';
-        return 'Admin';
-    }
-
-
-    if (isUserLoading || !user) {
-        return (
-            <div className="flex h-screen w-screen items-center justify-center">
-                <div className="flex flex-col items-center space-y-4">
-                     <Skeleton className="h-12 w-12 rounded-full" />
-                     <Skeleton className="h-4 w-[250px]" />
-                     <Skeleton className="h-4 w-[200px]" />
-                </div>
+  return (
+    <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
+      <div className="hidden border-r bg-muted/40 md:block">
+        <div className="flex h-full max-h-screen flex-col gap-2">
+          <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
+            <Link href="/admin/dashboard" className="flex items-center gap-2 font-semibold">
+              <Logo />
+              <span className="">Danny Store CMS</span>
+            </Link>
+            <Button variant="outline" size="icon" className="ml-auto h-8 w-8">
+              <Bell className="h-4 w-4" />
+              <span className="sr-only">Toggle notifications</span>
+            </Button>
+          </div>
+          <div className="flex-1">
+            <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
+              {navLinks.map(link => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={cn(
+                    "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
+                    pathname === link.href && "bg-muted text-primary"
+                  )}
+                >
+                  <link.icon className="h-4 w-4" />
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
+          </div>
+          <div className="mt-auto p-4">
+            <Card>
+              <CardHeader className="p-2 pt-0 md:p-4">
+                <CardTitle>Upgrade to Pro</CardTitle>
+                <CardDescription>
+                  Unlock all features and get unlimited access to our support
+                  team.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-2 pt-0 md:p-4 md:pt-0">
+                <Button size="sm" className="w-full">
+                  Upgrade
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+      <div className="flex flex-col">
+        <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
+            {/* Mobile Nav will go here */}
+            <div className="w-full flex-1">
+                {/* Search can go here */}
             </div>
-        );
-    }
-
-    return (
-        <SidebarProvider>
-            <div className="flex min-h-screen">
-                <Sidebar>
-                    <SidebarContent>
-                        <SidebarHeader>
-                            <Logo />
-                            <span>Danny Store CMS</span>
-                        </SidebarHeader>
-                        <SidebarMenu>
-                            <SidebarMenuItem>
-                                <SidebarMenuButton href="/admin/dashboard" isActive={pathname === '/admin/dashboard'}>
-                                    <LayoutDashboard />
-                                    Dashboard
-                                </SidebarMenuButton>
-                            </SidebarMenuItem>
-                             <SidebarMenuItem>
-                                <SidebarMenuButton href="/admin/articles" isActive={pathname === '/admin/articles'}>
-                                    <Newspaper />
-                                    Articles
-                                </SidebarMenuButton>
-                            </SidebarMenuItem>
-                             <SidebarMenuItem>
-                                <SidebarMenuButton href="/admin/pages" isActive={pathname === '/admin/pages'}>
-                                    <FileText />
-                                    Pages
-                                </SidebarMenuButton>
-                            </SidebarMenuItem>
-                             <SidebarMenuItem>
-                                <SidebarMenuButton href="/admin/configuration" isActive={pathname === '/admin/configuration'}>
-                                    <Settings />
-                                    Configuration
-                                </SidebarMenuButton>
-                            </SidebarMenuItem>
-                        </SidebarMenu>
-                         <SidebarFooter>
-                            <Button variant="ghost" onClick={handleSignOut} className="w-full justify-start gap-2">
-                                <LogOut />
-                                <span>Sign Out</span>
-                            </Button>
-                        </SidebarFooter>
-                    </SidebarContent>
-                </Sidebar>
-                <main className="flex-1 p-4 md:p-8 bg-muted/40">
-                     <div className="flex items-center gap-4 mb-8">
-                         <SidebarTrigger className="md:hidden" />
-                         <h1 className="font-headline text-2xl font-bold">{getPageTitle()}</h1>
-                    </div>
-                    {children}
-                </main>
-            </div>
-        </SidebarProvider>
-    );
-}
-
-
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
-    return <FirebaseClientProvider><AdminLayoutContent>{children}</AdminLayoutContent></FirebaseClientProvider>
+        </header>
+        <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6">
+          {children}
+        </main>
+      </div>
+    </div>
+  );
 }
