@@ -1,12 +1,19 @@
 
 'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import type { Currency } from '@/lib/types';
+
+const CONVERSION_RATES = {
+  USD: 1,
+  EUR: 0.93, 
+  HTG: 135,
+};
 
 interface CurrencyContextType {
   currency: Currency;
   setCurrency: (currency: Currency) => void;
+  convertPrice: (price: number) => number;
 }
 
 const CurrencyContext = createContext<CurrencyContextType | undefined>(undefined);
@@ -24,12 +31,15 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
   const setCurrency = (curr: Currency) => {
     setCurrencyState(curr);
     localStorage.setItem('currency', curr);
-    // We might want to reload or force a re-render to see changes everywhere instantly
-    window.location.reload();
   };
+  
+  const convertPrice = useCallback((price: number) => {
+      const rate = CONVERSION_RATES[currency];
+      return price * rate;
+  }, [currency]);
 
   return (
-    <CurrencyContext.Provider value={{ currency, setCurrency }}>
+    <CurrencyContext.Provider value={{ currency, setCurrency, convertPrice }}>
       {children}
     </CurrencyContext.Provider>
   );

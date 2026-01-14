@@ -13,9 +13,12 @@ import { useLanguage } from "@/hooks/use-language";
 import { useCurrency } from "@/hooks/use-currency";
 
 export default function CheckoutPage() {
-    const { cartItems, totalPrice } = useCart();
+    const { cartItems } = useCart();
     const { language } = useLanguage();
-    const { currency } = useCurrency();
+    const { currency, convertPrice } = useCurrency();
+
+    const totalPrice = cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
+    const displayTotalPrice = convertPrice(totalPrice);
 
     return (
         <div className="container mx-auto py-12">
@@ -92,27 +95,30 @@ export default function CheckoutPage() {
                         <CardHeader><CardTitle>Order Summary</CardTitle></CardHeader>
                         <CardContent>
                             <div className="space-y-4">
-                                {cartItems.map(item => (
-                                    <div key={item.variantId} className="flex items-center justify-between">
-                                        <div className="flex items-center gap-4">
-                                            <div className="relative h-16 w-16 rounded-md border">
-                                                <Image src={item.image} alt={item.name} layout="fill" objectFit="cover" className="rounded-md" />
-                                                <div className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">{item.quantity}</div>
+                                {cartItems.map(item => {
+                                    const itemDisplayPrice = convertPrice(item.price * item.quantity);
+                                    return (
+                                        <div key={item.variantId} className="flex items-center justify-between">
+                                            <div className="flex items-center gap-4">
+                                                <div className="relative h-16 w-16 rounded-md border">
+                                                    <Image src={item.image} alt={item.name} layout="fill" objectFit="cover" className="rounded-md" />
+                                                    <div className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">{item.quantity}</div>
+                                                </div>
+                                                <div>
+                                                    <p className="font-semibold">{item.name}</p>
+                                                    <p className="text-sm text-muted-foreground">{item.color} / {item.size}</p>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <p className="font-semibold">{item.name}</p>
-                                                <p className="text-sm text-muted-foreground">{item.color} / {item.size}</p>
-                                            </div>
+                                            <p className="font-medium">{formatPrice(itemDisplayPrice, language, currency)}</p>
                                         </div>
-                                        <p className="font-medium">{formatPrice(item.price * item.quantity, language, currency)}</p>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                             <Separator className="my-4" />
                             <div className="space-y-2">
                                 <div className="flex justify-between">
                                     <p className="text-muted-foreground">Subtotal</p>
-                                    <p>{formatPrice(totalPrice, language, currency)}</p>
+                                    <p>{formatPrice(displayTotalPrice, language, currency)}</p>
                                 </div>
                                 <div className="flex justify-between">
                                     <p className="text-muted-foreground">Shipping</p>
@@ -122,7 +128,7 @@ export default function CheckoutPage() {
                              <Separator className="my-4" />
                             <div className="flex justify-between font-bold text-lg">
                                 <p>Total</p>
-                                <p>{formatPrice(totalPrice, language, currency)}</p>
+                                <p>{formatPrice(displayTotalPrice, language, currency)}</p>
                             </div>
                         </CardContent>
                     </Card>

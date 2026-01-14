@@ -17,12 +17,15 @@ import { useRouter } from 'next/navigation';
 import { useCurrency } from '@/hooks/use-currency';
 
 export default function CartPage() {
-  const { cartItems, updateQuantity, removeFromCart, cartCount, totalPrice } = useCart();
+  const { cartItems, updateQuantity, removeFromCart, cartCount } = useCart();
   const { t, language } = useLanguage();
-  const { currency } = useCurrency();
+  const { currency, convertPrice } = useCurrency();
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
+
+  const totalPrice = cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
+  const displayTotalPrice = convertPrice(totalPrice);
 
   const handleWhatsappCheckout = async () => {
     setIsGenerating(true);
@@ -37,11 +40,12 @@ export default function CartPage() {
         message += `*Items:*\n`;
         
         cartItems.forEach(item => {
-            message += `- ${item.name} (${item.color}, ${item.size}) x ${item.quantity} - ${formatPrice(item.price * item.quantity, language, currency)}\n`;
+            const itemDisplayPrice = convertPrice(item.price * item.quantity);
+            message += `- ${item.name} (${item.color}, ${item.size}) x ${item.quantity} - ${formatPrice(itemDisplayPrice, language, currency)}\n`;
         });
 
-        message += `\n*Subtotal:* ${formatPrice(totalPrice, language, currency)}\n`;
-        message += `*Total:* ${formatPrice(totalPrice, language, currency)} (Delivery to be confirmed)\n\n`;
+        message += `\n*Subtotal:* ${formatPrice(displayTotalPrice, language, currency)}\n`;
+        message += `*Total:* ${formatPrice(displayTotalPrice, language, currency)} (Delivery to be confirmed)\n\n`;
         message += `Hello, I would like to confirm this order.`;
 
         const encodedMessage = encodeURIComponent(message);
@@ -85,66 +89,71 @@ export default function CartPage() {
            <Card>
               <CardContent className="p-0 sm:p-6">
                   <div className="space-y-6 sm:space-y-0">
-                    {cartItems.map((item, index) => (
-                      <div key={item.variantId} className="flex flex-col sm:flex-row items-start gap-4 p-4 sm:p-0 sm:mb-6">
-                          <div className="relative w-full sm:w-24 aspect-[3/4] sm:aspect-square flex-shrink-0">
-                            <Image
-                              src={item.image}
-                              alt={item.name}
-                              fill
-                              className="rounded-md object-cover"
-                            />
-                          </div>
-                          <div className="flex-grow w-full">
-                            <div className="flex justify-between items-start">
-                              <div>
-                                <h2 className="font-semibold text-base sm:text-lg">{item.name}</h2>
-                                <p className="text-sm text-muted-foreground">
-                                  {item.color} / {item.size}
-                                </p>
-                              </div>
-                              <Button variant="ghost" size="icon" onClick={() => removeFromCart(item.variantId)} aria-label="Remove item from cart" className="sm:hidden -mt-2 -mr-2">
-                                  <Trash2 className="h-5 w-5 text-muted-foreground hover:text-destructive" />
-                              </Button>
-                            </div>
-                            <div className="flex items-end justify-between mt-4">
-                              <div className="flex items-center rounded-md border w-fit">
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => updateQuantity(item.variantId, Math.max(1, item.quantity - 1))}
-                                  aria-label="Decrease quantity"
-                                >
-                                  <Minus className="h-4 w-4" />
-                                </Button>
-                                <Input
-                                  type="number"
-                                  value={item.quantity}
-                                  onChange={(e) => updateQuantity(item.variantId, parseInt(e.target.value) || 1)}
-                                  className="h-8 w-12 border-0 bg-transparent text-center"
-                                  aria-label="Item quantity"
+                    {cartItems.map((item, index) => {
+                        const itemDisplayPrice = convertPrice(item.price * item.quantity);
+                        const eachDisplayPrice = convertPrice(item.price);
+                      
+                        return (
+                          <div key={item.variantId} className="flex flex-col sm:flex-row items-start gap-4 p-4 sm:p-0 sm:mb-6">
+                              <div className="relative w-full sm:w-24 aspect-[3/4] sm:aspect-square flex-shrink-0">
+                                <Image
+                                  src={item.image}
+                                  alt={item.name}
+                                  fill
+                                  className="rounded-md object-cover"
                                 />
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => updateQuantity(item.variantId, item.quantity + 1)}
-                                  aria-label="Increase quantity"
-                                >
-                                  <Plus className="h-4 w-4" />
-                                </Button>
                               </div>
-                              <div className="text-right">
-                                <p className="font-bold text-base sm:text-lg">{formatPrice(item.price * item.quantity, language, currency)}</p>
-                                {item.quantity > 1 && <p className="text-xs text-muted-foreground">{formatPrice(item.price, language, currency)} each</p>}
+                              <div className="flex-grow w-full">
+                                <div className="flex justify-between items-start">
+                                  <div>
+                                    <h2 className="font-semibold text-base sm:text-lg">{item.name}</h2>
+                                    <p className="text-sm text-muted-foreground">
+                                      {item.color} / {item.size}
+                                    </p>
+                                  </div>
+                                  <Button variant="ghost" size="icon" onClick={() => removeFromCart(item.variantId)} aria-label="Remove item from cart" className="sm:hidden -mt-2 -mr-2">
+                                      <Trash2 className="h-5 w-5 text-muted-foreground hover:text-destructive" />
+                                  </Button>
+                                </div>
+                                <div className="flex items-end justify-between mt-4">
+                                  <div className="flex items-center rounded-md border w-fit">
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => updateQuantity(item.variantId, Math.max(1, item.quantity - 1))}
+                                      aria-label="Decrease quantity"
+                                    >
+                                      <Minus className="h-4 w-4" />
+                                    </Button>
+                                    <Input
+                                      type="number"
+                                      value={item.quantity}
+                                      onChange={(e) => updateQuantity(item.variantId, parseInt(e.target.value) || 1)}
+                                      className="h-8 w-12 border-0 bg-transparent text-center"
+                                      aria-label="Item quantity"
+                                    />
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => updateQuantity(item.variantId, item.quantity + 1)}
+                                      aria-label="Increase quantity"
+                                    >
+                                      <Plus className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                  <div className="text-right">
+                                    <p className="font-bold text-base sm:text-lg">{formatPrice(itemDisplayPrice, language, currency)}</p>
+                                    {item.quantity > 1 && <p className="text-xs text-muted-foreground">{formatPrice(eachDisplayPrice, language, currency)} each</p>}
+                                  </div>
+                                </div>
                               </div>
-                            </div>
+                              <Button variant="ghost" size="icon" onClick={() => removeFromCart(item.variantId)} aria-label="Remove item from cart" className="hidden sm:flex">
+                                <Trash2 className="h-5 w-5 text-muted-foreground hover:text-destructive" />
+                              </Button>
+                            {index < cartItems.length - 1 && <Separator className="mt-6 sm:hidden" />}
                           </div>
-                          <Button variant="ghost" size="icon" onClick={() => removeFromCart(item.variantId)} aria-label="Remove item from cart" className="hidden sm:flex">
-                            <Trash2 className="h-5 w-5 text-muted-foreground hover:text-destructive" />
-                          </Button>
-                        {index < cartItems.length - 1 && <Separator className="mt-6 sm:hidden" />}
-                      </div>
-                    ))}
+                        )
+                    })}
                   </div>
               </CardContent>
             </Card>
@@ -157,7 +166,7 @@ export default function CartPage() {
             <CardContent className="space-y-4">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">{t('cart.subtotal')}</span>
-                <span>{formatPrice(totalPrice, language, currency)}</span>
+                <span>{formatPrice(displayTotalPrice, language, currency)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">{t('cart.delivery')}</span>
@@ -166,7 +175,7 @@ export default function CartPage() {
               <Separator />
               <div className="flex justify-between font-bold text-lg">
                 <span>{t('cart.total')}</span>
-                <span>{formatPrice(totalPrice, language, currency)}</span>
+                <span>{formatPrice(displayTotalPrice, language, currency)}</span>
               </div>
                <Button size="lg" className="w-full mt-4" onClick={handleWhatsappCheckout} disabled={isGenerating}>
                  {isGenerating ? "Generating..." : t('cart.checkout_whatsapp')}
@@ -181,7 +190,9 @@ export default function CartPage() {
               <Sparkles className="mx-auto h-8 w-8 text-primary" />
               <h3 className="mt-2 font-headline font-semibold">{t('vto.title')}</h3>
               <p className="text-muted-foreground text-sm mt-1 mb-4">{t('vto.coming_soon_desc_short')}</p>
-              <Button disabled>{t('vto.coming_soon_button')}</Button>
+              <Button asChild>
+                <Link href="/virtual-try-on">{t('vto.coming_soon_button')}</Link>
+              </Button>
             </CardContent>
           </Card>
         </div>

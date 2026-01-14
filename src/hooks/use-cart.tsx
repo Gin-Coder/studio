@@ -1,3 +1,4 @@
+
 'use client';
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
@@ -10,7 +11,6 @@ type CartContextType = {
   updateQuantity: (variantId: string, quantity: number) => void;
   clearCart: () => void;
   cartCount: number;
-  totalPrice: number;
 };
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -51,7 +51,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           variantId: variant.id,
           quantity,
           name: product.name,
-          price: product.price,
+          price: product.price, // Always store the base price (USD)
           image: product.images[0],
           color: variant.colorName,
           size: variant.size,
@@ -66,9 +66,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const updateQuantity = (variantId: string, quantity: number) => {
     setCartItems((prevItems) =>
-      prevItems.map((item) =>
-        item.variantId === variantId ? { ...item, quantity } : item
-      )
+      prevItems
+        .map((item) =>
+          item.variantId === variantId ? { ...item, quantity: Math.max(0, quantity) } : item
+        )
+        .filter(item => item.quantity > 0) // Remove item if quantity is 0
     );
   };
 
@@ -77,7 +79,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const cartCount = cartItems.reduce((count, item) => count + item.quantity, 0);
-  const totalPrice = cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
 
   return (
     <CartContext.Provider
@@ -88,7 +89,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
         updateQuantity,
         clearCart,
         cartCount,
-        totalPrice,
       }}
     >
       {children}

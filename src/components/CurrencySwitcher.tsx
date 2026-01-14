@@ -9,13 +9,21 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { DollarSign, Euro, LandPlot } from 'lucide-react';
+import { DollarSign, Euro } from 'lucide-react';
 import { useEffect, useState } from 'react';
+
+// Custom SVG for HTG
+const HtgIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M16 8H8v8h8"/>
+        <path d="M12 4v16"/>
+    </svg>
+);
 
 const currencyIcons = {
   USD: <DollarSign className="h-[1.2rem] w-[1.2rem]" />,
   EUR: <Euro className="h-[1.2rem] w-[1.2rem]" />,
-  HTG: <LandPlot className="h-[1.2rem] w-[1.2rem]" />, // Placeholder icon for Gourde
+  HTG: <HtgIcon />,
 };
 
 export function CurrencySwitcher() {
