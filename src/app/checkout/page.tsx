@@ -13,7 +13,8 @@ import { formatPrice } from "@/lib/utils";
 import { useLanguage } from "@/hooks/use-language";
 import { useCurrency } from "@/hooks/use-currency";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { ShoppingCart, ArrowLeft } from "lucide-react";
+import { ShoppingCart, ArrowLeft, CreditCard, Smartphone } from "lucide-react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 const STEPS = [
   { id: 1, nameKey: 'checkout.contact_info' },
@@ -176,25 +177,38 @@ export default function CheckoutPage() {
 
                 {currentStep === 3 && (
                     <Card>
-                        <CardHeader><CardTitle>{t('checkout.payment')}</CardTitle></CardHeader>
-                        <CardContent>
-                            <p className="text-muted-foreground">{t('checkout.payment_placeholder')}</p>
-                             <div className="mt-4 grid gap-4">
-                                <div className="grid gap-2">
-                                    <Label htmlFor="card-number">{t('checkout.card_number')}</Label>
-                                    <Input id="card-number" placeholder="**** **** **** 1234" />
-                                </div>
-                                <div className="grid grid-cols-3 gap-4">
-                                    <div className="grid gap-2 col-span-2">
-                                        <Label htmlFor="expiry">{t('checkout.expiry')}</Label>
-                                        <Input id="expiry" placeholder="MM/YY" />
-                                    </div>
-                                    <div className="grid gap-2">
-                                        <Label htmlFor="cvc">{t('checkout.cvc')}</Label>
-                                        <Input id="cvc" placeholder="123" />
-                                    </div>
-                                </div>
-                            </div>
+                        <CardHeader>
+                            <CardTitle>{t('checkout.payment')}</CardTitle>
+                            <p className="text-sm text-muted-foreground">{t('checkout.payment_coming_soon')}</p>
+                        </CardHeader>
+                        <CardContent className="space-y-6 opacity-50 pointer-events-none">
+                           <RadioGroup defaultValue="card" disabled>
+                               <div className="rounded-md border p-4">
+                                   <div className="flex items-center justify-between">
+                                       <Label htmlFor="card" className="flex items-center gap-2 font-semibold">
+                                            <CreditCard /> {t('checkout.payment_card')}
+                                       </Label>
+                                       <RadioGroupItem value="card" id="card" />
+                                   </div>
+                               </div>
+                               <div className="rounded-md border p-4">
+                                   <div className="flex items-center justify-between">
+                                       <Label htmlFor="moncash" className="flex items-center gap-2 font-semibold">
+                                            <Smartphone /> {t('checkout.payment_moncash')}
+                                       </Label>
+                                       <RadioGroupItem value="moncash" id="moncash" />
+                                   </div>
+                               </div>
+                               <div className="rounded-md border p-4">
+                                   <div className="flex items-center justify-between">
+                                       <Label htmlFor="natcash" className="flex items-center gap-2 font-semibold">
+                                            <Smartphone /> {t('checkout.payment_natcash')}
+                                       </Label>
+                                       <RadioGroupItem value="natcash" id="natcash" />
+                                   </div>
+                               </div>
+                           </RadioGroup>
+                           <Button size="lg" className="w-full" disabled>{t('checkout.pay_button')}</Button>
                         </CardContent>
                     </Card>
                 )}
@@ -213,10 +227,12 @@ export default function CheckoutPage() {
                     {currentStep < STEPS.length ? (
                         <Button size="lg" onClick={nextStep}>{t('checkout.continue')}</Button>
                     ) : (
-                        <Button size="lg">{t('checkout.pay_button')}</Button>
+                        <Button size="lg" disabled>{t('checkout.pay_button')}</Button>
                     )}
                 </div>
             </div>
         </div>
     );
 }
+
+    
