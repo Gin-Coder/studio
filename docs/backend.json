@@ -1,248 +1,354 @@
 {
   "entities": {
-    "User": {
+    "Article": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "User",
+      "title": "Article",
       "type": "object",
-      "description": "Represents a user of the Danny Store e-commerce platform.",
+      "description": "Represents an article or blog post within the CMS.",
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the user."
+          "description": "Unique identifier for the Article entity."
         },
-        "name": {
+        "title": {
           "type": "string",
-          "description": "User's full name."
+          "description": "Title of the article."
         },
-        "email": {
+        "slug": {
           "type": "string",
-          "description": "User's email address.",
-          "format": "email"
+          "description": "URI-friendly slug for the article."
         },
-        "whatsappNumber": {
+        "content": {
           "type": "string",
-          "description": "User's WhatsApp number for order updates and communication."
+          "description": "Main content of the article (HTML or Markdown)."
         },
-        "preferredLanguage": {
+        "categoryId": {
           "type": "string",
-          "description": "User's preferred language (FR, EN, Kreyòl)."
-        }
-      },
-      "required": [
-        "id",
-        "name",
-        "email",
-        "whatsappNumber",
-        "preferredLanguage"
-      ]
-    },
-    "Product": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Product",
-      "type": "object",
-      "description": "Represents a product available in the Danny Store catalog.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the product."
+          "description": "Reference to Category. (Relationship: Category 1:N Article)"
         },
-        "name": {
-          "type": "string",
-          "description": "Name of the product."
-        },
-        "shortDescription": {
-          "type": "string",
-          "description": "Short description of the product."
-        },
-        "longDescription": {
-          "type": "string",
-          "description": "Detailed description of the product."
-        },
-        "imageUrl": {
-          "type": "string",
-          "description": "URL of the product image.",
-          "format": "uri"
-        },
-        "category": {
-          "type": "string",
-          "description": "Category of the product (e.g., clothing, shoes, accessories, tech-style)."
-        },
-        "averageRating": {
-          "type": "number",
-          "description": "Average rating of the product."
-        },
-        "numberOfReviews": {
-          "type": "number",
-          "description": "Number of reviews for the product."
-        }
-      },
-      "required": [
-        "id",
-        "name",
-        "shortDescription",
-        "longDescription",
-        "imageUrl",
-        "category",
-        "averageRating",
-        "numberOfReviews"
-      ]
-    },
-    "ProductVariant": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "ProductVariant",
-      "type": "object",
-      "description": "Represents a specific variant of a product (e.g., different color or size).",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the product variant."
-        },
-        "productId": {
-          "type": "string",
-          "description": "Reference to Product. (Relationship: Product 1:N ProductVariant)"
-        },
-        "color": {
-          "type": "string",
-          "description": "Color of the product variant."
-        },
-        "size": {
-          "type": "string",
-          "description": "Size of the product variant."
-        },
-        "price": {
-          "type": "number",
-          "description": "Price of the product variant."
-        },
-        "promoPrice": {
-          "type": "number",
-          "description": "Promotional price of the product variant (if applicable)."
-        },
-        "tags": {
+        "tagIds": {
           "type": "array",
-          "description": "Tags associated with the product variant.",
+          "description": "References to Tags. (Relationship: Tag N:N Article)",
           "items": {
             "type": "string"
           }
-        }
-      },
-      "required": [
-        "id",
-        "productId",
-        "color",
-        "size",
-        "price"
-      ]
-    },
-    "Order": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Order",
-      "type": "object",
-      "description": "Represents a customer order.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the order."
-        },
-        "userId": {
-          "type": "string",
-          "description": "Reference to User. (Relationship: User 1:N Order)"
-        },
-        "orderDate": {
-          "type": "string",
-          "description": "Date and time when the order was placed.",
-          "format": "date-time"
-        },
-        "totalAmount": {
-          "type": "number",
-          "description": "Total amount of the order."
         },
         "status": {
           "type": "string",
-          "description": "Status of the order (e.g., pending, processing, shipped, delivered)."
-        }
-      },
-      "required": [
-        "id",
-        "userId",
-        "orderDate",
-        "totalAmount",
-        "status"
-      ]
-    },
-    "OrderItem": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "OrderItem",
-      "type": "object",
-      "description": "Represents an item within an order.",
-      "properties": {
-        "id": {
+          "description": "Publication status of the article (draft, published)."
+        },
+        "metaTitle": {
           "type": "string",
-          "description": "Unique identifier for the order item."
+          "description": "Meta title for SEO."
         },
-        "orderId": {
+        "metaDescription": {
           "type": "string",
-          "description": "Reference to Order. (Relationship: Order 1:N OrderItem)"
+          "description": "Meta description for SEO."
         },
-        "productVariantId": {
+        "createdAt": {
           "type": "string",
-          "description": "Reference to ProductVariant. (Relationship: ProductVariant 1:N OrderItem)"
+          "description": "Timestamp indicating when the article was created.",
+          "format": "date-time"
         },
-        "quantity": {
-          "type": "number",
-          "description": "Quantity of the product variant in the order item."
-        },
-        "unitPrice": {
-          "type": "number",
-          "description": "Price of one unit of the product variant at the time of the order."
-        }
-      },
-      "required": [
-        "id",
-        "orderId",
-        "productVariantId",
-        "quantity",
-        "unitPrice"
-      ]
-    },
-    "Review": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Review",
-      "type": "object",
-      "description": "Represents a product review submitted by a user.",
-      "properties": {
-        "id": {
+        "updatedAt": {
           "type": "string",
-          "description": "Unique identifier for the review."
-        },
-        "userId": {
-          "type": "string",
-          "description": "Reference to User. (Relationship: User 1:N Review)"
-        },
-        "productId": {
-          "type": "string",
-          "description": "Reference to Product. (Relationship: Product 1:N Review)"
-        },
-        "rating": {
-          "type": "number",
-          "description": "Rating given by the user (1-5)."
-        },
-        "comment": {
-          "type": "string",
-          "description": "Text comment provided by the user."
-        },
-        "reviewDate": {
-          "type": "string",
-          "description": "Date when the review was submitted.",
+          "description": "Timestamp indicating when the article was last updated.",
           "format": "date-time"
         }
       },
       "required": [
         "id",
-        "userId",
-        "productId",
-        "rating",
-        "comment",
-        "reviewDate"
+        "title",
+        "slug",
+        "content",
+        "categoryId",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Page": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Page",
+      "type": "object",
+      "description": "Represents a static page within the CMS.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Page entity."
+        },
+        "title": {
+          "type": "string",
+          "description": "Title of the page."
+        },
+        "slug": {
+          "type": "string",
+          "description": "URI-friendly slug for the page."
+        },
+        "content": {
+          "type": "string",
+          "description": "Main content of the page (HTML or Markdown)."
+        },
+        "status": {
+          "type": "string",
+          "description": "Publication status of the page (draft, published)."
+        },
+        "metaTitle": {
+          "type": "string",
+          "description": "Meta title for SEO."
+        },
+        "metaDescription": {
+          "type": "string",
+          "description": "Meta description for SEO."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the page was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the page was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "slug",
+        "content",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Category": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Category",
+      "type": "object",
+      "description": "Represents a category for organizing articles.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Category entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the category."
+        },
+        "slug": {
+          "type": "string",
+          "description": "URI-friendly slug for the category."
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the category."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the category was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the category was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "slug",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Tag": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Tag",
+      "type": "object",
+      "description": "Represents a tag for articles.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Tag entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the tag."
+        },
+        "slug": {
+          "type": "string",
+          "description": "URI-friendly slug for the tag."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the tag was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the tag was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "slug",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Media": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Media",
+      "type": "object",
+      "description": "Represents a media asset (image, video, etc.).",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Media entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "Original name of the media file."
+        },
+        "url": {
+          "type": "string",
+          "description": "URL of the media file.",
+          "format": "uri"
+        },
+        "mimeType": {
+          "type": "string",
+          "description": "MIME type of the media file."
+        },
+        "size": {
+          "type": "number",
+          "description": "Size of the media file in bytes."
+        },
+        "altText": {
+          "type": "string",
+          "description": "Alternative text for the media file (for accessibility and SEO)."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the media was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the media was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "url",
+        "mimeType",
+        "size",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Menu": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Menu",
+      "type": "object",
+      "description": "Represents a navigation menu.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Menu entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the menu (e.g., 'Main Menu', 'Footer Menu')."
+        },
+        "items": {
+          "type": "array",
+          "description": "Array of menu items.  Each item should contain label and URL.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the menu was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the menu was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "items",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Configuration": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Configuration",
+      "type": "object",
+      "description": "Represents global configuration settings for the CMS, including customizable design elements.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Configuration entity."
+        },
+        "siteName": {
+          "type": "string",
+          "description": "Name of the website."
+        },
+        "logoUrl": {
+          "type": "string",
+          "description": "URL of the website logo.",
+          "format": "uri"
+        },
+        "primaryColor": {
+          "type": "string",
+          "description": "Primary color for the website's theme."
+        },
+        "secondaryColor": {
+          "type": "string",
+          "description": "Secondary color for the website's theme."
+        },
+        "fontFamily": {
+          "type": "string",
+          "description": "Font family used for the website's typography."
+        },
+        "homePageSections": {
+          "type": "array",
+          "description": "Array of sections enabled on the homepage.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the configuration was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the configuration was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "siteName",
+        "primaryColor",
+        "secondaryColor",
+        "fontFamily",
+        "createdAt",
+        "updatedAt"
       ]
     }
   },
@@ -255,122 +361,134 @@
   "firestore": {
     "structure": [
       {
-        "path": "/users/{userId}",
+        "path": "/articles/{articleId}",
         "definition": {
-          "entityName": "User",
+          "entityName": "Article",
           "schema": {
-            "$ref": "#/backend/entities/User"
+            "$ref": "#/backend/entities/Article"
           },
-          "description": "Stores user profiles. Path-based ownership for user data.",
+          "description": "Stores articles for the CMS. Accessible and manageable only by admins.",
           "params": [
             {
-              "name": "userId",
-              "description": "The unique identifier for the user."
+              "name": "articleId",
+              "description": "Unique identifier for the article."
             }
           ]
         }
       },
       {
-        "path": "/products/{productId}",
+        "path": "/pages/{pageId}",
         "definition": {
-          "entityName": "Product",
+          "entityName": "Page",
           "schema": {
-            "$ref": "#/backend/entities/Product"
+            "$ref": "#/backend/entities/Page"
           },
-          "description": "Stores product information.",
+          "description": "Stores pages for the CMS. Accessible and manageable only by admins.",
           "params": [
             {
-              "name": "productId",
-              "description": "The unique identifier for the product."
+              "name": "pageId",
+              "description": "Unique identifier for the page."
             }
           ]
         }
       },
       {
-        "path": "/products/{productId}/variants/{variantId}",
+        "path": "/categories/{categoryId}",
         "definition": {
-          "entityName": "ProductVariant",
+          "entityName": "Category",
           "schema": {
-            "$ref": "#/backend/entities/ProductVariant"
+            "$ref": "#/backend/entities/Category"
           },
-          "description": "Stores product variant information.",
+          "description": "Stores categories for articles. Accessible and manageable only by admins.",
           "params": [
             {
-              "name": "productId",
-              "description": "The unique identifier for the product."
-            },
-            {
-              "name": "variantId",
-              "description": "The unique identifier for the product variant."
+              "name": "categoryId",
+              "description": "Unique identifier for the category."
             }
           ]
         }
       },
       {
-        "path": "/users/{userId}/orders/{orderId}",
+        "path": "/tags/{tagId}",
         "definition": {
-          "entityName": "Order",
+          "entityName": "Tag",
           "schema": {
-            "$ref": "#/backend/entities/Order"
+            "$ref": "#/backend/entities/Tag"
           },
-          "description": "Stores order information for a specific user. Path-based ownership.",
+          "description": "Stores tags for articles. Accessible and manageable only by admins.",
           "params": [
             {
-              "name": "userId",
-              "description": "The unique identifier for the user."
-            },
-            {
-              "name": "orderId",
-              "description": "The unique identifier for the order."
+              "name": "tagId",
+              "description": "Unique identifier for the tag."
             }
           ]
         }
       },
       {
-        "path": "/users/{userId}/orders/{orderId}/items/{itemId}",
+        "path": "/media/{mediaId}",
         "definition": {
-          "entityName": "OrderItem",
+          "entityName": "Media",
           "schema": {
-            "$ref": "#/backend/entities/OrderItem"
+            "$ref": "#/backend/entities/Media"
           },
-          "description": "Stores order item information for a specific order. Path-based ownership.",
+          "description": "Stores media assets. Accessible and manageable only by admins.",
           "params": [
             {
-              "name": "userId",
-              "description": "The unique identifier for the user."
-            },
-            {
-              "name": "orderId",
-              "description": "The unique identifier for the order."
-            },
-            {
-              "name": "itemId",
-              "description": "The unique identifier for the order item."
+              "name": "mediaId",
+              "description": "Unique identifier for the media asset."
             }
           ]
         }
       },
       {
-        "path": "/products/{productId}/reviews/{reviewId}",
+        "path": "/menus/{menuId}",
         "definition": {
-          "entityName": "Review",
+          "entityName": "Menu",
           "schema": {
-            "$ref": "#/backend/entities/Review"
+            "$ref": "#/backend/entities/Menu"
           },
-          "description": "Stores reviews for a specific product.",
+          "description": "Stores navigation menus. Accessible and manageable only by admins.",
           "params": [
             {
-              "name": "productId",
-              "description": "The unique identifier for the product."
-            },
+              "name": "menuId",
+              "description": "Unique identifier for the menu."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/configuration/{configurationId}",
+        "definition": {
+          "entityName": "Configuration",
+          "schema": {
+            "$ref": "#/backend/entities/Configuration"
+          },
+          "description": "Stores global configuration settings. Accessible and manageable only by admins.",
+          "params": [
             {
-              "name": "reviewId",
-              "description": "The unique identifier for the review."
+              "name": "configurationId",
+              "description": "Unique identifier for the configuration."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/roles_admin/{uid}",
+        "definition": {
+          "entityName": "roles_admin",
+          "schema": {
+            "$ref": "#/backend/entities/roles_admin"
+          },
+          "description": "Documents in this collection represent admin users. The *existence* of a document dictates admin role.",
+          "params": [
+            {
+              "name": "uid",
+              "description": "Firebase Auth UID of the admin user."
             }
           ]
         }
       }
     ],
-    "reasoning": "The Firestore structure is designed to support the Danny Store e-commerce platform, focusing on user accounts, product catalogs, orders, and reviews. The structure emphasizes authorization independence and clarity for security rules.\n\n**Authorization Independence:**\n*   User-specific data (orders, reviews) are nested under the `/users/{userId}` collection. This ensures that access control is based on the user's ID, eliminating the need for `get()` calls to parent documents.\n*   Product data is stored in a flat `/products` collection. While product variants are stored in a subcollection `/products/{productId}/variants`, the authorization for product variants doesn't rely on parent product properties.\n\n**Structural Segregation:**\n*   User profiles are stored in `/users/{userId}`, separating them from product or order data.\n*   Product reviews are stored under `/products/{productId}/reviews/{reviewId}`, ensuring that each review can be managed and accessed independently, and their security rules are scoped to the product.\n\n**Access Modeling:**\n*   Private User Data: User profiles and associated data (orders, reviews) use path-based ownership under `/users/{userId}`.\n\n**QAPs Support:**\n*   Listing products is secure because the `/products` collection has a homogeneous security posture.  Rules can be applied to the entire collection without needing to filter based on document content.\n*   User-specific data (orders, reviews) can be securely listed using path-based ownership, ensuring that only the current user can access their data."
+    "reasoning": "This Firestore structure is designed to support the Danny Store e-commerce application, focusing on a CMS-driven frontend with features like product browsing, virtual try-on, and WhatsApp checkout. The design prioritizes security, scalability, and ease of debugging, adhering to the core principles outlined. Specifically, authorization independence is achieved by storing all data under a single authorized admin. This approach makes authorization simpler but requires care when managing data in the application, ensuring that only authorized admins can modify any data. Segregation is used by storing admin-managed data separately from user data. The structure supports the required QAPs by leveraging this admin-only model, ensuring that listing operations are secure and predictable."
   }
 }

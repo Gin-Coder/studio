@@ -1,45 +1,53 @@
+/**
+ * # Core Philosophy
+ * This ruleset enforces a strict role-based access control (RBAC) model, clearly
+ * separating public users from administrators. The entire content management system
+ * (CMS) is writable only by users designated as administrators. Public content, such
+ * as published articles and pages, is read-only for everyone, including anonymous
+ * visitors. This ensures a secure, centralized content management workflow.
+ *
+ * # Data Structure
+ * The data is organized into top-level collections, each corresponding to a major
+ * CMS entity (e.g., /articles, /pages, /media). Administrator privileges are
+ * managed by the existence of a document in the `/roles_admin/{userId}` collection.
+ * This structure decouples content from user-specific data, simplifying security logic.
+ *
+ * # Key Security Decisions
+ * - Admin-Only Writes: All write operations (`create`, `update`, `delete`) on any
+ *   CMS collection are exclusively granted to authenticated administrators.
+ * - Public Read Access: Most CMS content is publicly readable to support the website's
+ *   frontend. For content with a publication status (like articles and pages), read
+ *   access is conditionally granted based on a 'published' status to prevent drafts
+ *   from being exposed.
+ * - Role Management Lockdown: The `/roles_admin` collection is the source of truth for
+ *   admin roles. To prevent privilege escalation, it is made read-only within these
+ *   rules. Administrators must be managed securely through the Firebase Console or a
+ *   trusted server-side process (Admin SDK).
+ * - No User Listing: The rules do not permit listing of administrative or sensitive
+ *   collections by non-privileged users.
+ *
+ * # Denormalization for Authorization
+ * The primary authorization mechanism is the `/roles_admin` collection. The existence
+ * of a document at `/roles_admin/$(request.auth.uid)` grants a user admin privileges.
+ * This allows for a fast and cost-effective `exists()` check in the rules, avoiding
+ * the need to read a user's profile document for every single operation.
+ *
+ * # Structural Segregation
+ * This ruleset uses a 'status' field (e.g., `status == 'published'`) within a single
+ * collection to differentiate public from private content. While separate collections
+ * for drafts and published content can be more secure for list operations, this
+ * approach is chosen to simplify the admin experience, allowing administrators to
+ * query and manage all content from a single location. Public `list` operations are
+ * permitted, but client applications are responsible for filtering queries to show
+ * only published content.
+ */
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    /**
-     * Core Philosophy: This ruleset enforces a strict user-ownership model for
-     * private data (user profiles, orders) and a "public read, owner-only write"
-     * model for semi-public data (reviews). The product catalog is treated as
-     * public, read-only data, intended to be managed by a trusted backend server
-     * rather than directly by clients.
-     *
-     * Data Structure:
-     * - /users/{userId} -> Private user profiles and nested private collections.
-     * - /users/{userId}/orders/{orderId} -> User's private order history.
-     * - /products/{productId} -> Public product catalog.
-     * - /products/{productId}/reviews/{reviewId} -> Public reviews for a product.
-     *
-     * Key Security Decisions:
-     * - User data is strictly private. A user can only access documents within
-     *   their own `/users/{userId}` data tree.
-     * - User enumeration is disallowed by restricting `list` on the `/users` collection.
-     * - The product catalog (`/products` and subcollections) is publicly readable but
-     *   is not writable by any client. This is a secure default, assuming product
-     *   management is handled by an admin SDK on a server.
-     * - Reviews are publicly readable, but can only be created, updated, or deleted
-     *   by the authenticated user who authored them.
-     *
-     * Denormalization for Authorization:
-     * - The `/products/{productId}/reviews/{reviewId}` documents contain a `userId`
-     *   field. This is essential for authorizing updates and deletes, as it allows
-     *   a fast check against the existing document's data without extra reads.
-     *
-     * Structural Segregation:
-     * - Private data (orders) is nested under a user's document, clearly separating it
-     *   from public data (products) which resides in a top-level collection. This
-     *   simplifies rules and improves query performance and security.
-     */
-
-    // --------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
     // Helper Functions
-    // --------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
 
     /**
      * Checks if a user is authenticated.
@@ -49,125 +57,147 @@ service cloud.firestore {
     }
 
     /**
-     * Checks if the currently authenticated user's UID matches the given userId.
-     * This is the primary function for enforcing data ownership.
+     * Checks if the user is an administrator by verifying the existence of a
+     * corresponding document in the roles_admin collection.
      */
-    function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
+    function isAdmin() {
+      return isSignedIn() && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
     }
 
     /**
-     * Checks if a document exists before an update or delete operation.
-     * This is crucial for preventing writes on non-existent documents.
+     * Checks if a document is marked as 'published'. This is used to control
+     * public visibility of content like articles and pages.
      */
-    function isExistingDoc() {
-      return resource != null;
+    function isPublished() {
+      return resource.data.status == 'published';
     }
 
-    /**
-     * A convenient combination of isOwner and isExistingDoc for update/delete rules.
-     */
-    function isExistingOwner(userId) {
-      return isOwner(userId) && isExistingDoc();
-    }
-
-    // --------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
     // Collection Rules
-    // --------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
 
     /**
-     * @description Manages user profile documents. A user can create their own
-     *              profile and can only read or update their own data.
-     * @path /users/{userId}
-     * @allow (create) a user with auth.uid 'user123' on path `/users/user123`.
-     * @deny  (get) a user with auth.uid 'user456' on path `/users/user123`.
-     * @principle Restricts access to a user's own data tree.
+     * @description Manages CMS articles. Published articles are public-read.
+     *   Only administrators can create, update, or delete any article.
+     * @path /articles/{articleId}
+     * @allow (get) Any user reading a published article.
+     * @deny (create) A non-admin user trying to create an article.
+     * @principle Public read for published content, with admin-only writes.
      */
-    match /users/{userId} {
-      allow get: if isOwner(userId);
-      allow list: if false;
-      allow create: if isOwner(userId) && request.resource.data.id == userId;
-      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
-      allow delete: if false;
-
-      /**
-       * @description Manages a user's private order history. Only the owner can
-       *              access or modify their orders.
-       * @path /users/{userId}/orders/{orderId}
-       * @allow (get) a user with auth.uid 'user123' on path `/users/user123/orders/orderABC`.
-       * @deny  (list) a user with auth.uid 'user456' on path `/users/user123/orders`.
-       * @principle Enforces document ownership for all operations.
-       */
-      match /orders/{orderId} {
-        allow get: if isOwner(userId);
-        allow list: if isOwner(userId);
-        allow create: if isOwner(userId) && request.resource.data.userId == userId;
-        allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
-        allow delete: if isExistingOwner(userId);
-
-        /**
-         * @description Manages the specific items within an order. Access rules are
-         *              inherited from the parent user-owned path.
-         * @path /users/{userId}/orders/{orderId}/items/{itemId}
-         * @allow (create) a user with auth.uid 'user123' on path `/users/user123/orders/orderABC/items/itemXYZ`.
-         * @deny  (get) a user with auth.uid 'user456' on path `/users/user123/orders/orderABC/items/itemXYZ`.
-         * @principle Access is inherited from the parent user-owned data tree.
-         */
-        match /items/{itemId} {
-          allow get: if isOwner(userId);
-          allow list: if isOwner(userId);
-          allow create: if isOwner(userId) && request.resource.data.orderId == orderId;
-          allow update: if isExistingOwner(userId) && request.resource.data.orderId == resource.data.orderId;
-          allow delete: if isExistingOwner(userId);
-        }
-      }
+    match /articles/{articleId} {
+      allow get: if isPublished() || isAdmin();
+      allow list: if true; // CRITICAL: Client must filter queries by `where('status', '==', 'published')`
+      allow create: if isAdmin();
+      allow update: if isAdmin() && resource != null;
+      allow delete: if isAdmin() && resource != null;
     }
 
     /**
-     * @description The public product catalog. All users (including unauthenticated ones)
-     *              can read products. All writes are disallowed from the client.
-     * @path /products/{productId}
-     * @allow (get) any user, authenticated or not, on path `/products/prodABC`.
-     * @deny  (create) any user attempting to add a new product.
-     * @principle Public read-only data, managed by a backend.
+     * @description Manages static CMS pages. Published pages are public-read.
+     *   Only administrators can create, update, or delete any page.
+     * @path /pages/{pageId}
+     * @allow (get) Any user reading a published page.
+     * @deny (update) An admin trying to update a non-existent page.
+     * @principle Public read for published content, with admin-only writes.
      */
-    match /products/{productId} {
-      allow get: if true;
-      allow list: if true;
+    match /pages/{pageId} {
+      allow get: if isPublished() || isAdmin();
+      allow list: if true; // CRITICAL: Client must filter queries by `where('status', '==', 'published')`
+      allow create: if isAdmin();
+      allow update: if isAdmin() && resource != null;
+      allow delete: if isAdmin() && resource != null;
+    }
+
+    /**
+     * @description Manages article categories. Categories are public-read.
+     *   Only administrators can create, update, or delete categories.
+     * @path /categories/{categoryId}
+     * @allow (list) Any user listing all categories.
+     * @deny (create) A non-admin user trying to create a category.
+     * @principle Public read for structural content, with admin-only writes.
+     */
+    match /categories/{categoryId} {
+      allow get, list: if true;
+      allow create: if isAdmin();
+      allow update: if isAdmin() && resource != null;
+      allow delete: if isAdmin() && resource != null;
+    }
+
+    /**
+     * @description Manages article tags. Tags are public-read.
+     *   Only administrators can create, update, or delete tags.
+     * @path /tags/{tagId}
+     * @allow (get) Any user reading a specific tag.
+     * @deny (delete) A non-admin user trying to delete a tag.
+     * @principle Public read for structural content, with admin-only writes.
+     */
+    match /tags/{tagId} {
+      allow get, list: if true;
+      allow create: if isAdmin();
+      allow update: if isAdmin() && resource != null;
+      allow delete: if isAdmin() && resource != null;
+    }
+
+    /**
+     * @description Manages media assets. All media is public-read.
+     *   Only administrators can upload, update, or delete media.
+     * @path /media/{mediaId}
+     * @allow (get) Any user viewing a media asset.
+     * @deny (create) A non-admin user trying to upload a file.
+     * @principle Public read for asset content, with admin-only writes.
+     */
+    match /media/{mediaId} {
+      allow get, list: if true;
+      allow create: if isAdmin();
+      allow update: if isAdmin() && resource != null;
+      allow delete: if isAdmin() && resource != null;
+    }
+
+    /**
+     * @description Manages navigation menus. Menus are public-read.
+     *   Only administrators can create, update, or delete menus.
+     * @path /menus/{menuId}
+     * @allow (list) The application frontend fetching all menus.
+     * @deny (update) A regular user trying to change a menu link.
+     * @principle Public read for structural content, with admin-only writes.
+     */
+    match /menus/{menuId} {
+      allow get, list: if true;
+      allow create: if isAdmin();
+      allow update: if isAdmin() && resource != null;
+      allow delete: if isAdmin() && resource != null;
+    }
+
+    /**
+     * @description Manages global site configuration (theme, settings, etc.).
+     *   Configuration is public-read. Only administrators can change settings.
+     * @path /configuration/{configurationId}
+     * @allow (get) The application frontend reading the site configuration.
+     * @deny (create) A user trying to create a new configuration document.
+     * @principle Public read for configuration data, with admin-only writes.
+     */
+    match /configuration/{configurationId} {
+      allow get, list: if true;
+      allow create: if isAdmin();
+      allow update: if isAdmin() && resource != null;
+      allow delete: if isAdmin() && resource != null;
+    }
+
+    /**
+     * @description Defines administrator roles. The existence of a document
+     *   grants admin privileges. This collection is locked down to prevent
+     *   privilege escalation and must be managed from the Firebase Console.
+     * @path /roles_admin/{uid}
+     * @allow (get) An admin checking if another user is also an admin.
+     * @deny (create) Any user (including an admin) trying to make someone else an admin.
+     * @principle Prevents privilege escalation by making roles immutable via rules.
+     */
+    match /roles_admin/{uid} {
+      allow get: if isAdmin();
+      allow list: if isAdmin();
       allow create: if false;
       allow update: if false;
       allow delete: if false;
-
-      /**
-       * @description Product variants. Publicly readable, not client-writable.
-       * @path /products/{productId}/variants/{variantId}
-       * @allow (list) any user on path `/products/prodABC/variants`.
-       * @deny  (update) any user attempting to change a variant's price.
-       * @principle Public read-only data, managed by a backend.
-       */
-      match /variants/{variantId} {
-        allow get: if true;
-        allow list: if true;
-        allow create: if false;
-        allow update: if false;
-        allow delete: if false;
-      }
-
-      /**
-       * @description Publicly readable product reviews. Signed-in users can create
-       *              reviews, and can only modify or delete their own.
-       * @path /products/{productId}/reviews/{reviewId}
-       * @allow (create) a signed-in user on path `/products/prodABC/reviews/rev123` if the review data includes their own UID.
-       * @deny  (delete) a user with auth.uid 'user456' on a review where `resource.data.userId` is 'user123'.
-       * @principle Public read with owner-only writes.
-       */
-      match /reviews/{reviewId} {
-        allow get: if true;
-        allow list: if true;
-        allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid && request.resource.data.productId == productId;
-        allow update: if isExistingDoc() && isOwner(resource.data.userId) && request.resource.data.userId == resource.data.userId && request.resource.data.productId == resource.data.productId;
-        allow delete: if isExistingDoc() && isOwner(resource.data.userId);
-      }
     }
   }
 }
