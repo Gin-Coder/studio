@@ -161,6 +161,7 @@ export const dictionaries: Dictionaries = {
     'checkout.total': 'Total',
     'checkout.back': 'Back',
     'checkout.continue': 'Continue',
+    'checkout.back_to_cart': 'Back to Cart',
     'review.product1.sophie': 'This dress is absolutely beautiful! The fabric is so light and comfortable, perfect for the climate here. I received so many compliments.',
     'review.product2.marc': 'The quality of this leather jacket is insane. It feels and looks so premium. Worth every penny. A true classic for my wardrobe.',
     'review.product7.jessica': 'Really love these sneakers. They are very comfortable for walking around all day. They got a little dirty quickly, but that\'s expected with white shoes.',
@@ -325,6 +326,7 @@ export const dictionaries: Dictionaries = {
     'checkout.total': 'Total',
     'checkout.back': 'Retour',
     'checkout.continue': 'Continuer',
+    'checkout.back_to_cart': 'Retour au panier',
     'review.product1.sophie': 'Cette robe est absolument magnifique ! Le tissu est si léger et confortable, parfait pour le climat d\'ici. J\'ai reçu tellement de compliments.',
     'review.product2.marc': 'La qualité de cette veste en cuir est incroyable. Elle a l\'air et se sent tellement premium. Ça vaut chaque centime. Un vrai classique pour ma garde-robe.',
     'review.product7.jessica': 'J\'adore vraiment ces baskets. Elles sont très confortables pour marcher toute la journée. Elles se sont salies un peu vite, mais c\'est normal avec des chaussures blanches.',
@@ -489,6 +491,7 @@ export const dictionaries: Dictionaries = {
     'checkout.total': 'Total',
     'checkout.back': 'Tounen',
     'checkout.continue': 'Kontinye',
+    'checkout.back_to_cart': 'Tounen nan panye a',
     'review.product1.sophie': 'Ròb sa a vrèman bèl! Twal la tèlman lejè ak konfòtab, li pafè pou klima isit la. Mwen resevwa anpil konpliman.',
     'review.product2.marc': 'Kalite jakèt kwi sa a se yon bagay serye. Li santi epi li parèt tèlman chik. Li vo chak goud. Yon vrè klasik pou pandri mwen.',
     'review.product7.jessica': 'Mwen vrèman renmen tenis sa yo. Yo trè konfòtab pou mache tout lajounen. Yo sal yon ti jan vit, men sa nòmal pou soulye blan.',
@@ -501,5 +504,3 @@ export const dictionaries: Dictionaries = {
     'whatsapp.order.confirmation_prompt': 'Bonjou, mwen ta renmen konfime kòmand sa a.'
   },
 };
-
-    

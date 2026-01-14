@@ -15,6 +15,8 @@ import { useCurrency } from "@/hooks/use-currency";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { ShoppingCart, ArrowLeft, CreditCard, Smartphone } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import Link from "next/link";
+import { ClientSideTranslator } from "@/components/ClientSideTranslator";
 
 const STEPS = [
   { id: 1, nameKey: 'checkout.contact_info' },
@@ -216,11 +218,22 @@ export default function CheckoutPage() {
 
              <div className="mt-8 flex items-center justify-between">
                 <div>
-                   {currentStep > 1 && (
+                   {currentStep > 1 ? (
                         <Button variant="ghost" onClick={prevStep}>
                             <ArrowLeft className="mr-2 h-4 w-4" />
                             {t('checkout.back')}
                         </Button>
+                    ) : (
+                        <ClientSideTranslator>
+                            {t => (
+                                <Button variant="ghost" asChild>
+                                    <Link href="/cart">
+                                        <ArrowLeft className="mr-2 h-4 w-4" />
+                                        {t('checkout.back_to_cart')}
+                                    </Link>
+                                </Button>
+                            )}
+                        </ClientSideTranslator>
                     )}
                 </div>
                 <div>
@@ -234,7 +247,3 @@ export default function CheckoutPage() {
         </div>
     );
 }
-
-    
-
-    

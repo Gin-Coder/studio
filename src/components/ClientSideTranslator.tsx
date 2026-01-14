@@ -20,5 +20,3 @@ export function ClientSideTranslator({ children }: { children: (t: (key: string,
 
   return <>{children(translateWithParams)}</>;
 }
-
-    
