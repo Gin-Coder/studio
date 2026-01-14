@@ -23,7 +23,6 @@ import { Separator } from '@/components/ui/separator';
 import { useCart } from '@/hooks/use-cart';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/hooks/use-language';
-import { virtualTryOn } from '@/ai/flows/virtual-try-on-flow';
 
 
 const MAX_FREE_USES = 5;
@@ -124,29 +123,20 @@ export default function VirtualTryOnPage() {
     setIsGenerating(true);
     setGeneratedImage(null);
 
-    try {
-        const itemImageUris = selectedItems.map(item => item.images[0]);
-        const result = await virtualTryOn({ modelImageUri, itemImageUris });
-        setGeneratedImage(result.imageUrl);
-        
-        const newCount = tryOnCount + 1;
-        setTryOnCount(newCount);
-        localStorage.setItem('tryOnCount', newCount.toString());
-        toast({
-            title: t('vto.toast.generated.title'),
-            description: `${t('vto.toast.generated.description')} (${MAX_FREE_USES - newCount} essais restants)`,
-        });
+    // Simulate AI generation
+    setTimeout(() => {
+      setGeneratedImage(modelImageUri);
+      setIsGenerating(false);
 
-    } catch (error: any) {
-        console.error(error);
-        toast({
-            variant: 'destructive',
-            title: 'Erreur de Génération',
-            description: error.message || 'Une erreur est survenue lors de la génération de l\'image.',
-        });
-    } finally {
-        setIsGenerating(false);
-    }
+      const newCount = tryOnCount + 1;
+      setTryOnCount(newCount);
+      localStorage.setItem('tryOnCount', newCount.toString());
+      toast({
+          title: t('vto.toast.generated.title'),
+          description: `${t('vto.toast.generated.description')} (${MAX_FREE_USES - newCount} essais restants)`,
+      });
+
+    }, 2000);
   };
 
   const handleSaveOutfit = () => {
@@ -287,12 +277,37 @@ export default function VirtualTryOnPage() {
                             </div>
                         )}
                          {generatedImage && (
-                             <Image
-                                src={generatedImage}
-                                alt={t('vto.your_look.alt')}
-                                fill
-                                className="object-contain rounded-lg"
-                            />
+                            <>
+                                <Image
+                                    src={generatedImage}
+                                    alt={t('vto.your_look.alt')}
+                                    fill
+                                    className="object-contain rounded-lg"
+                                />
+                                {/* Overlay clothing items */}
+                                {topItems.map((item, index) => (
+                                    <div key={`top-${item.id}`} className="absolute top-1/4 left-1/4 w-1/2 h-1/2">
+                                        <Image
+                                            src={item.images[0]}
+                                            alt={item.name}
+                                            fill
+                                            className="object-contain"
+                                            style={{ zIndex: index + 1 }}
+                                        />
+                                    </div>
+                                ))}
+                                {shoeItems.map((item, index) => (
+                                    <div key={`shoe-${item.id}`} className="absolute bottom-[5%] left-1/4 w-1/2 h-1/4">
+                                        <Image
+                                            src={item.images[0]}
+                                            alt={item.name}
+                                            fill
+                                            className="object-contain"
+                                            style={{ zIndex: index + 1 }}
+                                        />
+                                    </div>
+                                ))}
+                            </>
                         )}
                     </div>
 
