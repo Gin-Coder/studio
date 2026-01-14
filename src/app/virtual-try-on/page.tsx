@@ -23,7 +23,7 @@ import { Separator } from '@/components/ui/separator';
 import { useCart } from '@/hooks/use-cart';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/hooks/use-language';
-import { generateVirtualTryOnImage } from '@/ai/flows/virtual-try-on-flow';
+
 
 const MAX_FREE_USES = 5;
 
@@ -117,38 +117,22 @@ export default function VirtualTryOnPage() {
     setIsGenerating(true);
     setGeneratedImage(null);
 
-    try {
-        const result = await generateVirtualTryOnImage({
-            modelImageUri: modelImage,
-            clothingItems: selectedItems.map(item => ({
-                imageUri: item.images[0], // Assuming the first image is the primary one
-                category: item.category as 'clothing' | 'shoes' | 'accessories' | 'tech',
-            }))
-        });
-
-        if (result.generatedImageUri) {
-            setGeneratedImage(result.generatedImageUri);
-            const newCount = tryOnCount + 1;
-            setTryOnCount(newCount);
-            localStorage.setItem('tryOnCount', newCount.toString());
-            toast({
-                title: t('vto.toast.generated.title'),
-                description: `${t('vto.toast.generated.description')} (${MAX_FREE_USES - newCount} essais restants)`,
-            });
-        } else {
-            throw new Error("La génération d'image a échoué.");
-        }
-
-    } catch (error: any) {
-        console.error("Virtual Try-On Error:", error);
-        toast({
-            variant: "destructive",
-            title: "Erreur de Génération",
-            description: error.message || "Une erreur inconnue est survenue. Veuillez réessayer."
-        });
-    } finally {
+    // Simulate AI generation
+    setTimeout(() => {
+        // In a real scenario, this would be the result from the AI
+        // For simulation, we just use the model image as the base
+        setGeneratedImage(modelImage); 
         setIsGenerating(false);
-    }
+
+        const newCount = tryOnCount + 1;
+        setTryOnCount(newCount);
+        localStorage.setItem('tryOnCount', newCount.toString());
+        toast({
+            title: t('vto.toast.generated.title'),
+            description: `${t('vto.toast.generated.description')} (${MAX_FREE_USES - newCount} essais restants)`,
+        });
+
+    }, 2000); // Simulate a 2-second generation time
   };
 
   const handleSaveOutfit = () => {
@@ -275,26 +259,42 @@ export default function VirtualTryOnPage() {
             <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {/* Preview Area */}
-                    <div className="md:col-span-2 relative aspect-[3/4] rounded-lg border bg-muted flex items-center justify-center">
+                    <div className="md:col-span-2 relative aspect-[3/4] rounded-lg border bg-muted flex items-center justify-center overflow-hidden">
                         {isGenerating && (
                             <div className="flex flex-col items-center gap-2">
                                 <Sparkles className="h-8 w-8 animate-spin text-primary" />
                                 <p className="text-muted-foreground">{t('vto.generating')}</p>
                             </div>
                         )}
-                        {!isGenerating && generatedImage && (
-                             <Image
-                                src={generatedImage}
-                                alt={t('vto.your_look.alt')}
-                                fill
-                                className="object-contain rounded-lg"
-                              />
-                        )}
-                         {!isGenerating && !generatedImage && (
+                        {!isGenerating && !generatedImage && (
                             <div className="text-center p-4">
                                 <Shirt className="h-16 w-16 mx-auto text-muted-foreground"/>
                                 <p className="text-muted-foreground mt-4">{t('vto.your_look.placeholder')}</p>
                             </div>
+                        )}
+                         {generatedImage && (
+                             <>
+                                <Image
+                                    src={generatedImage}
+                                    alt={t('vto.your_look.alt')}
+                                    fill
+                                    className="object-cover rounded-lg"
+                                />
+                                {selectedItems.map((item, index) => (
+                                     <Image 
+                                        key={item.id}
+                                        src={item.images[0]}
+                                        alt={item.name}
+                                        fill
+                                        className="absolute object-contain"
+                                        style={{
+                                            // Basic overlay logic, can be improved
+                                            mixBlendMode: 'multiply',
+                                            opacity: 0.8
+                                        }}
+                                     />
+                                ))}
+                             </>
                         )}
                     </div>
 
@@ -331,5 +331,3 @@ export default function VirtualTryOnPage() {
     </div>
   );
 }
-
-    
