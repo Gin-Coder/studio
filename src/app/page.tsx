@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRef } from 'react';
 import Autoplay from 'embla-carousel-autoplay';
+import Fade from 'embla-carousel-fade';
 import {
   Carousel,
   CarouselContent,
@@ -28,7 +29,7 @@ export default function Home() {
     );
 
     const continuousAutoplay = useRef(
-        Autoplay({ delay: 3000, stopOnInteraction: false, stopOnMouseEnter: true })
+        Autoplay({ delay: 0, stopOnInteraction: false, stopOnMouseEnter: true })
     )
 
   const heroImage = PlaceHolderImages.find(p => p.id === 'hero-main') || { src: '', alt: '', hint: '' };
@@ -102,7 +103,7 @@ export default function Home() {
             {t('home.bestsellers.title')}
           </h2>
           <Carousel
-            plugins={[autoplay.current]}
+            plugins={[autoplay.current, Fade()]}
             opts={{
               align: 'start',
               loop: true,
@@ -133,7 +134,7 @@ export default function Home() {
             {t('home.newarrivals.title')}
           </h2>
            <Carousel
-             plugins={[autoplay.current]}
+             plugins={[autoplay.current, Fade()]}
             opts={{
               align: 'start',
               loop: true,
@@ -212,9 +213,9 @@ export default function Home() {
             opts={{ align: 'start', loop: true }}
             className="w-full max-w-4xl mx-auto"
           >
-            <CarouselContent>
+            <CarouselContent className="-ml-1">
               {reviews.map((review) => (
-                <CarouselItem key={review.id} className="md:basis-1/2">
+                <CarouselItem key={review.id} className="pl-1 md:basis-1/2">
                   <div className="p-4">
                     <Card>
                       <CardContent className="p-6">
