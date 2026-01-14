@@ -1,6 +1,7 @@
 
 'use client';
 
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,9 +12,17 @@ import Image from "next/image";
 import { formatPrice } from "@/lib/utils";
 import { useLanguage } from "@/hooks/use-language";
 import { useCurrency } from "@/hooks/use-currency";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { ShoppingCart, ArrowLeft } from "lucide-react";
 
-export default function CheckoutPage() {
-    const { cartItems } = useCart();
+const STEPS = [
+  { id: 1, nameKey: 'checkout.contact_info' },
+  { id: 2, nameKey: 'checkout.shipping_address' },
+  { id: 3, nameKey: 'checkout.payment' },
+];
+
+const CheckoutSummary = () => {
+    const { cartItems, cartCount } = useCart();
     const { t, language } = useLanguage();
     const { currency, convertPrice } = useCurrency();
 
@@ -21,11 +30,109 @@ export default function CheckoutPage() {
     const displayTotalPrice = convertPrice(totalPrice);
 
     return (
-        <div className="container mx-auto py-12">
-            <h1 className="mb-8 text-center font-headline text-4xl font-bold">{t('checkout.title')}</h1>
-            <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-                {/* Left side - Form */}
-                <div className="space-y-8">
+        <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="order-summary">
+                <AccordionTrigger>
+                    <div className="flex items-center justify-between w-full pr-4">
+                        <div className="flex items-center gap-2">
+                             <ShoppingCart className="h-5 w-5 text-primary" />
+                             <span className="font-semibold">{t('checkout.order_summary')} ({cartCount})</span>
+                        </div>
+                        <span className="font-bold text-lg">{formatPrice(displayTotalPrice, language, currency)}</span>
+                    </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                    <div className="space-y-4 pt-4">
+                        {cartItems.map(item => {
+                            const itemDisplayPrice = convertPrice(item.price * item.quantity);
+                            return (
+                                <div key={item.variantId} className="flex items-center justify-between">
+                                    <div className="flex items-center gap-4">
+                                        <div className="relative h-16 w-16 rounded-md border">
+                                            <Image src={item.image} alt={item.name} layout="fill" objectFit="cover" className="rounded-md" />
+                                            <div className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">{item.quantity}</div>
+                                        </div>
+                                        <div>
+                                            <p className="font-semibold">{item.name}</p>
+                                            <p className="text-sm text-muted-foreground">{item.color} / {item.size}</p>
+                                        </div>
+                                    </div>
+                                    <p className="font-medium">{formatPrice(itemDisplayPrice, language, currency)}</p>
+                                </div>
+                            );
+                        })}
+                    </div>
+                    <Separator className="my-4" />
+                     <div className="space-y-2">
+                        <div className="flex justify-between">
+                            <p className="text-muted-foreground">{t('cart.subtotal')}</p>
+                            <p>{formatPrice(displayTotalPrice, language, currency)}</p>
+                        </div>
+                        <div className="flex justify-between">
+                            <p className="text-muted-foreground">{t('checkout.shipping')}</p>
+                            <p className="text-sm">{t('cart.delivery_info')}</p>
+                        </div>
+                    </div>
+                     <Separator className="my-4" />
+                    <div className="flex justify-between font-bold text-lg">
+                        <p>{t('checkout.total')}</p>
+                        <p>{formatPrice(displayTotalPrice, language, currency)}</p>
+                    </div>
+                </AccordionContent>
+            </AccordionItem>
+        </Accordion>
+    )
+}
+
+const StepIndicator = ({ currentStep, onStepClick }: { currentStep: number, onStepClick: (step: number) => void }) => {
+    const { t } = useLanguage();
+    return (
+        <div className="flex items-center justify-center space-x-2 md:space-x-4 mb-8">
+            {STEPS.map((step, index) => (
+                <div key={step.id} className="flex items-center">
+                    <button
+                        onClick={() => onStepClick(step.id)}
+                        disabled={step.id > currentStep}
+                        className="flex items-center gap-2"
+                    >
+                        <div className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold ${currentStep >= step.id ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
+                            {step.id}
+                        </div>
+                        <span className={`hidden md:inline ${currentStep >= step.id ? 'text-foreground' : 'text-muted-foreground'}`}>{t(step.nameKey)}</span>
+                    </button>
+                    {index < STEPS.length - 1 && <Separator orientation="horizontal" className="w-8 md:w-16 ml-2 md:ml-4" />}
+                </div>
+            ))}
+        </div>
+    );
+};
+
+
+export default function CheckoutPage() {
+    const { t } = useLanguage();
+    const [currentStep, setCurrentStep] = useState(1);
+    
+    const nextStep = () => setCurrentStep(prev => Math.min(prev + 1, STEPS.length));
+    const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 1));
+    const goToStep = (step: number) => {
+        if (step < currentStep) {
+            setCurrentStep(step);
+        }
+    }
+
+
+    return (
+        <div className="container mx-auto max-w-2xl py-8 md:py-12">
+            <h1 className="mb-8 text-center font-headline text-3xl md:text-4xl font-bold">{t('checkout.title')}</h1>
+            
+            <div className="mb-8">
+              <CheckoutSummary />
+            </div>
+
+            <StepIndicator currentStep={currentStep} onStepClick={goToStep} />
+
+            <div className="mt-8">
+                {currentStep === 1 && (
                     <Card>
                         <CardHeader><CardTitle>{t('checkout.contact_info')}</CardTitle></CardHeader>
                         <CardContent className="space-y-4">
@@ -35,11 +142,13 @@ export default function CheckoutPage() {
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="phone">{t('checkout.whatsapp')}</Label>
-                                <Input id="phone" type="tel" placeholder="+1 (555) 000-0000" />
+                                <Input id="phone" type="tel" placeholder="+509 XX XX XX XX" />
                             </div>
                         </CardContent>
                     </Card>
+                )}
 
+                {currentStep === 2 && (
                     <Card>
                         <CardHeader><CardTitle>{t('checkout.shipping_address')}</CardTitle></CardHeader>
                         <CardContent className="space-y-4">
@@ -63,7 +172,9 @@ export default function CheckoutPage() {
                             </div>
                         </CardContent>
                     </Card>
-                    
+                )}
+
+                {currentStep === 3 && (
                     <Card>
                         <CardHeader><CardTitle>{t('checkout.payment')}</CardTitle></CardHeader>
                         <CardContent>
@@ -86,56 +197,26 @@ export default function CheckoutPage() {
                             </div>
                         </CardContent>
                     </Card>
-                    <Button size="lg" className="w-full">{t('checkout.pay_button')}</Button>
-                </div>
+                )}
+            </div>
 
-                {/* Right side - Order Summary */}
-                <div className="lg:pl-8">
-                    <Card className="sticky top-24">
-                        <CardHeader><CardTitle>{t('checkout.order_summary')}</CardTitle></CardHeader>
-                        <CardContent>
-                            <div className="space-y-4">
-                                {cartItems.map(item => {
-                                    const itemDisplayPrice = convertPrice(item.price * item.quantity);
-                                    return (
-                                        <div key={item.variantId} className="flex items-center justify-between">
-                                            <div className="flex items-center gap-4">
-                                                <div className="relative h-16 w-16 rounded-md border">
-                                                    <Image src={item.image} alt={item.name} layout="fill" objectFit="cover" className="rounded-md" />
-                                                    <div className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">{item.quantity}</div>
-                                                </div>
-                                                <div>
-                                                    <p className="font-semibold">{item.name}</p>
-                                                    <p className="text-sm text-muted-foreground">{item.color} / {item.size}</p>
-                                                </div>
-                                            </div>
-                                            <p className="font-medium">{formatPrice(itemDisplayPrice, language, currency)}</p>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                            <Separator className="my-4" />
-                            <div className="space-y-2">
-                                <div className="flex justify-between">
-                                    <p className="text-muted-foreground">{t('cart.subtotal')}</p>
-                                    <p>{formatPrice(displayTotalPrice, language, currency)}</p>
-                                </div>
-                                <div className="flex justify-between">
-                                    <p className="text-muted-foreground">{t('checkout.shipping')}</p>
-                                    <p>{t('checkout.shipping_info')}</p>
-                                </div>
-                            </div>
-                             <Separator className="my-4" />
-                            <div className="flex justify-between font-bold text-lg">
-                                <p>{t('checkout.total')}</p>
-                                <p>{formatPrice(displayTotalPrice, language, currency)}</p>
-                            </div>
-                        </CardContent>
-                    </Card>
+             <div className="mt-8 flex items-center justify-between">
+                <div>
+                   {currentStep > 1 && (
+                        <Button variant="ghost" onClick={prevStep}>
+                            <ArrowLeft className="mr-2 h-4 w-4" />
+                            {t('checkout.back')}
+                        </Button>
+                    )}
+                </div>
+                <div>
+                    {currentStep < STEPS.length ? (
+                        <Button size="lg" onClick={nextStep}>{t('checkout.continue')}</Button>
+                    ) : (
+                        <Button size="lg">{t('checkout.pay_button')}</Button>
+                    )}
                 </div>
             </div>
         </div>
     );
 }
-
-    
