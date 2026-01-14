@@ -11,10 +11,8 @@ import {
   CommandEmpty,
   CommandGroup,
 } from '@/components/ui/command';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { useLanguage } from '@/hooks/use-language';
-import { searchProducts } from '@/ai/flows/product-search-flow';
-import type { ProductSearchResult } from '@/ai/flows/product-search-flow';
 import debounce from 'lodash.debounce';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -22,6 +20,15 @@ import { formatPrice } from '@/lib/utils';
 import { useCurrency } from '@/hooks/use-currency';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from './ui/button';
+import { products } from '@/lib/mock-data';
+import type { Product } from '@/lib/types';
+
+interface SearchResult {
+  slug: string;
+  name: string;
+  price: number;
+  image: string;
+}
 
 interface AISearchProps {
   isDialog?: boolean;
@@ -30,31 +37,43 @@ interface AISearchProps {
 export function AISearch({ isDialog = false }: AISearchProps) {
   const { t, language } = useLanguage();
   const { currency, convertPrice } = useCurrency();
-  const [open, setOpen] = useState(isDialog);
+  const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState<ProductSearchResult[]>([]);
+  const [results, setResults] = useState<SearchResult[]>([]);
   const [isPending, startTransition] = useTransition();
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (open) {
-        // slight delay to allow dialog to render
         setTimeout(() => inputRef.current?.focus(), 100);
     }
   }, [open]);
 
-  const fetchResults = async (searchQuery: string) => {
+  const performSearch = (searchQuery: string) => {
     if (searchQuery.length < 2) {
       setResults([]);
       return;
     }
-    startTransition(async () => {
-      const searchResults = await searchProducts({ query: searchQuery, lang: language });
+    startTransition(() => {
+      const lowerCaseQuery = searchQuery.toLowerCase();
+      const filteredProducts = products.filter(product => {
+        const nameMatch = product.name.toLowerCase().includes(lowerCaseQuery);
+        const categoryMatch = product.category.toLowerCase().includes(lowerCaseQuery);
+        const tagMatch = product.tags.some(tag => tag.toLowerCase().includes(lowerCaseQuery));
+        return nameMatch || categoryMatch || tagMatch;
+      }).slice(0, 5); // Limit to 5 results
+
+      const searchResults: SearchResult[] = filteredProducts.map(p => ({
+        slug: p.slug,
+        name: p.name,
+        price: p.price,
+        image: p.images[0],
+      }));
       setResults(searchResults);
     });
   };
 
-  const debouncedFetchResults = useCallback(debounce(fetchResults, 300), [language]);
+  const debouncedFetchResults = useCallback(debounce(performSearch, 200), []);
 
   const handleQueryChange = (searchQuery: string) => {
     setQuery(searchQuery);
