@@ -1,4 +1,6 @@
 
+'use client';
+
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import { products, reviews } from '@/lib/mock-data';
@@ -14,27 +16,17 @@ import ProductActions from './ProductActions';
 import OutfitSuggestions from './OutfitSuggestions';
 import VirtualTryOn from './VirtualTryOn';
 import ProductPrice from './ProductPrice';
-import { ClientSideTranslator } from '@/components/ClientSideTranslator';
+import { useLanguage } from '@/hooks/use-language';
+import type { Product } from '@/lib/types';
 
 
-// This function allows Next.js to generate static pages for each product at build time
-export async function generateStaticParams() {
-  return products.map((product) => ({
-    slug: product.slug,
-  }));
-}
+function ProductDetailClient({ product }: { product: Product }) {
+  const { t } = useLanguage();
 
-export default function ProductDetailPage({ params }: { params: { slug: string } }) {
-  const product = products.find((p) => p.slug === params.slug);
-
-  if (!product) {
-    notFound();
-  }
-  
   const relatedProducts = products.filter(p => p.category === product.category && p.id !== product.id).slice(0, 4);
 
   return (
-    <div className="container mx-auto px-4 py-8">
+     <div className="container mx-auto px-4 py-8">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-16">
         {/* Product Gallery */}
         <div className="aspect-[3/4] relative">
@@ -63,57 +55,39 @@ export default function ProductDetailPage({ params }: { params: { slug: string }
                 />
               ))}
             </div>
-            <ClientSideTranslator>
-              {t => (
-                <a href="#reviews" className="text-sm text-muted-foreground hover:underline">
-                  {t('product.reviews_link', { count: product.reviewCount })}
-                </a>
-              )}
-            </ClientSideTranslator>
+            <a href="#reviews" className="text-sm text-muted-foreground hover:underline">
+                {t('product.reviews_link', { count: product.reviewCount })}
+            </a>
           </div>
           <ProductPrice price={product.price} />
-          <ClientSideTranslator>
-            {t => (
-              <p className="mt-4 text-muted-foreground">{t(product.descriptionKey)}</p>
-            )}
-          </ClientSideTranslator>
+          <p className="mt-4 text-muted-foreground">{t(product.descriptionKey)}</p>
           
           <ProductActions product={product} />
           
           <div className="mt-8 space-y-4">
-            <ClientSideTranslator>
-              {t => (
-                <>
-                  <div className="flex items-center gap-3">
-                    <Truck className="h-6 w-6 text-primary" />
-                    <p className="text-sm">{t('product.delivery_info')}</p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <ShieldCheck className="h-6 w-6 text-primary" />
-                    <p className="text-sm">{t('product.quality_guarantee')}</p>
-                  </div>
-                </>
-              )}
-            </ClientSideTranslator>
+              <div className="flex items-center gap-3">
+                <Truck className="h-6 w-6 text-primary" />
+                <p className="text-sm">{t('product.delivery_info')}</p>
+              </div>
+              <div className="flex items-center gap-3">
+                <ShieldCheck className="h-6 w-6 text-primary" />
+                <p className="text-sm">{t('product.quality_guarantee')}</p>
+              </div>
           </div>
 
           <div className="mt-8">
-            <ClientSideTranslator>
-              {t => (
-                <Accordion type="single" collapsible defaultValue="description">
-                  <AccordionItem value="description">
-                    <AccordionTrigger>{t('product.description')}</AccordionTrigger>
-                    <AccordionContent>{t(product.longDescriptionKey)}</AccordionContent>
-                  </AccordionItem>
-                  <AccordionItem value="details">
-                    <AccordionTrigger>{t('product.details_care')}</AccordionTrigger>
-                    <AccordionContent>
-                      <span dangerouslySetInnerHTML={{ __html: t('product.details_care_content') }} />
-                    </AccordionContent>
-                  </AccordionItem>
-                </Accordion>
-              )}
-            </ClientSideTranslator>
+            <Accordion type="single" collapsible defaultValue="description">
+              <AccordionItem value="description">
+                <AccordionTrigger>{t('product.description')}</AccordionTrigger>
+                <AccordionContent>{t(product.longDescriptionKey)}</AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="details">
+                <AccordionTrigger>{t('product.details_care')}</AccordionTrigger>
+                <AccordionContent>
+                  <span dangerouslySetInnerHTML={{ __html: t('product.details_care_content') }} />
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
           </div>
         </div>
       </div>
@@ -123,18 +97,14 @@ export default function ProductDetailPage({ params }: { params: { slug: string }
       <OutfitSuggestions product={product} />
 
       <div className="mt-16">
-        <ClientSideTranslator>
-          {t => <h2 className="mb-8 text-center font-headline text-3xl font-bold">{t('product.you_might_also_like')}</h2>}
-        </ClientSideTranslator>
+        <h2 className="mb-8 text-center font-headline text-3xl font-bold">{t('product.you_might_also_like')}</h2>
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           {relatedProducts.map(p => <ProductCard key={p.id} product={p} />)}
         </div>
       </div>
 
       <div id="reviews" className="mt-16">
-        <ClientSideTranslator>
-          {t => <h2 className="mb-8 text-center font-headline text-3xl font-bold">{t('product.customer_reviews')}</h2>}
-        </ClientSideTranslator>
+        <h2 className="mb-8 text-center font-headline text-3xl font-bold">{t('product.customer_reviews')}</h2>
         <div className="mx-auto max-w-3xl space-y-8">
           {reviews.filter(r => r.productId === product.id).map(review => (
              <div key={review.id} className="rounded-lg border p-6">
@@ -157,9 +127,7 @@ export default function ProductDetailPage({ params }: { params: { slug: string }
                         />
                       ))}
                     </div>
-                    <ClientSideTranslator>
-                      {t => <p className="mt-2 italic text-muted-foreground">"{t(review.textKey)}"</p>}
-                    </ClientSideTranslator>
+                    <p className="mt-2 italic text-muted-foreground">"{t(review.textKey)}"</p>
                   </div>
                </div>
              </div>
@@ -170,4 +138,14 @@ export default function ProductDetailPage({ params }: { params: { slug: string }
   );
 }
 
-    
+
+export default function ProductDetailPage({ params }: { params: { slug: string } }) {
+  const product = products.find((p) => p.slug === params.slug);
+
+  if (!product) {
+    notFound();
+  }
+  
+  // We pass the server-fetched product data to the client component
+  return <ProductDetailClient product={product} />;
+}
