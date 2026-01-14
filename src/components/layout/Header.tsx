@@ -29,6 +29,7 @@ import { useCart } from '@/hooks/use-cart';
 import { useWishlist } from '@/hooks/use-wishlist';
 import { Separator } from '../ui/separator';
 import { useState, useEffect } from 'react';
+import { cn } from '@/lib/utils';
 
 const NavLinks = ({ inSheet = false }: { inSheet?: boolean }) => {
   const { t } = useLanguage();
@@ -71,9 +72,17 @@ export default function Header() {
   const { wishlistCount } = useWishlist();
   const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
+
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
   
   if (!isMounted) {
@@ -145,9 +154,14 @@ export default function Header() {
         </div>
         
         <div className="flex-1 flex justify-center items-center md:hidden">
-          <Link href="/" className="flex items-center justify-center">
-            <span className="font-headline text-xl font-bold text-accent">Danny Store</span>
-          </Link>
+            <Link href="/" className="flex items-center justify-center">
+                <span className={cn(
+                    "font-headline text-xl font-bold text-accent transition-opacity duration-300",
+                    isScrolled ? "opacity-100" : "opacity-0"
+                )}>
+                    Danny Store
+                </span>
+            </Link>
         </div>
 
         <div className="flex items-center justify-end space-x-0 md:space-x-2">
