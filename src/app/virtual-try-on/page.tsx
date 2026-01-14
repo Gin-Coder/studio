@@ -122,7 +122,7 @@ export default function VirtualTryOnPage() {
             modelImageUri: modelImage,
             clothingItems: selectedItems.map(item => ({
                 imageUri: item.images[0], // Assuming the first image is the primary one
-                category: item.category,
+                category: item.category as 'clothing' | 'shoes' | 'accessories' | 'tech',
             }))
         });
 
@@ -139,12 +139,12 @@ export default function VirtualTryOnPage() {
             throw new Error("La génération d'image a échoué.");
         }
 
-    } catch (error) {
+    } catch (error: any) {
         console.error("Virtual Try-On Error:", error);
         toast({
-            variant: 'destructive',
-            title: 'Erreur de Génération',
-            description: "Désolé, une erreur est survenue lors de la création de votre look. Veuillez réessayer."
+            variant: "destructive",
+            title: "Erreur de Génération",
+            description: error.message || "Une erreur inconnue est survenue. Veuillez réessayer."
         });
     } finally {
         setIsGenerating(false);
@@ -331,3 +331,5 @@ export default function VirtualTryOnPage() {
     </div>
   );
 }
+
+    
