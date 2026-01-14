@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRef } from 'react';
 import Autoplay from 'embla-carousel-autoplay';
+import Fade from 'embla-carousel-fade';
 import {
   Carousel,
   CarouselContent,
@@ -23,9 +24,13 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 export default function Home() {
     const { t } = useLanguage();
-    const plugin = useRef(
+    const autoplay = useRef(
       Autoplay({ delay: 4000, stopOnInteraction: true })
     );
+
+    const continuousAutoplay = useRef(
+        Autoplay({ delay: 0, stopOnInteraction: false })
+    )
 
   const heroImage = PlaceHolderImages.find(p => p.id === 'hero-main') || { src: '', alt: '', hint: '' };
 
@@ -98,14 +103,14 @@ export default function Home() {
             {t('home.bestsellers.title')}
           </h2>
           <Carousel
-            plugins={[plugin.current]}
+            plugins={[autoplay.current, Fade()]}
             opts={{
               align: 'start',
               loop: true,
             }}
             className="w-full"
-            onMouseEnter={plugin.current.stop}
-            onMouseLeave={plugin.current.reset}
+            onMouseEnter={autoplay.current.stop}
+            onMouseLeave={autoplay.current.reset}
           >
             <CarouselContent>
               {bestSellers.map((product) => (
@@ -129,14 +134,14 @@ export default function Home() {
             {t('home.newarrivals.title')}
           </h2>
            <Carousel
-             plugins={[plugin.current]}
+             plugins={[autoplay.current, Fade()]}
             opts={{
               align: 'start',
               loop: true,
             }}
             className="w-full"
-            onMouseEnter={plugin.current.stop}
-            onMouseLeave={plugin.current.reset}
+            onMouseEnter={autoplay.current.stop}
+            onMouseLeave={autoplay.current.reset}
           >
             <CarouselContent>
               {newArrivals.map((product) => (
@@ -204,11 +209,11 @@ export default function Home() {
             {t('home.reviews.title')}
           </h2>
           <Carousel
-             plugins={[plugin.current]}
-            opts={{ align: 'start', loop: true }}
+            plugins={[continuousAutoplay.current]}
+            opts={{ align: 'start', loop: true, duration: 50 }}
             className="w-full max-w-4xl mx-auto"
-            onMouseEnter={plugin.current.stop}
-            onMouseLeave={plugin.current.reset}
+            onMouseEnter={continuousAutoplay.current.stop}
+            onMouseLeave={continuousAutoplay.current.play}
           >
             <CarouselContent>
               {reviews.map((review) => (
