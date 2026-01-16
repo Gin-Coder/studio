@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { categories as mockCategories } from '@/lib/mock-data';
 import { useLanguage } from '@/hooks/use-language';
 import { useToast } from '@/hooks/use-toast';
@@ -225,13 +226,30 @@ export default function NewProductPage() {
                                             />
                                         </div>
                                         <div className="grid gap-3">
-                                            <Label htmlFor="image-main">Image principale</Label>
-                                            <Input
-                                                id="image-main"
-                                                type="file"
-                                                accept="image/*"
-                                                onChange={(e) => handleFileChange(e, setImageUrl)}
-                                            />
+                                            <Label>Image principale</Label>
+                                            <Tabs defaultValue="upload" className="w-full">
+                                                <TabsList className="grid w-full grid-cols-2">
+                                                    <TabsTrigger value="upload">Téléverser</TabsTrigger>
+                                                    <TabsTrigger value="url">URL</TabsTrigger>
+                                                </TabsList>
+                                                <TabsContent value="upload">
+                                                    <Input
+                                                        id="image-main-upload"
+                                                        type="file"
+                                                        accept="image/*"
+                                                        onChange={(e) => handleFileChange(e, setImageUrl)}
+                                                    />
+                                                </TabsContent>
+                                                <TabsContent value="url">
+                                                    <Input
+                                                        id="image-main-url"
+                                                        type="url"
+                                                        placeholder="https://example.com/image.png"
+                                                        value={imageUrl.startsWith('data:') ? '' : imageUrl}
+                                                        onChange={(e) => setImageUrl(e.target.value)}
+                                                    />
+                                                </TabsContent>
+                                            </Tabs>
                                             {imageUrl && (
                                                 <div className="relative w-24 h-24 mt-2">
                                                     <Image src={imageUrl} alt="Aperçu de l'image principale" fill className="rounded-md object-cover" />
@@ -265,9 +283,26 @@ export default function NewProductPage() {
                                                     <Input id={`stock-${index}`} type="number" placeholder="Ex: 25" value={variant.stock} onChange={(e) => handleVariantChange(index, 'stock', e.target.value)} />
                                                 </div>
                                             </div>
-                                            <div className="grid gap-3">
-                                                <Label htmlFor={`variant-image-${index}`}>Image de la variante</Label>
-                                                <Input id={`variant-image-${index}`} type="file" accept="image/*" onChange={(e) => handleFileChange(e, (url) => handleVariantChange(index, 'imageUrl', url))} />
+                                             <div className="grid gap-3">
+                                                <Label>Image de la variante</Label>
+                                                <Tabs defaultValue="upload" className="w-full">
+                                                    <TabsList className="grid w-full grid-cols-2">
+                                                        <TabsTrigger value="upload">Téléverser</TabsTrigger>
+                                                        <TabsTrigger value="url">URL</TabsTrigger>
+                                                    </TabsList>
+                                                    <TabsContent value="upload">
+                                                        <Input id={`variant-image-upload-${index}`} type="file" accept="image/*" onChange={(e) => handleFileChange(e, (url) => handleVariantChange(index, 'imageUrl', url))} />
+                                                    </TabsContent>
+                                                    <TabsContent value="url">
+                                                        <Input
+                                                            id={`variant-image-url-${index}`}
+                                                            type="url"
+                                                            placeholder="https://example.com/image.png"
+                                                            value={variant.imageUrl.startsWith('data:') ? '' : variant.imageUrl}
+                                                            onChange={(e) => handleVariantChange(index, 'imageUrl', e.target.value)}
+                                                        />
+                                                    </TabsContent>
+                                                </Tabs>
                                                 {variant.imageUrl && (
                                                     <div className="relative w-24 h-24 mt-2">
                                                         <Image src={variant.imageUrl} alt={`Aperçu variante ${index + 1}`} fill className="rounded-md object-cover" />
