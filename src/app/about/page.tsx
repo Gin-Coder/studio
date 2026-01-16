@@ -26,9 +26,8 @@ export default function AboutPage() {
             {aboutImg1 && <Image
               src={aboutImg1.imageUrl}
               alt={aboutImg1.description}
-              layout="fill"
-              objectFit="cover"
-              className="rounded-lg shadow-lg"
+              fill
+              className="rounded-lg shadow-lg object-cover"
               data-ai-hint={aboutImg1.imageHint}
             />}
           </div>
@@ -57,9 +56,8 @@ export default function AboutPage() {
             {aboutImg2 && <Image
               src={aboutImg2.imageUrl}
               alt={aboutImg2.description}
-              layout="fill"
-              objectFit="cover"
-              className="rounded-lg shadow-lg"
+              fill
+              className="rounded-lg shadow-lg object-cover"
               data-ai-hint={aboutImg2.imageHint}
             />}
           </div>
