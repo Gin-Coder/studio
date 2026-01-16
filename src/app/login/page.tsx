@@ -8,10 +8,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useLanguage } from '@/hooks/use-language';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertCircle, Loader2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { Loader2 } from 'lucide-react';
 import { Logo } from '@/components/ui/logo';
 import Link from 'next/link';
+import { useAuth } from '@/firebase';
+import { signInAnonymously } from 'firebase/auth';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -19,12 +21,28 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const { t } = useLanguage();
+  const auth = useAuth();
+  const { toast } = useToast();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // TEMPORARY: Redirect directly to admin for demonstration.
-    router.push('/admin');
+    
+    // TEMPORARY: Sign in anonymously for demonstration.
+    try {
+      await signInAnonymously(auth);
+      // The onAuthStateChanged listener in FirebaseProvider will handle the user state.
+      // We can now safely redirect to admin.
+      router.push('/admin');
+    } catch (error) {
+      console.error("Anonymous sign-in failed", error);
+      toast({
+        variant: "destructive",
+        title: "Erreur de connexion",
+        description: "La connexion automatique a échoué. Veuillez réessayer.",
+      });
+      setIsLoading(false);
+    }
   };
 
   return (
