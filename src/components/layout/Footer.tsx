@@ -12,7 +12,7 @@ export default function Footer() {
   const { t } = useLanguage();
   const pathname = usePathname();
 
-  if (pathname.startsWith('/admin')) {
+  if (pathname.startsWith('/admin') || pathname.startsWith('/login')) {
     return null;
   }
 
@@ -32,10 +32,13 @@ export default function Footer() {
               {t('nav.contact')}
             </Link>
             <Link href="/privacy-policy" className="text-sm text-muted-foreground hover:text-foreground">
-              Privacy Policy
+              {t('footer.privacy_policy')}
             </Link>
             <Link href="/terms-conditions" className="text-sm text-muted-foreground hover:text-foreground">
-              Terms & Conditions
+              {t('footer.terms')}
+            </Link>
+             <Link href="/login" className="text-sm text-muted-foreground hover:text-foreground">
+              {t('footer.staff_login')}
             </Link>
           </div>
         </div>

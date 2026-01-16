@@ -174,7 +174,13 @@ export const dictionaries: Dictionaries = {
     'whatsapp.order.delivery_note': 'Delivery to be confirmed',
     'whatsapp.order.confirmation_prompt': 'Hello, I would like to confirm this order.',
     'search.no_results': 'No results found.',
-    'search.suggestions': 'Suggestions'
+    'search.suggestions': 'Suggestions',
+    'login.title': 'Staff Login',
+    'login.email': 'Email Address',
+    'login.password': 'Password',
+    'login.button': 'Login',
+    'login.logging_in': 'Logging in...',
+    'login.error.invalid_credentials': 'Invalid email or password. Please try again.'
   },
   fr: {
     'nav.home': 'Accueil',
@@ -342,7 +348,13 @@ export const dictionaries: Dictionaries = {
     'whatsapp.order.delivery_note': 'Livraison à confirmer',
     'whatsapp.order.confirmation_prompt': 'Bonjour, je voudrais confirmer cette commande.',
     'search.no_results': 'Aucun résultat trouvé.',
-    'search.suggestions': 'Suggestions'
+    'search.suggestions': 'Suggestions',
+    'login.title': 'Connexion Staff',
+    'login.email': 'Adresse e-mail',
+    'login.password': 'Mot de passe',
+    'login.button': 'Se connecter',
+    'login.logging_in': 'Connexion en cours...',
+    'login.error.invalid_credentials': 'E-mail ou mot de passe invalide. Veuillez réessayer.'
   },
   ht: {
     'nav.home': 'Akèy',
@@ -510,6 +522,12 @@ export const dictionaries: Dictionaries = {
     'whatsapp.order.delivery_note': 'Livrezon an ap konfime',
     'whatsapp.order.confirmation_prompt': 'Bonjou, mwen ta renmen konfime kòmand sa a.',
     'search.no_results': 'Nou pa jwenn okenn rezilta.',
-    'search.suggestions': 'Sijesyon'
+    'search.suggestions': 'Sijesyon',
+    'login.title': 'Koneksyon Anplwaye',
+    'login.email': 'Adrès imèl',
+    'login.password': 'Modpas',
+    'login.button': 'Konekte',
+    'login.logging_in': 'Koneksyon an ap fèt...',
+    'login.error.invalid_credentials': 'Imèl oswa modpas pa kòrèk. Tanpri eseye ankò.'
   },
 };
