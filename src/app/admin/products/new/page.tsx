@@ -194,5 +194,6 @@ export default function NewProductPage() {
                 </div>
             </main>
         </div>
-    );
+    </div>
+  );
 }
