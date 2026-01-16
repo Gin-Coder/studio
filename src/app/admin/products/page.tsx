@@ -1,6 +1,7 @@
 
 'use client';
 import Image from "next/image";
+import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,9 +28,11 @@ export default function AdminProductsPage() {
     <>
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Produits</h1>
-        <Button>
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Ajouter un produit
+        <Button asChild>
+          <Link href="/admin/products/new">
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Ajouter un produit
+          </Link>
         </Button>
       </div>
       <Card>
