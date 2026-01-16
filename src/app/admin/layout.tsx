@@ -1,13 +1,10 @@
 
 'use client';
 
-import { useUser } from '@/firebase/provider';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
-import { Loader2, Home, ShoppingCart, FileText, Settings, LogOut, PanelLeft } from 'lucide-react';
+import { Home, ShoppingCart, FileText, Settings, LogOut, PanelLeft } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useAuth } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Logo } from '@/components/ui/logo';
@@ -43,26 +40,10 @@ const AdminSidebarNav = () => {
 
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-    const { user, isUserLoading } = useUser();
     const router = useRouter();
-    const auth = useAuth();
 
-    useEffect(() => {
-        if (!isUserLoading && !user) {
-            router.push('/login');
-        }
-    }, [isUserLoading, user, router]);
-
-    if (isUserLoading || !user) {
-        return (
-            <div className="flex h-screen w-full items-center justify-center bg-background">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-        );
-    }
-
-    const handleLogout = async () => {
-        await auth.signOut();
+    const handleLogout = () => {
+        // When auth is re-enabled: await auth.signOut();
         router.push('/login');
     };
 
