@@ -38,7 +38,7 @@ export default function AdminProductsPage() {
   const products = !error ? liveProducts : mockProducts;
 
   const handleDeleteProduct = async () => {
-    if (!productToDelete) return;
+    if (!productToDelete || !firestore) return;
     setIsDeleting(true);
     try {
       await deleteDoc(doc(firestore, 'products', productToDelete.id));
@@ -131,7 +131,9 @@ export default function AdminProductsPage() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem disabled>Modifier</DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                            <Link href={`/admin/products/edit/${product.id}`}>Modifier</Link>
+                        </DropdownMenuItem>
                         <DropdownMenuItem 
                           className="text-destructive focus:text-destructive focus:bg-destructive/10"
                           onClick={() => setProductToDelete(product)}
