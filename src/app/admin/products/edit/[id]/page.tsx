@@ -19,7 +19,7 @@ import { useCollection, useDoc, useFirestore, useMemoFirebase, errorEmitter, Fir
 import { collection, doc, setDoc, updateDoc } from 'firebase/firestore';
 import type { Category, Product } from '@/lib/types';
 import { getStorage, ref, uploadString, getDownloadURL } from 'firebase/storage';
-import { slugify } from '@/lib/utils';
+import { slugify, stringToColor } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 
 type VariantFormState = {
@@ -192,7 +192,7 @@ export default function EditProductPage() {
                 return {
                     id: `${slugify(name)}-${slugify(v.size)}-${slugify(v.color)}`,
                     size: v.size,
-                    color: v.color, // You might want a color picker for the hex value
+                    color: stringToColor(v.color),
                     colorName: v.color,
                     stock: parseInt(v.stock, 10) || 0,
                     imageUrl: variantImageUrl,
@@ -218,25 +218,23 @@ export default function EditProductPage() {
             };
             
             const productRef = doc(firestore, "products", id);
-            updateDoc(productRef, updatedProduct)
-                .then(() => {
-                    toast({ title: "Produit mis à jour !", description: `Le produit "${name}" a été mis à jour avec succès.` });
-                    router.push('/admin/products');
-                })
-                .catch(error => {
-                     console.error("Failed to update product:", error);
-                    errorEmitter.emit('permission-error', new FirestorePermissionError({
-                        path: productRef.path,
-                        operation: 'update',
-                        requestResourceData: updatedProduct,
-                    }));
-                }).finally(() => {
-                    setIsSaving(false);
-                });
+            await updateDoc(productRef, updatedProduct);
+            
+            toast({ title: "Produit mis à jour !", description: `Le produit "${name}" a été mis à jour avec succès.` });
+            router.push('/admin/products');
 
-        } catch (error) {
+        } catch (error: any) {
             console.error("Failed to upload images or save product:", error);
-            toast({ variant: "destructive", title: "Uh oh! Something went wrong.", description: "Impossible de mettre à jour le produit." });
+             if (error.code === 'permission-denied' && error.message.includes('firestore')) {
+                 const productRef = doc(firestore, "products", id);
+                 errorEmitter.emit('permission-error', new FirestorePermissionError({
+                    path: productRef.path,
+                    operation: 'update',
+                }));
+             } else {
+                toast({ variant: "destructive", title: "Uh oh! Something went wrong.", description: error.message || "Impossible de mettre à jour le produit." });
+             }
+        } finally {
             setIsSaving(false);
         }
     };

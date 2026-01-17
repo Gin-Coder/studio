@@ -19,7 +19,7 @@ import { useCollection, useFirestore, useMemoFirebase, errorEmitter, FirestorePe
 import { addDoc, collection, doc, setDoc } from 'firebase/firestore';
 import type { Category } from '@/lib/types';
 import { getStorage, ref, uploadString, getDownloadURL } from 'firebase/storage';
-import { slugify } from '@/lib/utils';
+import { slugify, stringToColor } from '@/lib/utils';
 
 type VariantFormState = {
     id: number;
@@ -131,14 +131,14 @@ export default function NewProductPage() {
 
 
     const handleSaveProduct = async () => {
-        if (!name || !price || !categoryId) {
+        if (!firestore || !name || !price || !categoryId) {
             toast({ variant: 'destructive', title: "Champs requis manquants", description: "Veuillez remplir le nom, le prix et la catégorie." });
             return;
         }
         setIsSaving(true);
         
-        let finalImageUrl = imageUrl;
         try {
+            let finalImageUrl = imageUrl;
             if (imageUrl.startsWith('data:')) {
                 finalImageUrl = await uploadImage(imageUrl);
             }
@@ -151,7 +151,7 @@ export default function NewProductPage() {
                 return {
                     id: `${slugify(name)}-${slugify(v.size)}-${slugify(v.color)}`,
                     size: v.size,
-                    color: v.color, // You might want a color picker for the hex value
+                    color: stringToColor(v.color),
                     colorName: v.color,
                     stock: parseInt(v.stock, 10) || 0,
                     imageUrl: variantImageUrl,
@@ -178,31 +178,24 @@ export default function NewProductPage() {
                 reviewCount: 0,
             };
             
-            if (!firestore) {
-                throw new Error("Firestore not initialized");
-            }
-            
             const productsCollection = collection(firestore, "products");
-            addDoc(productsCollection, newProduct)
-                .then(() => {
-                    toast({ title: "Produit enregistré !", description: `Le produit "${name}" a été enregistré avec succès.` });
-                    router.push('/admin/products');
-                })
-                .catch((error) => {
-                    console.error("Failed to save product:", error);
-                    errorEmitter.emit('permission-error', new FirestorePermissionError({
-                        path: productsCollection.path,
-                        operation: 'create',
-                        requestResourceData: newProduct,
-                    }));
-                })
-                .finally(() => {
-                    setIsSaving(false);
-                });
+            await addDoc(productsCollection, newProduct);
 
-        } catch (error) {
+            toast({ title: "Produit enregistré !", description: `Le produit "${name}" a été enregistré avec succès.` });
+            router.push('/admin/products');
+
+        } catch (error: any) {
             console.error("Failed to upload images or prepare product data:", error);
-            toast({ variant: "destructive", title: "Uh oh! Something went wrong.", description: "Impossible d'enregistrer le produit." });
+            if (error.code === 'permission-denied' && error.message.includes('firestore')) {
+                 const productsCollection = collection(firestore, "products");
+                 errorEmitter.emit('permission-error', new FirestorePermissionError({
+                    path: productsCollection.path,
+                    operation: 'create',
+                }));
+             } else {
+                toast({ variant: "destructive", title: "Uh oh! Something went wrong.", description: error.message || "Impossible d'enregistrer le produit." });
+             }
+        } finally {
             setIsSaving(false);
         }
     };

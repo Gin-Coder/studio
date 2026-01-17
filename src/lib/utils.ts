@@ -34,6 +34,7 @@ export function formatPrice(price: number, lang: Language = 'en', currency: Curr
 }
 
 export function slugify(text: string) {
+    if (!text) return '';
     return text
         .toString()
         .toLowerCase()
@@ -42,4 +43,19 @@ export function slugify(text: string) {
         .replace(/--+/g, '-')
         .replace(/^-+/, '')
         .replace(/-+$/, '');
+}
+
+export function stringToColor(str: string) {
+  let hash = 0;
+  if (!str || str.length === 0) return '#000000';
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  let color = '#';
+  for (let i = 0; i < 3; i++) {
+    const value = (hash >> (i * 8)) & 0xFF;
+    color += ('00' + value.toString(16)).substr(-2);
+  }
+  return color;
 }
