@@ -4,6 +4,7 @@
 import { useState, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import type { Product, Category } from '@/lib/types';
+import { products as mockProducts, categories as mockCategories } from '@/lib/mock-data';
 import ProductCard from '@/components/ProductCard';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from '@/components/ui/sheet';
@@ -31,13 +32,10 @@ type FilterState = {
     colors: string[];
 }
 
-const Filters = ({ filters, setFilters }: { filters: FilterState, setFilters: React.Dispatch<React.SetStateAction<FilterState>> }) => {
+const Filters = ({ filters, setFilters, categories }: { filters: FilterState, setFilters: React.Dispatch<React.SetStateAction<FilterState>>, categories: Category[] | null }) => {
     const { t, language } = useLanguage();
     const { currency, convertPrice } = useCurrency();
-    const firestore = useFirestore();
-    const categoriesQuery = useMemoFirebase(() => (firestore ? collection(firestore, 'categories') : null), [firestore]);
-    const {data: categories, isLoading: isLoadingCategories} = useCollection<Category>(categoriesQuery);
-
+    
     const handleCategoryChange = (categoryId: string, checked: boolean) => {
         setFilters(prev => ({
             ...prev,
@@ -73,7 +71,7 @@ const Filters = ({ filters, setFilters }: { filters: FilterState, setFilters: Re
                 <AccordionItem value="category">
                     <AccordionTrigger>{t('filter.category')}</AccordionTrigger>
                     <AccordionContent>
-                        {isLoadingCategories && <Loader2 className="h-5 w-5 animate-spin" />}
+                        {!categories && <Loader2 className="h-5 w-5 animate-spin" />}
                         <div className="grid gap-2">
                         {categories?.map((category) => (
                              <div key={category.id} className="flex items-center space-x-2">
@@ -157,9 +155,12 @@ export default function ShopPage() {
   const firestore = useFirestore();
 
   const productsQuery = useMemoFirebase(() => (firestore ? collection(firestore, 'products') : null), [firestore]);
-  const { data: products, isLoading: isLoadingProducts } = useCollection<Product>(productsQuery);
+  const { data: liveProducts, isLoading: isLoadingProducts, error: productsError } = useCollection<Product>(productsQuery);
+  const products = !productsError ? liveProducts : mockProducts;
+  
   const categoriesQuery = useMemoFirebase(() => (firestore ? collection(firestore, 'categories') : null), [firestore]);
-  const { data: categories, isLoading: isLoadingCategories } = useCollection<Category>(categoriesQuery);
+  const { data: liveCategories, isLoading: isLoadingCategories, error: categoriesError } = useCollection<Category>(categoriesQuery);
+  const categories = !categoriesError ? liveCategories : mockCategories;
   
   const [filters, setFilters] = useState<FilterState>({
     categories: categoryParam ? [categoryParam] : [],
@@ -200,6 +201,8 @@ export default function ShopPage() {
     return sorted;
   }, [filteredProducts, sortOption]);
 
+  const isLoading = isLoadingProducts || isLoadingCategories;
+
   return (
     <div className="container mx-auto py-4 sm:py-8">
       <div className="mb-8">
@@ -209,7 +212,7 @@ export default function ShopPage() {
       <div className="flex">
         <aside className="hidden w-64 pr-8 lg:block">
             <h2 className="text-xl font-headline font-semibold mb-4">{t('shop.filters')}</h2>
-            <Filters filters={filters} setFilters={setFilters} />
+            <Filters filters={filters} setFilters={setFilters} categories={categories} />
         </aside>
         <main className="flex-1">
           <div className="flex items-center justify-between mb-4">
@@ -229,7 +232,7 @@ export default function ShopPage() {
                         </SheetDescription>
                     </SheetHeader>
                   <ScrollArea className="h-full pr-4 mt-4">
-                    <Filters filters={filters} setFilters={setFilters} />
+                    <Filters filters={filters} setFilters={setFilters} categories={categories} />
                   </ScrollArea>
                 </SheetContent>
               </Sheet>
@@ -246,12 +249,12 @@ export default function ShopPage() {
               </SelectContent>
             </Select>
           </div>
-          {isLoadingProducts && (
+          {isLoading && (
              <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
                 {[...Array(8)].map((_, i) => <Skeleton key={i} className="h-[400px] w-full" />)}
              </div>
           )}
-          {!isLoadingProducts && (
+          {!isLoading && (
             <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
               {sortedProducts.map((product) => (
                 <ProductCard key={product.id} product={product} />
@@ -266,5 +269,3 @@ export default function ShopPage() {
     </div>
   );
 }
-
-    

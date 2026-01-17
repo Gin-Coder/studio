@@ -18,6 +18,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { addDoc, collection, doc, setDoc } from 'firebase/firestore';
 import type { Category } from '@/lib/types';
+import { categories as mockCategories } from '@/lib/mock-data';
 import { getStorage, ref, uploadString, getDownloadURL } from 'firebase/storage';
 import { slugify } from '@/lib/utils';
 
@@ -44,7 +45,8 @@ export default function NewProductPage() {
     const firestore = useFirestore();
 
     const categoriesQuery = useMemoFirebase(() => (firestore ? collection(firestore, 'categories') : null), [firestore]);
-    const { data: categories, isLoading: isLoadingCategories } = useCollection<Category>(categoriesQuery);
+    const { data: liveCategories, isLoading: isLoadingCategories, error: categoriesError } = useCollection<Category>(categoriesQuery);
+    const categories = !categoriesError ? liveCategories : mockCategories;
 
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
@@ -378,5 +380,3 @@ export default function NewProductPage() {
     </div>
   );
 }
-
-    
