@@ -60,7 +60,6 @@ export default function ProductCard({ product }: ProductCardProps) {
   };
   
   const displayPrice = convertPrice(product.price);
-  const category = product.category.charAt(0).toUpperCase() + product.category.slice(1);
 
   return (
     <Card className="group w-full overflow-hidden flex flex-col">
@@ -103,5 +102,3 @@ export default function ProductCard({ product }: ProductCardProps) {
     </Card>
   );
 }
-
-    

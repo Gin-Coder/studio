@@ -5,7 +5,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useWishlist } from '@/hooks/use-wishlist';
 import { useCart } from '@/hooks/use-cart';
-import { products } from '@/lib/mock-data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Heart, ShoppingBag, Trash2 } from 'lucide-react';
@@ -14,6 +13,9 @@ import { useToast } from '@/hooks/use-toast';
 import { useCurrency } from '@/hooks/use-currency';
 import { formatPrice } from '@/lib/utils';
 import type { Product } from '@/lib/types';
+import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { collection, where, query } from 'firebase/firestore';
+import { Skeleton } from '@/components/ui/skeleton';
 
 
 export default function WishlistPage() {
@@ -22,10 +24,17 @@ export default function WishlistPage() {
   const { t, language } = useLanguage();
   const { currency, convertPrice } = useCurrency();
   const { toast } = useToast();
+  const firestore = useFirestore();
 
-  const wishlistedProducts = products.filter(product => 
-    wishlistItems.some(item => item.productId === product.id)
-  );
+  const productIds = wishlistItems.map(item => item.productId);
+
+  const wishlistQuery = useMemoFirebase(() => {
+    if (!firestore || productIds.length === 0) return null;
+    return query(collection(firestore, 'products'), where('__name__', 'in', productIds));
+  }, [firestore, productIds]);
+
+  const { data: wishlistedProducts, isLoading } = useCollection<Product>(wishlistQuery);
+
 
   const handleAddToCart = (product: Product) => {
     const firstVariant = product.variants[0];
@@ -46,7 +55,7 @@ export default function WishlistPage() {
       });
   }
 
-  if (wishlistedProducts.length === 0) {
+  if (!isLoading && (!wishlistedProducts || wishlistedProducts.length === 0)) {
     return (
       <div className="container mx-auto flex flex-col items-center justify-center py-24 text-center">
         <Heart className="h-24 w-24 text-muted-foreground" />
@@ -61,9 +70,22 @@ export default function WishlistPage() {
 
   return (
     <div className="container mx-auto py-12">
-      <h1 className="mb-8 font-headline text-4xl font-bold">{t('wishlist.page.title')} ({wishlistedProducts.length})</h1>
+      <h1 className="mb-8 font-headline text-4xl font-bold">{t('wishlist.page.title')} ({wishlistedProducts?.length || 0})</h1>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {wishlistedProducts.map((product) => (
+        {isLoading && [...Array(wishlistItems.length)].map((_, i) => (
+             <Card key={i} className="overflow-hidden">
+                <Skeleton className="relative aspect-[3/4]" />
+                <CardContent className="p-4">
+                    <Skeleton className="h-5 w-3/4 mb-2" />
+                    <Skeleton className="h-6 w-1/2" />
+                    <div className="mt-4 flex flex-col gap-2">
+                        <Skeleton className="h-10 w-full" />
+                        <Skeleton className="h-10 w-full" />
+                    </div>
+                </CardContent>
+            </Card>
+        ))}
+        {wishlistedProducts?.map((product) => (
           <Card key={product.id} className="overflow-hidden">
             <Link href={`/shop/${product.slug}`}>
                 <div className="relative aspect-[3/4]">
@@ -93,5 +115,3 @@ export default function WishlistPage() {
     </div>
   );
 }
-
-    

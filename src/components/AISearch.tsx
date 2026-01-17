@@ -20,8 +20,9 @@ import { formatPrice } from '@/lib/utils';
 import { useCurrency } from '@/hooks/use-currency';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from './ui/button';
-import { products } from '@/lib/mock-data';
 import type { Product } from '@/lib/types';
+import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { collection, query, where, limit, or } from 'firebase/firestore';
 
 interface SearchResult {
   slug: string;
@@ -38,10 +39,57 @@ export function AISearch({ isDialog = false }: AISearchProps) {
   const { t, language } = useLanguage();
   const { currency, convertPrice } = useCurrency();
   const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState('');
+  const [queryText, setQueryText] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isPending, startTransition] = useTransition();
   const inputRef = useRef<HTMLInputElement>(null);
+  const firestore = useFirestore();
+
+    const searchProducts = useCallback((searchQuery: string) => {
+        if (!firestore || searchQuery.length < 2) {
+            setResults([]);
+            return;
+        }
+
+        startTransition(async () => {
+            try {
+                const lowerCaseQuery = searchQuery.toLowerCase();
+                 // This is a simplified search. For a more robust solution, a dedicated search service like Algolia or Typesense is recommended.
+                const productsRef = collection(firestore, 'products');
+                const q = query(productsRef, 
+                    or(
+                      where('name', '>=', lowerCaseQuery),
+                      where('name', '<=', lowerCaseQuery + '\uf8ff'),
+                      where('tags', 'array-contains', lowerCaseQuery)
+                    ),
+                    where('status', '==', 'published'),
+                    limit(5)
+                );
+                
+                const { getDocs } = await import('firebase/firestore');
+                const querySnapshot = await getDocs(q);
+
+                const searchResults: SearchResult[] = [];
+                querySnapshot.forEach((doc) => {
+                    const product = doc.data() as Product;
+                     if (product.name.toLowerCase().includes(lowerCaseQuery) || product.tags.some(t => t.toLowerCase().includes(lowerCaseQuery))) {
+                         searchResults.push({
+                            slug: product.slug,
+                            name: product.name,
+                            price: product.price,
+                            image: product.images[0],
+                        });
+                     }
+                });
+
+                setResults(searchResults);
+            } catch (error) {
+                console.error("Error performing search:", error);
+                setResults([]);
+            }
+        });
+    }, [firestore]);
+
 
   useEffect(() => {
     if (open) {
@@ -49,40 +97,16 @@ export function AISearch({ isDialog = false }: AISearchProps) {
     }
   }, [open]);
 
-  const performSearch = (searchQuery: string) => {
-    if (searchQuery.length < 2) {
-      setResults([]);
-      return;
-    }
-    startTransition(() => {
-      const lowerCaseQuery = searchQuery.toLowerCase();
-      const filteredProducts = products.filter(product => {
-        const nameMatch = product.name.toLowerCase().includes(lowerCaseQuery);
-        const categoryMatch = product.category.toLowerCase().includes(lowerCaseQuery);
-        const tagMatch = product.tags.some(tag => tag.toLowerCase().includes(lowerCaseQuery));
-        return nameMatch || categoryMatch || tagMatch;
-      }).slice(0, 5); // Limit to 5 results
-
-      const searchResults: SearchResult[] = filteredProducts.map(p => ({
-        slug: p.slug,
-        name: p.name,
-        price: p.price,
-        image: p.images[0],
-      }));
-      setResults(searchResults);
-    });
-  };
-
-  const debouncedFetchResults = useCallback(debounce(performSearch, 200), []);
+  const debouncedFetchResults = useCallback(debounce(searchProducts, 300), [searchProducts]);
 
   const handleQueryChange = (searchQuery: string) => {
-    setQuery(searchQuery);
+    setQueryText(searchQuery);
     debouncedFetchResults(searchQuery);
   };
   
   const closeAndClear = () => {
     setOpen(false);
-    setQuery('');
+    setQueryText('');
     setResults([]);
   }
 
@@ -94,7 +118,7 @@ export function AISearch({ isDialog = false }: AISearchProps) {
                 ref={inputRef}
                 placeholder={t('nav.search_placeholder')}
                 className="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none border-0 focus:ring-0 focus:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50"
-                value={query}
+                value={queryText}
                 onValueChange={handleQueryChange}
               />
               {isPending && <Loader2 className="h-4 w-4 animate-spin" />}

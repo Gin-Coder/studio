@@ -135,7 +135,7 @@ function ProductDetailClient({ product }: { product: Product }) {
       <div id="reviews" className="mt-16">
         <h2 className="mb-8 text-center font-headline text-3xl font-bold">{t('product.customer_reviews')}</h2>
         <div className="mx-auto max-w-3xl space-y-8">
-          {reviews.filter(r => r.productId === product.id).map(review => (
+          {reviews.filter(r => r.productId === product.slug).map(review => (
              <div key={review.id} className="rounded-lg border p-6">
                <div className="flex items-start">
                   <Image src={review.avatarUrl} alt={review.author} width={48} height={48} className="rounded-full" />

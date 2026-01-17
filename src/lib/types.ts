@@ -5,16 +5,17 @@ export type Product = {
   id: string;
   slug: string;
   name: string;
-  descriptionKey: string;
-  longDescriptionKey: string;
+  description: string;
+  longDescription: string;
   images: string[];
   imageHints: string[];
   price: number;
-  category: 'clothing' | 'shoes' | 'accessories' | 'tech';
+  category: string;
   tags: string[];
   variants: Variant[];
   rating: number;
   reviewCount: number;
+  status: 'draft' | 'published' | 'archived';
 };
 
 export type Variant = {
@@ -23,6 +24,7 @@ export type Variant = {
   colorName: string;
   size: string;
   stock: number;
+  imageUrl?: string;
 };
 
 export type Category = {
@@ -79,5 +81,3 @@ export type SavedOutfit = {
   items: Product[];
   imageUrl: string;
 };
-
-    
