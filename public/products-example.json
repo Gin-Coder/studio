@@ -1,66 +1,56 @@
 
 [
   {
-    "name": "Sample T-Shirt",
-    "slug": "sample-t-shirt",
-    "description": "This is a sample product description.",
-    "longDescription": "This is a longer description for the sample product, detailing its features, material, and fit.",
+    "name": "T-shirt Premium",
+    "slug": "t-shirt-premium",
+    "description": "Un t-shirt confortable et stylé pour toutes les occasions.",
+    "longDescription": "Fait à partir de coton 100% biologique, ce t-shirt est doux, durable et parfait pour un usage quotidien.",
     "price": 29.99,
     "category": "clothing",
     "status": "published",
     "images": [
-      "https://picsum.photos/seed/sample1/600/800"
+      "https://picsum.photos/seed/tshirt1/600/800"
     ],
-    "imageHints": [
-      "tshirt photo"
-    ],
-    "tags": ["t-shirt", "sample", "clothing"],
+    "imageHints": ["tshirt"],
+    "tags": ["tshirt", "clothing", "men"],
+    "rating": 4.5,
+    "reviewCount": 15,
     "variants": [
       {
-        "id": "sample-s-red",
-        "size": "S",
-        "colorName": "Red",
-        "color": "#FF0000",
-        "stock": 20,
-        "imageUrl": "https://picsum.photos/seed/sample1-red/600/800"
+        "id": "tshirt-premium-m-black",
+        "size": "M",
+        "color": "#000000",
+        "colorName": "Black",
+        "stock": 50
       },
       {
-        "id": "sample-m-red",
-        "size": "M",
-        "colorName": "Red",
-        "color": "#FF0000",
-        "stock": 15,
-        "imageUrl": "https://picsum.photos/seed/sample1-red/600/800"
+        "id": "tshirt-premium-l-white",
+        "size": "L",
+        "color": "#FFFFFF",
+        "colorName": "White",
+        "stock": 40
       }
-    ],
-    "rating": 4.5,
-    "reviewCount": 10
+    ]
   },
   {
-    "name": "Sample Jeans",
-    "slug": "sample-jeans",
-    "description": "A pair of sample jeans.",
-    "longDescription": "High-quality denim jeans for everyday wear. Comfortable and stylish.",
+    "name": "Baskets Urbaines",
+    "slug": "baskets-urbaines",
+    "description": "Des baskets modernes et confortables pour la vie en ville.",
     "price": 89.99,
-    "category": "clothing",
+    "category": "shoes",
     "status": "published",
     "images": [
-      "https://picsum.photos/seed/sample2/600/800"
+       "https://picsum.photos/seed/sneakers2/600/800"
     ],
-    "imageHints": [
-      "blue jeans"
-    ],
-    "tags": ["jeans", "denim", "clothing"],
+    "imageHints": ["sneakers"],
     "variants": [
       {
-        "id": "jeans-m-blue",
-        "size": "M",
-        "colorName": "Blue",
-        "color": "#0000FF",
+        "id": "baskets-urbaines-42-grey",
+        "size": "42",
+        "color": "#808080",
+        "colorName": "Gray",
         "stock": 30
       }
-    ],
-    "rating": 4.7,
-    "reviewCount": 22
+    ]
   }
 ]
