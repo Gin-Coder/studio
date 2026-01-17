@@ -1,0 +1,66 @@
+
+[
+  {
+    "name": "Sample T-Shirt",
+    "slug": "sample-t-shirt",
+    "description": "This is a sample product description.",
+    "longDescription": "This is a longer description for the sample product, detailing its features, material, and fit.",
+    "price": 29.99,
+    "category": "clothing",
+    "status": "published",
+    "images": [
+      "https://picsum.photos/seed/sample1/600/800"
+    ],
+    "imageHints": [
+      "tshirt photo"
+    ],
+    "tags": ["t-shirt", "sample", "clothing"],
+    "variants": [
+      {
+        "id": "sample-s-red",
+        "size": "S",
+        "colorName": "Red",
+        "color": "#FF0000",
+        "stock": 20,
+        "imageUrl": "https://picsum.photos/seed/sample1-red/600/800"
+      },
+      {
+        "id": "sample-m-red",
+        "size": "M",
+        "colorName": "Red",
+        "color": "#FF0000",
+        "stock": 15,
+        "imageUrl": "https://picsum.photos/seed/sample1-red/600/800"
+      }
+    ],
+    "rating": 4.5,
+    "reviewCount": 10
+  },
+  {
+    "name": "Sample Jeans",
+    "slug": "sample-jeans",
+    "description": "A pair of sample jeans.",
+    "longDescription": "High-quality denim jeans for everyday wear. Comfortable and stylish.",
+    "price": 89.99,
+    "category": "clothing",
+    "status": "published",
+    "images": [
+      "https://picsum.photos/seed/sample2/600/800"
+    ],
+    "imageHints": [
+      "blue jeans"
+    ],
+    "tags": ["jeans", "denim", "clothing"],
+    "variants": [
+      {
+        "id": "jeans-m-blue",
+        "size": "M",
+        "colorName": "Blue",
+        "color": "#0000FF",
+        "stock": 30
+      }
+    ],
+    "rating": 4.7,
+    "reviewCount": 22
+  }
+]
