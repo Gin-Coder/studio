@@ -1,0 +1,63 @@
+{
+  "entities": {
+    "Product": {
+      "title": "Product",
+      "description": "An item available for sale in the store.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "slug": { "type": "string" },
+        "description": { "type": "string" },
+        "longDescription": { "type": "string" },
+        "price": { "type": "number" },
+        "status": { "type": "string", "enum": ["draft", "published", "archived"] },
+        "category": { "type": "string" },
+        "images": { "type": "array", "items": { "type": "string" } },
+        "imageHints": { "type": "array", "items": { "type": "string" } },
+        "rating": { "type": "number" },
+        "reviewCount": { "type": "number" },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "variants": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "size": { "type": "string" },
+              "color": { "type": "string" },
+              "colorName": { "type": "string" },
+              "stock": { "type": "number" },
+              "imageUrl": { "type": "string" }
+            },
+            "required": ["id", "size", "color", "colorName", "stock"]
+          }
+        }
+      },
+      "required": ["name", "slug", "price", "category", "status"]
+    },
+    "Category": {
+      "title": "Category",
+      "description": "A category for organizing products.",
+      "type": "object",
+      "properties": {
+        "nameKey": { "type": "string" },
+        "imageHint": { "type": "string" },
+        "imageUrl": { "type": "string" }
+      },
+      "required": ["nameKey", "imageUrl"]
+    }
+  },
+  "auth": {
+    "providers": ["anonymous"]
+  },
+  "firestore": {
+    "/products/{productId}": {
+      "schema": { "$ref": "#/entities/Product" },
+      "description": "Stores individual product documents."
+    },
+    "/categories/{categoryId}": {
+      "schema": { "$ref": "#/entities/Category" },
+      "description": "Stores product category documents."
+    }
+  }
+}

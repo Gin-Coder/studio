@@ -32,3 +32,14 @@ export function formatPrice(price: number, lang: Language = 'en', currency: Curr
         return `${price.toFixed(2)} ${currency}`;
     }
 }
+
+export function slugify(text: string) {
+    return text
+        .toString()
+        .toLowerCase()
+        .replace(/\s+/g, '-')
+        .replace(/[^\w-]+/g, '')
+        .replace(/--+/g, '-')
+        .replace(/^-+/, '')
+        .replace(/-+$/, '');
+}

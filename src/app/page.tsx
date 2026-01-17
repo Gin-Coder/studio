@@ -5,21 +5,42 @@ import Link from 'next/link';
 import { useRef } from 'react';
 import Autoplay from 'embla-carousel-autoplay';
 import Fade from 'embla-carousel-fade';
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from '@/components/ui/carousel';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Star, Truck, ShieldCheck, Gem } from 'lucide-react';
-import { products, categories, reviews } from '@/lib/mock-data';
+import { ArrowRight, Star, Truck, ShieldCheck, Gem, Loader2 } from 'lucide-react';
+import { reviews } from '@/lib/mock-data';
 import ProductCard from '@/components/ProductCard';
 import { useLanguage } from '@/hooks/use-language';
 import { Logo } from '@/components/ui/logo';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { useCollection, useFirestore } from '@/firebase';
+import type { Product, Category } from '@/lib/types';
+import { collection, limit, query, where } from 'firebase/firestore';
+import { Skeleton } from '@/components/ui/skeleton';
+
+const HomeSkeleton = () => (
+  <>
+    <section className="bg-secondary py-12 md:py-20">
+      <div className="container mx-auto px-4">
+        <h2 className="mb-8 text-center font-headline text-3xl font-bold md:mb-12 md:text-4xl"><Skeleton className="h-10 w-64 mx-auto" /></h2>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4 lg:gap-8">
+          {[...Array(4)].map((_, i) => <Skeleton key={i} className="aspect-square w-full" />)}
+        </div>
+      </div>
+    </section>
+    <section className="bg-background py-12 md:py-20 overflow-hidden">
+        <div className="container mx-auto px-4">
+          <h2 className="mb-8 text-center font-headline text-3xl font-bold md:mb-12 md:text-4xl">
+            <Skeleton className="h-10 w-64 mx-auto" />
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+             {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-[400px] w-full" />)}
+          </div>
+        </div>
+    </section>
+  </>
+)
 
 
 export default function Home() {
@@ -34,8 +55,13 @@ export default function Home() {
 
   const heroImage = PlaceHolderImages.find(p => p.id === 'hero-main') || { src: '', alt: '', hint: '' };
 
-  const bestSellers = products.slice(0, 8);
-  const newArrivals = products.slice(8, 16);
+  const firestore = useFirestore();
+  const { data: categories, isLoading: isLoadingCategories } = useCollection<Category>(collection(firestore, 'categories'));
+  const { data: bestSellers, isLoading: isLoadingBestSellers } = useCollection<Product>(query(collection(firestore, 'products'), where('status', '==', 'published'), limit(8)));
+  const { data: newArrivals, isLoading: isLoadingNewArrivals } = useCollection<Product>(query(collection(firestore, 'products'), where('status', '==', 'published'), limit(8)));
+
+
+  const isLoading = isLoadingCategories || isLoadingBestSellers || isLoadingNewArrivals;
 
   return (
     <div className="bg-background overflow-x-hidden">
@@ -66,97 +92,100 @@ export default function Home() {
         </div>
       </section>
 
+      {isLoading && <HomeSkeleton />}
+
       {/* Categories Section */}
-      <section className="bg-secondary py-12 md:py-20">
-        <div className="container mx-auto px-4">
-          <h2 className="mb-8 text-center font-headline text-3xl font-bold md:mb-12 md:text-4xl">
-            {t('home.categories.title')}
-          </h2>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4 lg:gap-8">
-            {categories.map((category) => (
-              <Link href={`/shop?category=${category.id}`} key={category.id} className="group">
-                <Card className="overflow-hidden transition-shadow duration-300 group-hover:shadow-xl">
-                  <CardContent className="relative aspect-square p-0">
-                    <Image
-                      src={category.imageUrl}
-                      alt={t(category.nameKey)}
-                      fill
-                      className="object-cover transition-transform duration-300 group-hover:scale-105"
-                      data-ai-hint={category.imageHint}
-                    />
-                    <div className="absolute inset-0 bg-black/30" />
-                    <h3 className="absolute bottom-4 left-4 font-headline text-xl font-semibold text-white md:text-2xl">
-                      {t(category.nameKey)}
-                    </h3>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
+      {!isLoading && categories && (
+        <section className="bg-secondary py-12 md:py-20">
+          <div className="container mx-auto px-4">
+            <h2 className="mb-8 text-center font-headline text-3xl font-bold md:mb-12 md:text-4xl">
+              {t('home.categories.title')}
+            </h2>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4 lg:gap-8">
+              {categories.map((category) => (
+                <Link href={`/shop?category=${category.id}`} key={category.id} className="group">
+                  <Card className="overflow-hidden transition-shadow duration-300 group-hover:shadow-xl">
+                    <CardContent className="relative aspect-square p-0">
+                      <Image
+                        src={category.imageUrl}
+                        alt={t(category.nameKey)}
+                        fill
+                        className="object-cover transition-transform duration-300 group-hover:scale-105"
+                        data-ai-hint={category.imageHint}
+                      />
+                      <div className="absolute inset-0 bg-black/30" />
+                      <h3 className="absolute bottom-4 left-4 font-headline text-xl font-semibold text-white md:text-2xl">
+                        {t(category.nameKey)}
+                      </h3>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Best Sellers Section */}
-      <section className="bg-background py-12 md:py-20 overflow-hidden">
-        <div className="container mx-auto px-4">
-          <h2 className="mb-8 text-center font-headline text-3xl font-bold md:mb-12 md:text-4xl">
-            {t('home.bestsellers.title')}
-          </h2>
-          <Carousel
-            plugins={[autoplay.current, Fade()]}
-            opts={{
-              align: 'center',
-              loop: true,
-            }}
-            className="w-full"
-            onMouseEnter={autoplay.current.stop}
-            onMouseLeave={autoplay.current.reset}
-          >
-            <CarouselContent>
-              {bestSellers.map((product) => (
-                <CarouselItem key={product.id} className="basis-1/1 sm:basis-1/2 lg:basis-1/4">
-                  <div className="p-1">
-                    <ProductCard product={product} />
-                  </div>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            <CarouselPrevious className="ml-14" />
-            <CarouselNext className="mr-14" />
-          </Carousel>
-        </div>
-      </section>
+      {!isLoading && bestSellers && (
+        <section className="bg-background py-12 md:py-20 overflow-hidden">
+          <div className="container mx-auto px-4">
+            <h2 className="mb-8 text-center font-headline text-3xl font-bold md:mb-12 md:text-4xl">
+              {t('home.bestsellers.title')}
+            </h2>
+            <Carousel
+              plugins={[autoplay.current, Fade()]}
+              opts={{ align: 'center', loop: true }}
+              className="w-full"
+              onMouseEnter={autoplay.current.stop}
+              onMouseLeave={autoplay.current.reset}
+            >
+              <CarouselContent>
+                {bestSellers.map((product) => (
+                  <CarouselItem key={product.id} className="basis-1/1 sm:basis-1/2 lg:basis-1/4">
+                    <div className="p-1">
+                      <ProductCard product={product} />
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious className="ml-14" />
+              <CarouselNext className="mr-14" />
+            </Carousel>
+          </div>
+        </section>
+      )}
 
       {/* New Arrivals Section */}
-      <section className="py-12 md:py-20 overflow-hidden">
-        <div className="container mx-auto px-4">
-          <h2 className="mb-8 text-center font-headline text-3xl font-bold md:mb-12 md:text-4xl">
-            {t('home.newarrivals.title')}
-          </h2>
-           <Carousel
-             plugins={[autoplay.current, Fade()]}
-            opts={{
-              align: 'center',
-              loop: true,
-            }}
-            className="w-full"
-            onMouseEnter={autoplay.current.stop}
-            onMouseLeave={autoplay.current.reset}
-          >
-            <CarouselContent>
-              {newArrivals.map((product) => (
-                <CarouselItem key={product.id} className="basis-1/1 sm:basis-1/2 lg:basis-1/4">
-                  <div className="p-1">
-                    <ProductCard product={product} />
-                  </div>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            <CarouselPrevious className="ml-14" />
-            <CarouselNext className="mr-14" />
-          </Carousel>
-        </div>
-      </section>
+      {!isLoading && newArrivals && (
+        <section className="py-12 md:py-20 overflow-hidden">
+          <div className="container mx-auto px-4">
+            <h2 className="mb-8 text-center font-headline text-3xl font-bold md:mb-12 md:text-4xl">
+              {t('home.newarrivals.title')}
+            </h2>
+             <Carousel
+               plugins={[autoplay.current, Fade()]}
+              opts={{ align: 'center', loop: true }}
+              className="w-full"
+              onMouseEnter={autoplay.current.stop}
+              onMouseLeave={autoplay.current.reset}
+            >
+              <CarouselContent>
+                {newArrivals.map((product) => (
+                  <CarouselItem key={product.id} className="basis-1/1 sm:basis-1/2 lg:basis-1/4">
+                    <div className="p-1">
+                      <ProductCard product={product} />
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious className="ml-14" />
+              <CarouselNext className="mr-14" />
+            </Carousel>
+          </div>
+        </section>
+      )}
+      
 
       {/* Why Danny Store Section */}
       <section className="bg-secondary py-12 md:py-20">
@@ -261,5 +290,3 @@ export default function Home() {
     </div>
   );
 }
-
-    

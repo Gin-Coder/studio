@@ -3,19 +3,12 @@
 
 import { useState, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { products, categories } from '@/lib/mock-data';
-import type { Product } from '@/lib/types';
+import type { Product, Category } from '@/lib/types';
 import ProductCard from '@/components/ProductCard';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from '@/components/ui/sheet';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Filter } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Filter, Loader2 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -23,9 +16,13 @@ import { Slider } from '@/components/ui/slider';
 import { useLanguage } from '@/hooks/use-language';
 import { useCurrency } from '@/hooks/use-currency';
 import { formatPrice } from '@/lib/utils';
+import { useCollection, useFirestore } from '@/firebase';
+import { collection } from 'firebase/firestore';
+import { Skeleton } from '@/components/ui/skeleton';
 
-const uniqueSizes = [...new Set(products.flatMap(p => p.variants.map(v => v.size)))];
-const uniqueColors = [...new Set(products.flatMap(p => p.variants.map(v => v.colorName)))];
+const uniqueSizes = ['S', 'M', 'L', 'XL', '39', '40', '41', '42', '43', 'One Size'];
+const uniqueColors = ['White', 'Black', 'Blue', 'Gray', 'Brown', 'Gold'];
+
 
 type FilterState = {
     categories: string[];
@@ -37,6 +34,8 @@ type FilterState = {
 const Filters = ({ filters, setFilters }: { filters: FilterState, setFilters: React.Dispatch<React.SetStateAction<FilterState>> }) => {
     const { t, language } = useLanguage();
     const { currency, convertPrice } = useCurrency();
+    const firestore = useFirestore();
+    const {data: categories, isLoading: isLoadingCategories} = useCollection<Category>(collection(firestore, 'categories'));
 
     const handleCategoryChange = (categoryId: string, checked: boolean) => {
         setFilters(prev => ({
@@ -66,7 +65,6 @@ const Filters = ({ filters, setFilters }: { filters: FilterState, setFilters: Re
     };
 
     const displayPrice = convertPrice(filters.price);
-    const maxDisplayPrice = convertPrice(500);
 
     return (
         <div className="space-y-6">
@@ -74,8 +72,9 @@ const Filters = ({ filters, setFilters }: { filters: FilterState, setFilters: Re
                 <AccordionItem value="category">
                     <AccordionTrigger>{t('filter.category')}</AccordionTrigger>
                     <AccordionContent>
+                        {isLoadingCategories && <Loader2 className="h-5 w-5 animate-spin" />}
                         <div className="grid gap-2">
-                        {categories.map((category) => (
+                        {categories?.map((category) => (
                              <div key={category.id} className="flex items-center space-x-2">
                                 <Checkbox 
                                     id={`cat-${category.id}`} 
@@ -154,6 +153,10 @@ export default function ShopPage() {
   const { t } = useLanguage();
   const searchParams = useSearchParams();
   const categoryParam = searchParams.get('category');
+  const firestore = useFirestore();
+
+  const { data: products, isLoading: isLoadingProducts } = useCollection<Product>(collection(firestore, 'products'));
+  const { data: categories, isLoading: isLoadingCategories } = useCollection<Category>(collection(firestore, 'categories'));
   
   const [filters, setFilters] = useState<FilterState>({
     categories: categoryParam ? [categoryParam] : [],
@@ -164,23 +167,24 @@ export default function ShopPage() {
   const [sortOption, setSortOption] = useState('newest');
 
   const pageTitle = useMemo(() => {
-    if (filters.categories.length === 1) {
+    if (filters.categories.length === 1 && categories) {
         const category = categories.find(c => c.id === filters.categories[0]);
         return category ? t(category.nameKey) : t('shop.all_products');
     }
     return t('shop.all_products');
-  }, [filters.categories, t]);
+  }, [filters.categories, t, categories]);
 
 
   const filteredProducts = useMemo(() => {
+    if (!products) return [];
     return products.filter(product => {
         const categoryMatch = filters.categories.length === 0 || filters.categories.includes(product.category);
         const priceMatch = product.price <= filters.price;
         const sizeMatch = filters.sizes.length === 0 || product.variants.some(v => filters.sizes.includes(v.size));
         const colorMatch = filters.colors.length === 0 || product.variants.some(v => filters.colors.includes(v.colorName));
-        return categoryMatch && priceMatch && sizeMatch && colorMatch;
+        return categoryMatch && priceMatch && sizeMatch && colorMatch && product.status === 'published';
     });
-  }, [filters]);
+  }, [filters, products]);
 
   const sortedProducts = useMemo(() => {
     let sorted = [...filteredProducts];
@@ -239,18 +243,23 @@ export default function ShopPage() {
               </SelectContent>
             </Select>
           </div>
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
-            {sortedProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
+          {isLoadingProducts && (
+             <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
+                {[...Array(8)].map((_, i) => <Skeleton key={i} className="h-[400px] w-full" />)}
+             </div>
+          )}
+          {!isLoadingProducts && (
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
+              {sortedProducts.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          )}
           <div className="mt-8 flex justify-center">
-            <Button variant="outline">{t('shop.load_more')}</Button>
+            <Button variant="outline" disabled>{t('shop.load_more')}</Button>
           </div>
         </main>
       </div>
     </div>
   );
 }
-
-    

@@ -1,10 +1,10 @@
 
 'use client';
 
-import { notFound } from 'next/navigation';
+import { notFound, useParams } from 'next/navigation';
 import Image from 'next/image';
-import { products, reviews } from '@/lib/mock-data';
-import { Star, Truck, ShieldCheck } from 'lucide-react';
+import { reviews } from '@/lib/mock-data';
+import { Star, Truck, ShieldCheck, Loader2 } from 'lucide-react';
 import {
   Accordion,
   AccordionContent,
@@ -18,12 +18,40 @@ import VirtualTryOn from './VirtualTryOn';
 import ProductPrice from './ProductPrice';
 import { useLanguage } from '@/hooks/use-language';
 import type { Product } from '@/lib/types';
+import { useCollection, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
+import { collection, doc, query, where, limit } from 'firebase/firestore';
+import { Skeleton } from '@/components/ui/skeleton';
 
+
+const ProductDetailSkeleton = () => (
+  <div className="container mx-auto px-4 py-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-16">
+        <Skeleton className="aspect-[3/4] rounded-lg" />
+        <div className="flex flex-col">
+          <Skeleton className="h-10 w-3/4" />
+          <Skeleton className="h-6 w-1/4 mt-4" />
+          <Skeleton className="h-8 w-1/3 mt-4" />
+          <Skeleton className="h-12 w-full mt-8" />
+           <div className="mt-8 space-y-4">
+             <Skeleton className="h-6 w-full" />
+             <Skeleton className="h-6 w-full" />
+          </div>
+        </div>
+      </div>
+  </div>
+)
 
 function ProductDetailClient({ product }: { product: Product }) {
   const { t } = useLanguage();
+  const firestore = useFirestore();
 
-  const relatedProducts = products.filter(p => p.category === product.category && p.id !== product.id).slice(0, 4);
+  const relatedProductsQuery = useMemoFirebase(
+    () => query(collection(firestore, 'products'), where('category', '==', product.category), limit(5)),
+    [firestore, product.category]
+  );
+  const { data: relatedProducts, isLoading } = useCollection<Product>(relatedProductsQuery);
+
+  const filteredRelatedProducts = relatedProducts?.filter(p => p.id !== product.id).slice(0, 4) || [];
 
   return (
      <div className="container mx-auto px-4 py-8">
@@ -60,7 +88,7 @@ function ProductDetailClient({ product }: { product: Product }) {
             </a>
           </div>
           <ProductPrice price={product.price} />
-          <p className="mt-4 text-muted-foreground">{t(product.descriptionKey)}</p>
+          <p className="mt-4 text-muted-foreground">{product.description}</p>
           
           <ProductActions product={product} />
           
@@ -79,7 +107,7 @@ function ProductDetailClient({ product }: { product: Product }) {
             <Accordion type="single" collapsible defaultValue="description">
               <AccordionItem value="description">
                 <AccordionTrigger>{t('product.description')}</AccordionTrigger>
-                <AccordionContent>{t(product.longDescriptionKey)}</AccordionContent>
+                <AccordionContent>{product.longDescription}</AccordionContent>
               </AccordionItem>
               <AccordionItem value="details">
                 <AccordionTrigger>{t('product.details_care')}</AccordionTrigger>
@@ -99,7 +127,8 @@ function ProductDetailClient({ product }: { product: Product }) {
       <div className="mt-16">
         <h2 className="mb-8 text-center font-headline text-3xl font-bold">{t('product.you_might_also_like')}</h2>
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-          {relatedProducts.map(p => <ProductCard key={p.id} product={p} />)}
+          {isLoading && [...Array(4)].map((_, i) => <Skeleton key={i} className="h-[350px]" />)}
+          {!isLoading && filteredRelatedProducts.map(p => <ProductCard key={p.id} product={p} />)}
         </div>
       </div>
 
@@ -139,13 +168,27 @@ function ProductDetailClient({ product }: { product: Product }) {
 }
 
 
-export default function ProductDetailPage({ params }: { params: { slug: string } }) {
-  const product = products.find((p) => p.slug === params.slug);
+export default function ProductDetailPage() {
+  const params = useParams();
+  const slug = params.slug as string;
+  const firestore = useFirestore();
 
-  if (!product) {
+  const productQuery = useMemoFirebase(() => {
+    if (!firestore || !slug) return null;
+    return query(collection(firestore, 'products'), where('slug', '==', slug), limit(1));
+  }, [firestore, slug]);
+
+  const { data: products, isLoading } = useCollection<Product>(productQuery);
+
+  if (isLoading) {
+    return <ProductDetailSkeleton />;
+  }
+
+  const product = products?.[0];
+
+  if (!isLoading && !product) {
     notFound();
   }
-  
-  // We pass the server-fetched product data to the client component
-  return <ProductDetailClient product={product} />;
+
+  return product ? <ProductDetailClient product={product} /> : <ProductDetailSkeleton />;
 }
