@@ -9,7 +9,7 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Star, Truck, ShieldCheck, Gem, Loader2 } from 'lucide-react';
-import { reviews, products as mockProducts, categories as mockCategories } from '@/lib/mock-data';
+import { reviews } from '@/lib/mock-data';
 import ProductCard from '@/components/ProductCard';
 import { useLanguage } from '@/hooks/use-language';
 import { Logo } from '@/components/ui/logo';
@@ -58,20 +58,15 @@ export default function Home() {
   const firestore = useFirestore();
 
   const categoriesQuery = useMemoFirebase(() => (firestore ? collection(firestore, 'categories') : null), [firestore]);
-  const { data: liveCategories, isLoading: isLoadingCategories, error: categoriesError } = useCollection<Category>(categoriesQuery);
-  const categories = !categoriesError ? liveCategories : mockCategories;
+  const { data: categories, isLoading: isLoadingCategories } = useCollection<Category>(categoriesQuery);
   
   const publishedProductsQuery = useMemoFirebase(
     () => (firestore ? query(collection(firestore, 'products'), where('status', '==', 'published'), limit(8)) : null),
     [firestore]
   );
-  const { data: liveBestSellers, isLoading: isLoadingBestSellers, error: bestSellersError } = useCollection<Product>(publishedProductsQuery);
-  const { data: liveNewArrivals, isLoading: isLoadingNewArrivals, error: newArrivalsError } = useCollection<Product>(publishedProductsQuery);
+  const { data: bestSellers, isLoading: isLoadingBestSellers } = useCollection<Product>(publishedProductsQuery);
+  const { data: newArrivals, isLoading: isLoadingNewArrivals } = useCollection<Product>(publishedProductsQuery);
   
-  const bestSellers = !bestSellersError ? liveBestSellers : mockProducts.slice(0, 8);
-  const newArrivals = !newArrivalsError ? liveNewArrivals : mockProducts.slice(8, 16);
-
-
   const isLoading = isLoadingCategories || isLoadingBestSellers || isLoadingNewArrivals;
 
   return (

@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -15,10 +15,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLanguage } from '@/hooks/use-language';
 import { useToast } from '@/hooks/use-toast';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { useCollection, useFirestore, useMemoFirebase, errorEmitter, FirestorePermissionError } from '@/firebase';
 import { addDoc, collection, doc, setDoc } from 'firebase/firestore';
 import type { Category } from '@/lib/types';
-import { categories as mockCategories } from '@/lib/mock-data';
 import { getStorage, ref, uploadString, getDownloadURL } from 'firebase/storage';
 import { slugify } from '@/lib/utils';
 
@@ -45,19 +44,8 @@ export default function NewProductPage() {
     const firestore = useFirestore();
 
     const categoriesQuery = useMemoFirebase(() => (firestore ? collection(firestore, 'categories') : null), [firestore]);
-    const { data: liveCategories, isLoading: isLoadingCategories, error: categoriesError } = useCollection<Category>(categoriesQuery);
+    const { data: categories, isLoading: isLoadingCategories } = useCollection<Category>(categoriesQuery);
     
-    const [uiCategories, setUiCategories] = useState<Category[] | null>(mockCategories);
-
-    useEffect(() => {
-        if (categoriesError) {
-            setUiCategories(mockCategories);
-        } else if (liveCategories) {
-            setUiCategories(liveCategories);
-        }
-    }, [liveCategories, categoriesError]);
-
-
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
     const [longDescription, setLongDescription] = useState('');
@@ -95,48 +83,50 @@ export default function NewProductPage() {
         }
     };
 
-    const handleAddNewCategory = async () => {
+    const handleAddNewCategory = () => {
         if (newCategoryName.trim() === '') {
             toast({ variant: 'destructive', title: "Erreur", description: "Le nom de la catégorie ne peut pas être vide." });
             return;
         }
 
-        if (uiCategories?.some(cat => cat.id === slugify(newCategoryName))) {
+        if (categories?.some(cat => cat.id === slugify(newCategoryName))) {
              toast({ variant: 'destructive', title: "Erreur", description: "Cette catégorie existe déjà." });
              return;
         }
 
         setIsSavingCategory(true);
+        const newCategoryId = slugify(newCategoryName);
         
-        const newCategory: Category = {
-            id: slugify(newCategoryName),
+        const newCategoryData = {
             nameKey: newCategoryName,
             imageUrl: 'https://placehold.co/600x400',
             imageHint: 'placeholder'
         };
 
-        try {
-            if (!firestore) throw new Error("Firestore not initialized");
-            
-            await setDoc(doc(firestore, "categories", newCategory.id), newCategory);
-            
-            setCategoryId(newCategory.id);
+        if (!firestore) {
+            toast({ variant: "destructive", title: "Erreur de connexion", description: "La base de données n'est pas disponible." });
+            setIsSavingCategory(false);
+            return;
+        }
+
+        const categoryRef = doc(firestore, "categories", newCategoryId);
+        setDoc(categoryRef, newCategoryData)
+          .then(() => {
+            setCategoryId(newCategoryId);
             setNewCategoryName('');
             toast({ title: "Catégorie ajoutée", description: `La catégorie "${newCategoryName}" a été ajoutée.` });
-
-        } catch (error) {
-             console.error("Error adding category to Firestore:", error);
-             setUiCategories(prev => [...(prev || []), newCategory]);
-             setCategoryId(newCategory.id);
-             setNewCategoryName('');
-             toast({ 
-                 variant: "default",
-                 title: "Catégorie ajoutée localement", 
-                 description: "La sauvegarde sur la base de données a échoué. La catégorie est disponible pour cette session." 
-             });
-        } finally {
+          })
+          .catch((error) => {
+            console.error("Error adding category to Firestore:", error);
+            errorEmitter.emit('permission-error', new FirestorePermissionError({
+                path: categoryRef.path,
+                operation: 'create',
+                requestResourceData: newCategoryData,
+            }));
+          })
+          .finally(() => {
             setIsSavingCategory(false);
-        }
+          });
     };
 
 
@@ -146,8 +136,9 @@ export default function NewProductPage() {
             return;
         }
         setIsSaving(true);
+        
+        let finalImageUrl = imageUrl;
         try {
-            let finalImageUrl = imageUrl;
             if (imageUrl.startsWith('data:')) {
                 finalImageUrl = await uploadImage(imageUrl);
             }
@@ -180,22 +171,38 @@ export default function NewProductPage() {
                 category: categoryId,
                 status,
                 variants: finalVariants,
-                images: [finalImageUrl],
+                images: [finalImageUrl, ...finalVariants.map(v => v.imageUrl).filter(Boolean)],
                 imageHints: ['user uploaded'],
                 tags: [categoryId],
                 rating: 0,
                 reviewCount: 0,
             };
-
-            await addDoc(collection(firestore, "products"), newProduct);
             
-            toast({ title: "Produit enregistré !", description: `Le produit "${name}" a été enregistré avec succès.` });
-            router.push('/admin/products');
+            if (!firestore) {
+                throw new Error("Firestore not initialized");
+            }
+            
+            const productsCollection = collection(firestore, "products");
+            addDoc(productsCollection, newProduct)
+                .then(() => {
+                    toast({ title: "Produit enregistré !", description: `Le produit "${name}" a été enregistré avec succès.` });
+                    router.push('/admin/products');
+                })
+                .catch((error) => {
+                    console.error("Failed to save product:", error);
+                    errorEmitter.emit('permission-error', new FirestorePermissionError({
+                        path: productsCollection.path,
+                        operation: 'create',
+                        requestResourceData: newProduct,
+                    }));
+                })
+                .finally(() => {
+                    setIsSaving(false);
+                });
 
         } catch (error) {
-            console.error("Failed to save product:", error);
+            console.error("Failed to upload images or prepare product data:", error);
             toast({ variant: "destructive", title: "Uh oh! Something went wrong.", description: "Impossible d'enregistrer le produit." });
-        } finally {
             setIsSaving(false);
         }
     };
@@ -368,7 +375,7 @@ export default function NewProductPage() {
                                                     <SelectValue placeholder={isLoadingCategories ? "Chargement..." : "Sélectionner une catégorie"} />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {uiCategories?.map(cat => ( <SelectItem key={cat.id} value={cat.id}>{t(cat.nameKey)}</SelectItem> ))}
+                                                    {categories?.map(cat => ( <SelectItem key={cat.id} value={cat.id}>{t(cat.nameKey)}</SelectItem> ))}
                                                 </SelectContent>
                                             </Select>
                                         </div>
@@ -399,5 +406,3 @@ export default function NewProductPage() {
     </div>
   );
 }
-
-    

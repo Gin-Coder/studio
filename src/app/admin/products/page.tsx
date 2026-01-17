@@ -20,7 +20,6 @@ import {
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import { collection, deleteDoc, doc } from "firebase/firestore";
 import type { Product } from "@/lib/types";
-import { products as mockProducts } from "@/lib/mock-data";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -30,12 +29,10 @@ export default function AdminProductsPage() {
   const { t, language } = useLanguage();
   const firestore = useFirestore();
   const productsQuery = useMemoFirebase(() => (firestore ? collection(firestore, 'products') : null), [firestore]);
-  const { data: liveProducts, isLoading, error } = useCollection<Product>(productsQuery);
+  const { data: products, isLoading } = useCollection<Product>(productsQuery);
   const { toast } = useToast();
   const [isDeleting, setIsDeleting] = useState(false);
   const [productToDelete, setProductToDelete] = useState<Product | null>(null);
-
-  const products = !error ? liveProducts : mockProducts;
 
   const handleDeleteProduct = async () => {
     if (!productToDelete || !firestore) return;

@@ -3,8 +3,8 @@
 
 import { notFound, useParams } from 'next/navigation';
 import Image from 'next/image';
-import { reviews, products as mockProducts } from '@/lib/mock-data';
-import { Star, Truck, ShieldCheck, Loader2 } from 'lucide-react';
+import { reviews } from '@/lib/mock-data';
+import { Star, Truck, ShieldCheck } from 'lucide-react';
 import {
   Accordion,
   AccordionContent,
@@ -49,11 +49,8 @@ function ProductDetailClient({ product }: { product: Product }) {
     () => (firestore ? query(collection(firestore, 'products'), where('category', '==', product.category), limit(5)) : null),
     [firestore, product.category]
   );
-  const { data: liveRelatedProducts, isLoading, error: relatedError } = useCollection<Product>(relatedProductsQuery);
-  const mockRelatedProducts = mockProducts.filter(p => p.category === product.category);
-  const relatedProducts = !relatedError ? liveRelatedProducts : mockRelatedProducts;
-
-
+  const { data: relatedProducts, isLoading } = useCollection<Product>(relatedProductsQuery);
+  
   const filteredRelatedProducts = relatedProducts?.filter(p => p.id !== product.id).slice(0, 4) || [];
 
   return (
@@ -181,11 +178,9 @@ export default function ProductDetailPage() {
     return query(collection(firestore, 'products'), where('slug', '==', slug), limit(1));
   }, [firestore, slug]);
 
-  const { data: liveProducts, isLoading, error } = useCollection<Product>(productQuery);
+  const { data: liveProducts, isLoading } = useCollection<Product>(productQuery);
 
-  const productFromDB = liveProducts?.[0];
-  const mockProduct = mockProducts.find(p => p.slug === slug);
-  const product = !error ? productFromDB : mockProduct;
+  const product = liveProducts?.[0];
 
   if (isLoading && !product) {
     return <ProductDetailSkeleton />;
@@ -195,7 +190,5 @@ export default function ProductDetailPage() {
     notFound();
   }
 
-  return product ? <ProductDetailClient product={product} /> : <ProductDetailSkeleton />;
+  return <ProductDetailClient product={product} />;
 }
-
-    

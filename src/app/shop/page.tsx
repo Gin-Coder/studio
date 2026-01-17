@@ -4,7 +4,6 @@
 import { useState, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import type { Product, Category } from '@/lib/types';
-import { products as mockProducts, categories as mockCategories } from '@/lib/mock-data';
 import ProductCard from '@/components/ProductCard';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from '@/components/ui/sheet';
@@ -155,12 +154,10 @@ export default function ShopPage() {
   const firestore = useFirestore();
 
   const productsQuery = useMemoFirebase(() => (firestore ? collection(firestore, 'products') : null), [firestore]);
-  const { data: liveProducts, isLoading: isLoadingProducts, error: productsError } = useCollection<Product>(productsQuery);
-  const products = !productsError ? liveProducts : mockProducts;
+  const { data: products, isLoading: isLoadingProducts } = useCollection<Product>(productsQuery);
   
   const categoriesQuery = useMemoFirebase(() => (firestore ? collection(firestore, 'categories') : null), [firestore]);
-  const { data: liveCategories, isLoading: isLoadingCategories, error: categoriesError } = useCollection<Category>(categoriesQuery);
-  const categories = !categoriesError ? liveCategories : mockCategories;
+  const { data: categories, isLoading: isLoadingCategories } = useCollection<Category>(categoriesQuery);
   
   const [filters, setFilters] = useState<FilterState>({
     categories: categoryParam ? [categoryParam] : [],
