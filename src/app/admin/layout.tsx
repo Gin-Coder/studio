@@ -2,13 +2,14 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { Home, ShoppingCart, FileText, Settings, LogOut, PanelLeft } from 'lucide-react';
+import { Home, ShoppingCart, FileText, Settings, LogOut, PanelLeft, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/sheet';
 import { Logo } from '@/components/ui/logo';
 import { cn } from '@/lib/utils';
+import { Separator } from '@/components/ui/separator';
 
 const AdminSidebarNav = () => {
     const pathname = usePathname();
@@ -38,6 +39,25 @@ const AdminSidebarNav = () => {
     );
 };
 
+const SidebarItems = ({ isMobile = false }: { isMobile?: boolean }) => {
+    const viewStoreButton = (
+        <Button asChild variant="outline" className="w-full justify-start">
+            <Link href="/" target="_blank" rel="noopener noreferrer">
+                <ExternalLink className="mr-2 h-4 w-4" />
+                Voir la boutique
+            </Link>
+        </Button>
+    );
+
+    return (
+        <>
+            <AdminSidebarNav />
+            <Separator className="my-4" />
+            {isMobile ? <SheetClose asChild>{viewStoreButton}</SheetClose> : viewStoreButton}
+        </>
+    );
+}
+
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const router = useRouter();
@@ -50,19 +70,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     return (
         <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
             <div className="hidden border-r bg-muted/40 md:block">
-                <div className="flex h-full max-h-screen flex-col gap-2">
+                <div className="flex h-full max-h-screen flex-col">
                     <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
                         <Link href="/admin" className="flex items-center gap-2 font-semibold">
                             <Logo />
                             <span className="">Danny Store</span>
                         </Link>
                     </div>
-                    <div className="flex-1">
+                    <div className="flex-1 overflow-auto py-2">
                         <div className="grid items-start p-2 text-sm font-medium lg:p-4">
-                            <AdminSidebarNav />
+                            <SidebarItems />
                         </div>
                     </div>
-                    <div className="mt-auto p-4">
+                    <div className="mt-auto border-t p-4">
                         <Button size="sm" variant="ghost" className="w-full justify-start" onClick={handleLogout}>
                             <LogOut className="mr-2 h-4 w-4" />
                             Déconnexion
@@ -90,8 +110,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                      <span>Danny Store</span>
                                 </Link>
                             </div>
-                            <div className="p-2 flex-1">
-                                <AdminSidebarNav />
+                            <div className="flex-1 overflow-auto p-2">
+                                <SidebarItems isMobile />
                             </div>
                              <div className="mt-auto p-4 border-t">
                                 <Button size="sm" variant="ghost" className="w-full justify-start" onClick={handleLogout}>
