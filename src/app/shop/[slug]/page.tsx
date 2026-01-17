@@ -46,7 +46,7 @@ function ProductDetailClient({ product }: { product: Product }) {
   const firestore = useFirestore();
 
   const relatedProductsQuery = useMemoFirebase(
-    () => query(collection(firestore, 'products'), where('category', '==', product.category), limit(5)),
+    () => (firestore ? query(collection(firestore, 'products'), where('category', '==', product.category), limit(5)) : null),
     [firestore, product.category]
   );
   const { data: liveRelatedProducts, isLoading, error: relatedError } = useCollection<Product>(relatedProductsQuery);
@@ -187,7 +187,7 @@ export default function ProductDetailPage() {
   const mockProduct = mockProducts.find(p => p.slug === slug);
   const product = !error ? productFromDB : mockProduct;
 
-  if (isLoading) {
+  if (isLoading && !product) {
     return <ProductDetailSkeleton />;
   }
   
@@ -197,3 +197,5 @@ export default function ProductDetailPage() {
 
   return product ? <ProductDetailClient product={product} /> : <ProductDetailSkeleton />;
 }
+
+    

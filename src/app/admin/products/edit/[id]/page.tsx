@@ -18,7 +18,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useCollection, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, doc, setDoc, updateDoc } from 'firebase/firestore';
 import type { Category, Product } from '@/lib/types';
-import { categories as mockCategories } from '@/lib/mock-data';
+import { products as mockProducts, categories as mockCategories } from '@/lib/mock-data';
 import { getStorage, ref, uploadString, getDownloadURL } from 'firebase/storage';
 import { slugify } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -65,7 +65,10 @@ export default function EditProductPage() {
     const firestore = useFirestore();
 
     const productQuery = useMemoFirebase(() => (firestore ? doc(firestore, 'products', id) : null), [firestore, id]);
-    const { data: product, isLoading: isLoadingProduct } = useDoc<Product>(productQuery);
+    const { data: liveProduct, isLoading: isLoadingProduct, error: productError } = useDoc<Product>(productQuery);
+    
+    const mockProduct = mockProducts.find(p => p.id === id);
+    const product = !productError ? liveProduct : mockProduct;
 
     const categoriesQuery = useMemoFirebase(() => (firestore ? collection(firestore, 'categories') : null), [firestore]);
     const { data: liveCategories, isLoading: isLoadingCategories, error: categoriesError } = useCollection<Category>(categoriesQuery);
@@ -217,7 +220,7 @@ export default function EditProductPage() {
         router.push('/admin/products');
     };
 
-    if (isLoadingProduct) {
+    if (isLoadingProduct && !product) {
         return <EditProductSkeleton />;
     }
 
@@ -420,3 +423,5 @@ export default function EditProductPage() {
     </div>
   );
 }
+
+    
