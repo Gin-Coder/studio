@@ -17,7 +17,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { useCollection, useFirestore } from "@/firebase";
+import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import { collection, deleteDoc, doc } from "firebase/firestore";
 import type { Product } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
@@ -28,7 +28,8 @@ export default function AdminProductsPage() {
   const { currency, convertPrice } = useCurrency();
   const { t, language } = useLanguage();
   const firestore = useFirestore();
-  const { data: products, isLoading } = useCollection<Product>(collection(firestore, 'products'));
+  const productsQuery = useMemoFirebase(() => (firestore ? collection(firestore, 'products') : null), [firestore]);
+  const { data: products, isLoading } = useCollection<Product>(productsQuery);
   const { toast } = useToast();
   const [isDeleting, setIsDeleting] = useState(false);
   const [productToDelete, setProductToDelete] = useState<Product | null>(null);
@@ -164,3 +165,5 @@ export default function AdminProductsPage() {
     </>
   );
 }
+
+    

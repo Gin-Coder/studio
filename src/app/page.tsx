@@ -14,7 +14,7 @@ import ProductCard from '@/components/ProductCard';
 import { useLanguage } from '@/hooks/use-language';
 import { Logo } from '@/components/ui/logo';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { useCollection, useFirestore } from '@/firebase';
+import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import type { Product, Category } from '@/lib/types';
 import { collection, limit, query, where } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -56,9 +56,16 @@ export default function Home() {
   const heroImage = PlaceHolderImages.find(p => p.id === 'hero-main') || { src: '', alt: '', hint: '' };
 
   const firestore = useFirestore();
-  const { data: categories, isLoading: isLoadingCategories } = useCollection<Category>(collection(firestore, 'categories'));
-  const { data: bestSellers, isLoading: isLoadingBestSellers } = useCollection<Product>(query(collection(firestore, 'products'), where('status', '==', 'published'), limit(8)));
-  const { data: newArrivals, isLoading: isLoadingNewArrivals } = useCollection<Product>(query(collection(firestore, 'products'), where('status', '==', 'published'), limit(8)));
+
+  const categoriesQuery = useMemoFirebase(() => (firestore ? collection(firestore, 'categories') : null), [firestore]);
+  const { data: categories, isLoading: isLoadingCategories } = useCollection<Category>(categoriesQuery);
+  
+  const publishedProductsQuery = useMemoFirebase(
+    () => (firestore ? query(collection(firestore, 'products'), where('status', '==', 'published'), limit(8)) : null),
+    [firestore]
+  );
+  const { data: bestSellers, isLoading: isLoadingBestSellers } = useCollection<Product>(publishedProductsQuery);
+  const { data: newArrivals, isLoading: isLoadingNewArrivals } = useCollection<Product>(publishedProductsQuery);
 
 
   const isLoading = isLoadingCategories || isLoadingBestSellers || isLoadingNewArrivals;
@@ -290,3 +297,5 @@ export default function Home() {
     </div>
   );
 }
+
+    

@@ -15,7 +15,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLanguage } from '@/hooks/use-language';
 import { useToast } from '@/hooks/use-toast';
-import { useCollection, useFirestore } from '@/firebase';
+import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { addDoc, collection, doc, setDoc } from 'firebase/firestore';
 import type { Category } from '@/lib/types';
 import { getStorage, ref, uploadString, getDownloadURL } from 'firebase/storage';
@@ -43,7 +43,8 @@ export default function NewProductPage() {
     const { toast } = useToast();
     const firestore = useFirestore();
 
-    const { data: categories, isLoading: isLoadingCategories } = useCollection<Category>(collection(firestore, 'categories'));
+    const categoriesQuery = useMemoFirebase(() => (firestore ? collection(firestore, 'categories') : null), [firestore]);
+    const { data: categories, isLoading: isLoadingCategories } = useCollection<Category>(categoriesQuery);
 
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
@@ -377,3 +378,5 @@ export default function NewProductPage() {
     </div>
   );
 }
+
+    

@@ -16,7 +16,7 @@ import { Slider } from '@/components/ui/slider';
 import { useLanguage } from '@/hooks/use-language';
 import { useCurrency } from '@/hooks/use-currency';
 import { formatPrice } from '@/lib/utils';
-import { useCollection, useFirestore } from '@/firebase';
+import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -35,7 +35,8 @@ const Filters = ({ filters, setFilters }: { filters: FilterState, setFilters: Re
     const { t, language } = useLanguage();
     const { currency, convertPrice } = useCurrency();
     const firestore = useFirestore();
-    const {data: categories, isLoading: isLoadingCategories} = useCollection<Category>(collection(firestore, 'categories'));
+    const categoriesQuery = useMemoFirebase(() => (firestore ? collection(firestore, 'categories') : null), [firestore]);
+    const {data: categories, isLoading: isLoadingCategories} = useCollection<Category>(categoriesQuery);
 
     const handleCategoryChange = (categoryId: string, checked: boolean) => {
         setFilters(prev => ({
@@ -155,8 +156,10 @@ export default function ShopPage() {
   const categoryParam = searchParams.get('category');
   const firestore = useFirestore();
 
-  const { data: products, isLoading: isLoadingProducts } = useCollection<Product>(collection(firestore, 'products'));
-  const { data: categories, isLoading: isLoadingCategories } = useCollection<Category>(collection(firestore, 'categories'));
+  const productsQuery = useMemoFirebase(() => (firestore ? collection(firestore, 'products') : null), [firestore]);
+  const { data: products, isLoading: isLoadingProducts } = useCollection<Product>(productsQuery);
+  const categoriesQuery = useMemoFirebase(() => (firestore ? collection(firestore, 'categories') : null), [firestore]);
+  const { data: categories, isLoading: isLoadingCategories } = useCollection<Category>(categoriesQuery);
   
   const [filters, setFilters] = useState<FilterState>({
     categories: categoryParam ? [categoryParam] : [],
@@ -263,3 +266,5 @@ export default function ShopPage() {
     </div>
   );
 }
+
+    
