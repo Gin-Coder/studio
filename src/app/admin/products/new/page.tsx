@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -46,7 +46,17 @@ export default function NewProductPage() {
 
     const categoriesQuery = useMemoFirebase(() => (firestore ? collection(firestore, 'categories') : null), [firestore]);
     const { data: liveCategories, isLoading: isLoadingCategories, error: categoriesError } = useCollection<Category>(categoriesQuery);
-    const categories = !categoriesError ? liveCategories : mockCategories;
+    
+    const [uiCategories, setUiCategories] = useState<Category[] | null>(mockCategories);
+
+    useEffect(() => {
+        if (categoriesError) {
+            setUiCategories(mockCategories);
+        } else if (liveCategories) {
+            setUiCategories(liveCategories);
+        }
+    }, [liveCategories, categoriesError]);
+
 
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
@@ -90,36 +100,45 @@ export default function NewProductPage() {
             toast({ variant: 'destructive', title: "Erreur", description: "Le nom de la catégorie ne peut pas être vide." });
             return;
         }
-        setIsSavingCategory(true);
-        const newCatId = slugify(newCategoryName);
 
-        if (categories?.some(cat => cat.id === newCatId)) {
+        if (uiCategories?.some(cat => cat.id === slugify(newCategoryName))) {
              toast({ variant: 'destructive', title: "Erreur", description: "Cette catégorie existe déjà." });
-             setIsSavingCategory(false);
              return;
         }
 
+        setIsSavingCategory(true);
+        
+        const newCategory: Category = {
+            id: slugify(newCategoryName),
+            nameKey: newCategoryName,
+            imageUrl: 'https://placehold.co/600x400',
+            imageHint: 'placeholder'
+        };
+
         try {
-            const newCategory = {
-                id: newCatId,
-                nameKey: `filter.${newCatId}`,
-                imageUrl: 'https://placehold.co/600x400',
-                imageHint: 'placeholder'
-            };
-            await setDoc(doc(firestore, "categories", newCatId), newCategory);
+            if (!firestore) throw new Error("Firestore not initialized");
             
-            // This won't update the list automatically, but useCollection will.
-            // We set the new category as selected.
-            setCategoryId(newCatId);
+            await setDoc(doc(firestore, "categories", newCategory.id), newCategory);
+            
+            setCategoryId(newCategory.id);
             setNewCategoryName('');
             toast({ title: "Catégorie ajoutée", description: `La catégorie "${newCategoryName}" a été ajoutée.` });
+
         } catch (error) {
-             toast({ variant: 'destructive', title: "Erreur", description: "Impossible d'ajouter la catégorie." });
-             console.error("Error adding category:", error);
+             console.error("Error adding category to Firestore:", error);
+             setUiCategories(prev => [...(prev || []), newCategory]);
+             setCategoryId(newCategory.id);
+             setNewCategoryName('');
+             toast({ 
+                 variant: "default",
+                 title: "Catégorie ajoutée localement", 
+                 description: "La sauvegarde sur la base de données a échoué. La catégorie est disponible pour cette session." 
+             });
         } finally {
             setIsSavingCategory(false);
         }
     };
+
 
     const handleSaveProduct = async () => {
         if (!name || !price || !categoryId) {
@@ -349,7 +368,7 @@ export default function NewProductPage() {
                                                     <SelectValue placeholder={isLoadingCategories ? "Chargement..." : "Sélectionner une catégorie"} />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {categories?.map(cat => ( <SelectItem key={cat.id} value={cat.id}>{t(cat.nameKey)}</SelectItem> ))}
+                                                    {uiCategories?.map(cat => ( <SelectItem key={cat.id} value={cat.id}>{t(cat.nameKey)}</SelectItem> ))}
                                                 </SelectContent>
                                             </Select>
                                         </div>
@@ -380,3 +399,5 @@ export default function NewProductPage() {
     </div>
   );
 }
+
+    
