@@ -1,11 +1,14 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCart } from '@/hooks/use-cart';
 import { useToast } from "@/hooks/use-toast";
 import type { Product } from '@/lib/types';
+import { useLanguage } from '@/hooks/use-language';
+import { ToastAction } from '@/components/ui/toast';
 
 interface ProductActionsProps {
   product: Product;
@@ -16,6 +19,7 @@ export default function ProductActions({ product }: ProductActionsProps) {
   const [selectedColor, setSelectedColor] = useState(product.variants[0].colorName);
   const [selectedSize, setSelectedSize] = useState(product.variants[0].size);
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const availableSizes = product.variants
     .filter(variant => variant.colorName === selectedColor)
@@ -29,8 +33,13 @@ export default function ProductActions({ product }: ProductActionsProps) {
     if (selectedVariant) {
       addToCart(product, selectedVariant, 1);
        toast({
-          title: "Added to cart",
-          description: `${product.name} has been added to your cart.`,
+          title: t('toast.cart.added.title'),
+          description: t('toast.cart.added.description', { itemName: product.name }),
+          action: (
+            <ToastAction altText={t('cart.title')} asChild>
+                <Link href="/cart">{t('toast.cart.view_cart')}</Link>
+            </ToastAction>
+          )
         });
     }
   };
@@ -63,7 +72,7 @@ export default function ProductActions({ product }: ProductActionsProps) {
           </SelectContent>
         </Select>
       </div>
-      <Button size="lg" className="w-full" onClick={handleAddToCart}>Add to Cart</Button>
+      <Button size="lg" className="w-full" onClick={handleAddToCart}>{t('product.add_to_cart')}</Button>
     </div>
   );
 }

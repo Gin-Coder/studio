@@ -14,6 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { cn, formatPrice } from '@/lib/utils';
 import { useLanguage } from '@/hooks/use-language';
 import { useCurrency } from '@/hooks/use-currency';
+import { ToastAction } from './ui/toast';
 
 interface ProductCardProps {
   product: Product;
@@ -38,6 +39,11 @@ export default function ProductCard({ product, categoryMap }: ProductCardProps) 
       toast({
         title: t('toast.cart.added.title'),
         description: t('toast.cart.added.description', { itemName: product.name }),
+        action: (
+          <ToastAction altText={t('cart.title')} asChild>
+            <Link href="/cart">{t('toast.cart.view_cart')}</Link>
+          </ToastAction>
+        ),
       });
     }
   };

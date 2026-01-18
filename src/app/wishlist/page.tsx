@@ -16,6 +16,7 @@ import type { Product } from '@/lib/types';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, where, query } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ToastAction } from '@/components/ui/toast';
 
 
 export default function WishlistPage() {
@@ -43,6 +44,11 @@ export default function WishlistPage() {
         toast({
             title: t('toast.cart.added.title'),
             description: t('toast.cart.added.description', { itemName: product.name }),
+            action: (
+                <ToastAction altText={t('cart.title')} asChild>
+                    <Link href="/cart">{t('toast.cart.view_cart')}</Link>
+                </ToastAction>
+            )
         });
     }
   };
