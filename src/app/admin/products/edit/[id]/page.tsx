@@ -16,7 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLanguage } from '@/hooks/use-language';
 import { useToast } from '@/hooks/use-toast';
 import { useCollection, useDoc, useFirestore, useMemoFirebase, errorEmitter, FirestorePermissionError } from '@/firebase';
-import { collection, doc, setDoc, updateDoc } from 'firebase/firestore';
+import { collection, doc, setDoc } from 'firebase/firestore';
 import type { Category, Product } from '@/lib/types';
 import { getStorage, ref, uploadString, getDownloadURL } from 'firebase/storage';
 import { slugify, stringToColor } from '@/lib/utils';
@@ -126,7 +126,7 @@ export default function EditProductPage() {
         }
     };
     
-    const handleAddNewCategory = () => {
+    const handleAddNewCategory = async () => {
         if (newCategoryName.trim() === '') {
             toast({ variant: 'destructive', title: "Erreur", description: "Le nom de la catégorie ne peut pas être vide." });
             return;
@@ -153,23 +153,22 @@ export default function EditProductPage() {
         }
         
         const categoryRef = doc(firestore, "categories", newCategoryId);
-        setDoc(categoryRef, newCategoryData)
-          .then(() => {
+        
+        try {
+            await setDoc(categoryRef, newCategoryData);
             setCategoryId(newCategoryId);
             setNewCategoryName('');
             toast({ title: "Catégorie ajoutée", description: `La catégorie "${newCategoryName}" a été ajoutée.` });
-          })
-          .catch((error) => {
+        } catch (error) {
             console.error("Error adding category to Firestore:", error);
             errorEmitter.emit('permission-error', new FirestorePermissionError({
                 path: categoryRef.path,
                 operation: 'create',
                 requestResourceData: newCategoryData,
             }));
-          })
-          .finally(() => {
+        } finally {
             setIsSavingCategory(false);
-          });
+        }
     };
 
 
@@ -179,6 +178,8 @@ export default function EditProductPage() {
             return;
         }
         setIsSaving(true);
+        let productDataForFirestore: any = null;
+
         try {
             let finalImageUrl = imageUrl;
             if (imageUrl.startsWith('data:')) {
@@ -204,7 +205,7 @@ export default function EditProductPage() {
             const rate = CONVERSION_RATES[priceCurrency] || 1;
             const priceInUSD = parseFloat(price) / rate;
 
-            const updatedProduct = {
+            productDataForFirestore = {
                 name,
                 slug: slugify(name),
                 description: description,
@@ -219,7 +220,7 @@ export default function EditProductPage() {
             };
             
             const productRef = doc(firestore, "products", id);
-            await updateDoc(productRef, updatedProduct);
+            await setDoc(productRef, productDataForFirestore, { merge: true });
             
             toast({ title: "Produit mis à jour !", description: `Le produit "${name}" a été mis à jour avec succès.` });
             router.push('/admin/products');
@@ -231,6 +232,7 @@ export default function EditProductPage() {
                  errorEmitter.emit('permission-error', new FirestorePermissionError({
                     path: productRef.path,
                     operation: 'update',
+                    requestResourceData: productDataForFirestore,
                 }));
              } else {
                 toast({ variant: "destructive", title: "Uh oh! Something went wrong.", description: error.message || "Impossible de mettre à jour le produit." });
