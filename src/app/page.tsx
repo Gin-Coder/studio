@@ -2,13 +2,14 @@
 'use client';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRef, useMemo } from 'react';
+import { useRef, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Autoplay from 'embla-carousel-autoplay';
 import Fade from 'embla-carousel-fade';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Star, Truck, ShieldCheck, Gem, Loader2 } from 'lucide-react';
+import { ArrowRight, Star, Truck, ShieldCheck, Gem, Loader2, Search } from 'lucide-react';
 import { reviews } from '@/lib/mock-data';
 import ProductCard from '@/components/ProductCard';
 import { useLanguage } from '@/hooks/use-language';
@@ -19,6 +20,7 @@ import type { Product, Category } from '@/lib/types';
 import { collection, limit, query, where } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { dictionaries } from '@/lib/dictionaries';
+import { Input } from '@/components/ui/input';
 
 const HomeSkeleton = () => (
   <>
@@ -46,6 +48,9 @@ const HomeSkeleton = () => (
 
 export default function Home() {
     const { t } = useLanguage();
+    const router = useRouter();
+    const [searchQuery, setSearchQuery] = useState('');
+
     const autoplay = useRef(
       Autoplay({ delay: 4000, stopOnInteraction: true })
     );
@@ -74,6 +79,15 @@ export default function Home() {
   }, [categories]);
   
   const isLoading = isLoadingCategories || isLoadingBestSellers || isLoadingNewArrivals;
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/shop?search=${encodeURIComponent(searchQuery)}`);
+    } else {
+      router.push('/shop');
+    }
+  };
 
   const getCategoryDisplayName = (category: Category) => {
     const key = category.nameKey;
@@ -138,11 +152,21 @@ export default function Home() {
           <p className="mt-4 max-w-xl text-base sm:text-lg md:text-xl">
             {t('home.hero.subtitle')}
           </p>
-          <Button asChild className="mt-8" size="lg">
-            <Link href="/shop">
-              {t('home.hero.button')} <ArrowRight className="ml-2" />
-            </Link>
-          </Button>
+          <form onSubmit={handleSearch} className="mt-8 w-full max-w-xl">
+              <div className="relative">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <Input
+                      type="search"
+                      placeholder={t('nav.search_placeholder')}
+                      className="h-14 w-full rounded-full pl-12 pr-32 text-base text-foreground"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                  <Button type="submit" size="lg" className="absolute right-2 top-1/2 h-10 -translate-y-1/2 rounded-full px-6">
+                      {t('nav.search_placeholder').split(' ')[0]}
+                  </Button>
+              </div>
+          </form>
         </div>
       </section>
 

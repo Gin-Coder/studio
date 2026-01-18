@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import type { Product, Category } from '@/lib/types';
 import ProductCard from '@/components/ProductCard';
@@ -152,6 +152,7 @@ export default function ShopPage() {
   const { t } = useLanguage();
   const searchParams = useSearchParams();
   const categoryParam = searchParams.get('category');
+  const searchParam = searchParams.get('search');
   const firestore = useFirestore();
 
   const productsQuery = useMemoFirebase(() => (firestore ? collection(firestore, 'products') : null), [firestore]);
@@ -167,7 +168,11 @@ export default function ShopPage() {
     colors: []
   });
   const [sortOption, setSortOption] = useState('newest');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(searchParam || '');
+
+  useEffect(() => {
+    setSearchQuery(searchParam || '');
+  }, [searchParam]);
 
   const categoryMap = useMemo(() => {
     if (!categories) return new Map<string, string>();

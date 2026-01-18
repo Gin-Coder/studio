@@ -16,7 +16,6 @@ import {
   ShoppingCart,
   Heart,
   Sparkles,
-  Search,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Logo } from '@/components/ui/logo';
@@ -28,12 +27,6 @@ import { useCart } from '@/hooks/use-cart';
 import { useWishlist } from '@/hooks/use-wishlist';
 import { Separator } from '../ui/separator';
 import { useState, useEffect } from 'react';
-import { AISearch } from '../AISearch';
-import {
-  Dialog,
-  DialogContent,
-  DialogTrigger,
-} from "@/components/ui/dialog"
 import { usePathname } from 'next/navigation';
 
 
@@ -170,24 +163,6 @@ export default function Header() {
 
         {/* Right Side: Search, Actions, Settings */}
         <div className="flex flex-1 items-center justify-end space-x-1">
-          <div className="hidden md:block md:w-auto md:flex-none">
-            <AISearch />
-          </div>
-          
-          {/* Mobile Search */}
-          <Dialog>
-            <DialogTrigger asChild>
-               <Button variant="ghost" size="icon" className="md:hidden">
-                  <Search />
-                  <span className="sr-only">Rechercher</span>
-               </Button>
-            </DialogTrigger>
-            <DialogContent className="p-0 top-0 translate-y-0 h-screen max-h-screen max-w-full rounded-none sm:rounded-none">
-              <AISearch isDialog={true} />
-            </DialogContent>
-          </Dialog>
-
-
           <div className="flex items-center">
             <Button variant="ghost" size="icon" asChild>
               <Link href="/virtual-try-on">
