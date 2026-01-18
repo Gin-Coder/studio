@@ -21,7 +21,7 @@ import { useCollection, useFirestore, useMemoFirebase, errorEmitter, FirestorePe
 import { collection, deleteDoc, doc, getDocs, writeBatch } from "firebase/firestore";
 import type { Product } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -36,25 +36,30 @@ export default function AdminProductsPage() {
   const { data: products, isLoading } = useCollection<Product>(productsQuery);
   const { toast } = useToast();
 
-  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
+  const [productIdToDelete, setProductIdToDelete] = useState<string | null>(null);
 
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [importFile, setImportFile] = useState<File | null>(null);
 
-  const handleDeleteProduct = () => {
-    if (!productToDelete || !firestore) return;
+  const productToDelete = useMemo(() => {
+    if (!productIdToDelete || !products) return null;
+    return products.find(p => p.id === productIdToDelete);
+  }, [productIdToDelete, products]);
 
-    const productBeingDeleted = productToDelete;
-    // Close the dialog immediately
-    setProductToDelete(null);
+  const handleDeleteProduct = () => {
+    if (!productIdToDelete || !firestore) return;
+    const idToDelete = productIdToDelete;
+    
+    // Close the dialog first by resetting the state
+    setProductIdToDelete(null);
 
     // Perform the delete operation in the background
-    deleteDoc(doc(firestore, 'products', productBeingDeleted.id))
+    deleteDoc(doc(firestore, 'products', idToDelete))
       .then(() => {
         toast({
           title: "Produit supprimé",
-          description: `Le produit "${productBeingDeleted.name}" a été supprimé.`,
+          description: `Le produit a été supprimé avec succès.`,
         });
       })
       .catch((error) => {
@@ -65,7 +70,7 @@ export default function AdminProductsPage() {
           description: "La suppression du produit a échoué.",
         });
          if (error.code === 'permission-denied') {
-            const productDocRef = doc(firestore, 'products', productBeingDeleted.id);
+            const productDocRef = doc(firestore, 'products', idToDelete);
             errorEmitter.emit('permission-error', new FirestorePermissionError({
                 path: productDocRef.path,
                 operation: 'delete',
@@ -281,7 +286,7 @@ export default function AdminProductsPage() {
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           className="text-destructive focus:text-destructive focus:bg-destructive/10"
-                          onClick={() => setProductToDelete(product)}
+                          onClick={() => setProductIdToDelete(product.id)}
                         >
                           Supprimer
                         </DropdownMenuItem>
@@ -295,7 +300,7 @@ export default function AdminProductsPage() {
         </CardContent>
       </Card>
       
-      <AlertDialog open={!!productToDelete} onOpenChange={(open) => !open && setProductToDelete(null)}>
+      <AlertDialog open={!!productIdToDelete} onOpenChange={(open) => !open && setProductIdToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
@@ -304,7 +309,7 @@ export default function AdminProductsPage() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setProductToDelete(null)}>Annuler</AlertDialogCancel>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteProduct}>
               Supprimer
             </AlertDialogAction>
