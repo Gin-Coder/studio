@@ -21,7 +21,7 @@ import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import { collection, deleteDoc, doc, getDocs, writeBatch } from "firebase/firestore";
 import type { Product } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -33,9 +33,10 @@ export default function AdminProductsPage() {
   const { t, language } = useLanguage();
   const firestore = useFirestore();
   const productsQuery = useMemoFirebase(() => (firestore ? collection(firestore, 'products') : null), [firestore]);
-  const { data: products, isLoading } = useCollection<Product>(productsQuery);
+  const { data: productsFromHook, isLoading } = useCollection<Product>(productsQuery);
   const { toast } = useToast();
 
+  const [products, setProducts] = useState<Product[] | null>(null);
   const [productToDelete, setProductToDelete] = useState<Product | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -43,12 +44,20 @@ export default function AdminProductsPage() {
   const [isImporting, setIsImporting] = useState(false);
   const [importFile, setImportFile] = useState<File | null>(null);
 
+  useEffect(() => {
+    setProducts(productsFromHook);
+  }, [productsFromHook]);
+
 
   const handleDeleteProduct = async () => {
     if (!productToDelete || !firestore) return;
     setIsDeleting(true);
     try {
       await deleteDoc(doc(firestore, 'products', productToDelete.id));
+
+      // Optimistic update: remove the product from local state for an instant refresh feel.
+      setProducts(prev => prev?.filter(p => p.id !== productToDelete.id) || null);
+      
       toast({
         title: "Produit supprimé",
         description: `Le produit "${productToDelete.name}" a été supprimé.`,
@@ -230,14 +239,14 @@ export default function AdminProductsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {isLoading && (
+              {isLoading && !products && (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center">
                     <Loader2 className="mx-auto h-8 w-8 animate-spin text-muted-foreground" />
                   </TableCell>
                 </TableRow>
               )}
-              {!isLoading && products && products.map((product) => (
+              {products && products.map((product) => (
                 <TableRow key={product.id}>
                   <TableCell className="hidden sm:table-cell">
                     <Image
