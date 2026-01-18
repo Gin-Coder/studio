@@ -2,7 +2,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { Home, ShoppingCart, FileText, Settings, LogOut, PanelLeft, ExternalLink } from 'lucide-react';
+import { Home, ShoppingCart, FileText, Settings, LogOut, PanelLeft, ExternalLink, Shapes } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -16,6 +16,7 @@ const AdminSidebarNav = () => {
     const navLinks = [
         { href: '/admin', label: 'Tableau de bord', icon: Home },
         { href: '/admin/products', label: 'Produits', icon: ShoppingCart },
+        { href: '/admin/categories', label: 'Catégories', icon: Shapes },
         { href: '/admin/pages', label: 'Pages', icon: FileText },
         { href: '/admin/settings', label: 'Paramètres', icon: Settings },
     ];
@@ -49,13 +50,27 @@ const SidebarItems = ({ isMobile = false }: { isMobile?: boolean }) => {
         </Button>
     );
 
-    return (
+    const content = (
         <>
             <AdminSidebarNav />
             <Separator className="my-4" />
-            {isMobile ? <SheetClose asChild>{viewStoreButton}</SheetClose> : viewStoreButton}
+            {viewStoreButton}
         </>
     );
+    
+    if (isMobile) {
+        return (
+            <SheetClose asChild>
+                <div className='flex flex-col gap-2'>
+                    <AdminSidebarNav />
+                    <Separator className="my-4" />
+                    {viewStoreButton}
+                </div>
+            </SheetClose>
+        )
+    }
+
+    return content;
 }
 
 
@@ -105,10 +120,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         </SheetTrigger>
                         <SheetContent side="left" className="flex flex-col p-0">
                             <div className="flex h-14 items-center border-b px-4">
+                               <SheetClose asChild>
                                 <Link href="/admin" className="flex items-center gap-2 font-semibold">
                                      <Logo />
                                      <span>Danny Store</span>
                                 </Link>
+                                </SheetClose>
                             </div>
                             <div className="flex-1 overflow-auto p-2">
                                 <SidebarItems isMobile />
