@@ -17,7 +17,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
+import { useCollection, useFirestore, useMemoFirebase, errorEmitter, FirestorePermissionError } from "@/firebase";
 import { collection, deleteDoc, doc, getDocs, writeBatch } from "firebase/firestore";
 import type { Product } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
@@ -37,33 +37,41 @@ export default function AdminProductsPage() {
   const { toast } = useToast();
 
   const [productToDelete, setProductToDelete] = useState<Product | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
 
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [importFile, setImportFile] = useState<File | null>(null);
 
-  const handleDeleteProduct = async () => {
+  const handleDeleteProduct = () => {
     if (!productToDelete || !firestore) return;
-    setIsDeleting(true);
-    try {
-      await deleteDoc(doc(firestore, 'products', productToDelete.id));
-      
-      toast({
-        title: "Produit supprimé",
-        description: `Le produit "${productToDelete.name}" a été supprimé.`,
+
+    const productBeingDeleted = productToDelete;
+    // Close the dialog immediately
+    setProductToDelete(null);
+
+    // Perform the delete operation in the background
+    deleteDoc(doc(firestore, 'products', productBeingDeleted.id))
+      .then(() => {
+        toast({
+          title: "Produit supprimé",
+          description: `Le produit "${productBeingDeleted.name}" a été supprimé.`,
+        });
+      })
+      .catch((error) => {
+        console.error("Error deleting product:", error);
+        toast({
+          variant: "destructive",
+          title: "Erreur",
+          description: "La suppression du produit a échoué.",
+        });
+         if (error.code === 'permission-denied') {
+            const productDocRef = doc(firestore, 'products', productBeingDeleted.id);
+            errorEmitter.emit('permission-error', new FirestorePermissionError({
+                path: productDocRef.path,
+                operation: 'delete',
+            }));
+        }
       });
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: "La suppression du produit a échoué.",
-      });
-      console.error("Error deleting product:", error);
-    } finally {
-      setIsDeleting(false);
-      setProductToDelete(null);
-    }
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -296,10 +304,9 @@ export default function AdminProductsPage() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setProductToDelete(null)} disabled={isDeleting}>Annuler</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteProduct} disabled={isDeleting}>
-              {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isDeleting ? "Suppression..." : "Supprimer"}
+            <AlertDialogCancel onClick={() => setProductToDelete(null)}>Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteProduct}>
+              Supprimer
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
