@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowLeft, PlusCircle, Loader2 } from 'lucide-react';
+import { ArrowLeft, PlusCircle, Loader2, Eye, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,6 +20,7 @@ import { addDoc, collection, doc, setDoc } from 'firebase/firestore';
 import type { Category } from '@/lib/types';
 import { getStorage, ref, uploadString, getDownloadURL } from 'firebase/storage';
 import { slugify, stringToColor } from '@/lib/utils';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 type VariantFormState = {
     id: number;
@@ -266,7 +267,31 @@ export default function NewProductPage() {
                                                     <Input id="image-main-url" type="url" placeholder="https://example.com/image.png" value={imageUrl.startsWith('data:') ? '' : imageUrl} onChange={(e) => setImageUrl(e.target.value)} />
                                                 </TabsContent>
                                             </Tabs>
-                                            {imageUrl && (<div className="relative w-24 h-24 mt-2"> <Image src={imageUrl} alt="Aperçu de l'image principale" fill className="rounded-md object-cover" /> </div>)}
+                                            {imageUrl && (
+                                                <div className="relative mt-2 w-24 h-24 group">
+                                                    <Image src={imageUrl} alt="Aperçu de l'image principale" fill className="rounded-md object-cover" />
+                                                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <Dialog>
+                                                            <DialogTrigger asChild>
+                                                                <Button variant="ghost" size="icon" className="text-white hover:text-white">
+                                                                    <Eye className="h-5 w-5" />
+                                                                </Button>
+                                                            </DialogTrigger>
+                                                            <DialogContent className="max-w-3xl">
+                                                                <DialogHeader>
+                                                                    <DialogTitle>Aperçu de l'image principale</DialogTitle>
+                                                                </DialogHeader>
+                                                                <div className="relative aspect-video mt-4">
+                                                                    <Image src={imageUrl} alt="Aperçu en grand" fill className="rounded-md object-contain"/>
+                                                                </div>
+                                                            </DialogContent>
+                                                        </Dialog>
+                                                        <Button variant="ghost" size="icon" className="text-white hover:text-destructive" onClick={() => setImageUrl('')}>
+                                                            <Trash2 className="h-5 w-5" />
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 </CardContent>
@@ -307,7 +332,31 @@ export default function NewProductPage() {
                                                         <Input id={`variant-image-url-${index}`} type="url" placeholder="https://example.com/image.png" value={variant.imageUrl.startsWith('data:') ? '' : variant.imageUrl} onChange={(e) => handleVariantChange(index, 'imageUrl', e.target.value)} />
                                                     </TabsContent>
                                                 </Tabs>
-                                                {variant.imageUrl && (<div className="relative w-24 h-24 mt-2"> <Image src={variant.imageUrl} alt={`Aperçu variante ${index + 1}`} fill className="rounded-md object-cover" /> </div>)}
+                                                {variant.imageUrl && (
+                                                    <div className="relative mt-2 w-24 h-24 group">
+                                                        <Image src={variant.imageUrl} alt={`Aperçu variante ${index + 1}`} fill className="rounded-md object-cover" />
+                                                        <div className="absolute inset-0 bg-black/60 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                            <Dialog>
+                                                                <DialogTrigger asChild>
+                                                                    <Button variant="ghost" size="icon" className="text-white hover:text-white">
+                                                                        <Eye className="h-5 w-5" />
+                                                                    </Button>
+                                                                </DialogTrigger>
+                                                                <DialogContent className="max-w-3xl">
+                                                                    <DialogHeader>
+                                                                        <DialogTitle>Aperçu de l'image de la variante</DialogTitle>
+                                                                    </DialogHeader>
+                                                                    <div className="relative aspect-video mt-4">
+                                                                        <Image src={variant.imageUrl} alt="Aperçu en grand" fill className="rounded-md object-contain"/>
+                                                                    </div>
+                                                                </DialogContent>
+                                                            </Dialog>
+                                                            <Button variant="ghost" size="icon" className="text-white hover:text-destructive" onClick={() => handleVariantChange(index, 'imageUrl', '')}>
+                                                                <Trash2 className="h-5 w-5" />
+                                                            </Button>
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     ))}

@@ -9,12 +9,12 @@ import { getStorage, ref, uploadString, getDownloadURL } from 'firebase/storage'
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, PlusCircle, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
+import { Loader2, PlusCircle, MoreHorizontal, Pencil, Trash2, Eye } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { slugify } from '@/lib/utils';
 import type { Category } from '@/lib/types';
@@ -230,7 +230,31 @@ export default function AdminCategoriesPage() {
             <div className="grid gap-2">
               <Label htmlFor="imageFile">Ou téléverser une image</Label>
               <Input id="imageFile" type="file" accept="image/*" onChange={handleImageFileChange} />
-              {currentCategory?.imageUrl && <Image src={currentCategory.imageUrl} alt="Aperçu" width={100} height={100} className="mt-2 rounded-md object-cover"/>}
+              {currentCategory?.imageUrl && (
+                  <div className="relative mt-2 w-24 h-24 group">
+                      <Image src={currentCategory.imageUrl} alt="Aperçu" fill className="rounded-md object-cover" />
+                      <div className="absolute inset-0 bg-black/60 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Dialog>
+                              <DialogTrigger asChild>
+                                  <Button variant="ghost" size="icon" className="text-white hover:text-white">
+                                      <Eye className="h-5 w-5" />
+                                  </Button>
+                              </DialogTrigger>
+                              <DialogContent className="max-w-3xl">
+                                  <DialogHeader>
+                                      <DialogTitle>Aperçu de l'image</DialogTitle>
+                                  </DialogHeader>
+                                  <div className="relative aspect-video mt-4">
+                                      <Image src={currentCategory.imageUrl} alt="Aperçu en grand" fill className="rounded-md object-contain"/>
+                                  </div>
+                              </DialogContent>
+                          </Dialog>
+                          <Button variant="ghost" size="icon" className="text-white hover:text-destructive" onClick={() => handleFieldChange('imageUrl', '')}>
+                              <Trash2 className="h-5 w-5" />
+                          </Button>
+                      </div>
+                  </div>
+              )}
             </div>
             <div className="grid gap-2">
               <Label htmlFor="imageHint">Indice pour l'IA (optionnel)</Label>
