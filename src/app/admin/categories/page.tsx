@@ -46,10 +46,18 @@ export default function AdminCategoriesPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [currentCategory, setCurrentCategory] = useState<CategoryFormState | null>(null);
-  const [deleteAlertOpen, setDeleteAlertOpen] = useState(false);
-  const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null);
+  
+  // State for deletion confirmation, only stores the ID
+  const [categoryIdToDelete, setCategoryIdToDelete] = useState<string | null>(null);
 
   const isEditing = useMemo(() => !!currentCategory?.id, [currentCategory]);
+
+  // Derived state to find the full category object to delete
+  const categoryToDelete = useMemo(() => {
+    if (!categoryIdToDelete || !categories) return null;
+    return categories.find(c => c.id === categoryIdToDelete);
+  }, [categoryIdToDelete, categories]);
+
 
   const openNewDialog = () => {
     setCurrentCategory({ nameKey: '', imageUrl: '', imageHint: 'category' });
@@ -67,8 +75,7 @@ export default function AdminCategoriesPage() {
   };
 
   const openDeleteDialog = (category: Category) => {
-    setCategoryToDelete(category);
-    setDeleteAlertOpen(true);
+    setCategoryIdToDelete(category.id);
   };
 
   const handleFieldChange = (field: keyof CategoryFormState, value: string) => {
@@ -134,12 +141,15 @@ export default function AdminCategoriesPage() {
   };
 
   const handleDelete = async () => {
-    if (!firestore || !categoryToDelete) return;
-    const categoryRef = doc(firestore, 'categories', categoryToDelete.id);
+    if (!firestore || !categoryIdToDelete) return;
+    
+    const categoryRef = doc(firestore, 'categories', categoryIdToDelete);
+    // Close the dialog first before making the async call
+    setCategoryIdToDelete(null);
     
     try {
         await deleteDoc(categoryRef);
-        toast({ title: "Catégorie supprimée", description: `La catégorie "${categoryToDelete.nameKey}" a été supprimée.` });
+        toast({ title: "Catégorie supprimée" });
     } catch (error: any) {
         console.error("Error deleting category:", error);
         toast({ variant: 'destructive', title: "Erreur de suppression", description: error.message });
@@ -149,9 +159,6 @@ export default function AdminCategoriesPage() {
                 operation: 'delete',
             }));
         }
-    } finally {
-        setDeleteAlertOpen(false);
-        setCategoryToDelete(null);
     }
   };
 
@@ -241,7 +248,7 @@ export default function AdminCategoriesPage() {
       </Dialog>
       
       {/* Alert for Delete Confirmation */}
-      <AlertDialog open={deleteAlertOpen} onOpenChange={setDeleteAlertOpen}>
+      <AlertDialog open={!!categoryIdToDelete} onOpenChange={(open) => !open && setCategoryIdToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
@@ -251,7 +258,7 @@ export default function AdminCategoriesPage() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setDeleteAlertOpen(false)}>Annuler</AlertDialogCancel>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete}>Supprimer</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
