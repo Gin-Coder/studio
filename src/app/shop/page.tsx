@@ -8,7 +8,7 @@ import ProductCard from '@/components/ProductCard';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from '@/components/ui/sheet';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Filter, Loader2 } from 'lucide-react';
+import { Filter, Loader2, Search } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -19,6 +19,7 @@ import { formatPrice } from '@/lib/utils';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Input } from '@/components/ui/input';
 
 const uniqueSizes = ['S', 'M', 'L', 'XL', '39', '40', '41', '42', '43', 'One Size'];
 const uniqueColors = ['White', 'Black', 'Blue', 'Gray', 'Brown', 'Gold'];
@@ -166,6 +167,7 @@ export default function ShopPage() {
     colors: []
   });
   const [sortOption, setSortOption] = useState('newest');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const categoryMap = useMemo(() => {
     if (!categories) return new Map<string, string>();
@@ -183,14 +185,24 @@ export default function ShopPage() {
 
   const filteredProducts = useMemo(() => {
     if (!products) return [];
+    
+    const lowercasedQuery = searchQuery.toLowerCase();
+
     return products.filter(product => {
+        const searchMatch = searchQuery === '' || 
+                            product.name.toLowerCase().includes(lowercasedQuery) ||
+                            product.description.toLowerCase().includes(lowercasedQuery) ||
+                            (t(categoryMap.get(product.category) || '')).toLowerCase().includes(lowercasedQuery) ||
+                            product.tags.some(t => t.toLowerCase().includes(lowercasedQuery));
+
         const categoryMatch = filters.categories.length === 0 || filters.categories.includes(product.category);
         const priceMatch = product.price <= filters.price;
         const sizeMatch = filters.sizes.length === 0 || product.variants.some(v => filters.sizes.includes(v.size));
         const colorMatch = filters.colors.length === 0 || product.variants.some(v => filters.colors.includes(v.colorName));
-        return categoryMatch && priceMatch && sizeMatch && colorMatch && product.status === 'published';
+        
+        return searchMatch && categoryMatch && priceMatch && sizeMatch && colorMatch && product.status === 'published';
     });
-  }, [filters, products]);
+  }, [filters, products, searchQuery, categoryMap, t]);
 
   const sortedProducts = useMemo(() => {
     let sorted = [...filteredProducts];
@@ -210,6 +222,16 @@ export default function ShopPage() {
       <div className="mb-8">
         <h1 className="text-4xl font-headline font-bold">{pageTitle}</h1>
         <p className="text-muted-foreground">{t('shop.browse_collection')}</p>
+        <div className="mt-6 relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+            <Input
+                placeholder={t('nav.search_placeholder')}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 w-full"
+                aria-label="Search products"
+            />
+        </div>
       </div>
       <div className="flex">
         <aside className="hidden w-64 pr-8 lg:block">
