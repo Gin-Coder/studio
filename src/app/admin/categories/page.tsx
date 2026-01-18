@@ -74,8 +74,8 @@ export default function AdminCategoriesPage() {
     setDialogOpen(true);
   };
 
-  const openDeleteDialog = (category: Category) => {
-    setCategoryIdToDelete(category.id);
+  const openDeleteDialog = (categoryId: string) => {
+    setCategoryIdToDelete(categoryId);
   };
 
   const handleFieldChange = (field: keyof CategoryFormState, value: string) => {
@@ -115,10 +115,10 @@ export default function AdminCategoriesPage() {
             };
 
             if (isEditing) {
-                await updateDoc(categoryRef, categoryData);
+                updateDoc(categoryRef, categoryData);
                 toast({ title: 'Catégorie mise à jour' });
             } else {
-                await setDoc(categoryRef, categoryData);
+                setDoc(categoryRef, categoryData);
                 toast({ title: 'Catégorie créée' });
             }
             setDialogOpen(false);
@@ -154,8 +154,6 @@ export default function AdminCategoriesPage() {
     if (!firestore || !categoryIdToDelete) return;
     
     const categoryRef = doc(firestore, 'categories', categoryIdToDelete);
-    // Close the dialog first before making the async call
-    setCategoryIdToDelete(null);
     
     try {
         await deleteDoc(categoryRef);
@@ -211,7 +209,7 @@ export default function AdminCategoriesPage() {
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuItem onClick={() => openEditDialog(cat)}><Pencil className="mr-2 h-4 w-4" /> Modifier</DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => openDeleteDialog(cat)}><Trash2 className="mr-2 h-4 w-4" /> Supprimer</DropdownMenuItem>
+                        <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => openDeleteDialog(cat.id)}><Trash2 className="mr-2 h-4 w-4" /> Supprimer</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>

@@ -58,20 +58,17 @@ export default function AdminProductsPage() {
   const isLoading = isLoadingProducts || isLoadingCategories;
 
 
-  const handleDeleteProduct = () => {
+  const handleDeleteProduct = async () => {
     if (!productIdToDelete || !firestore) return;
     const idToDelete = productIdToDelete;
     
-    setProductIdToDelete(null);
-
-    deleteDoc(doc(firestore, 'products', idToDelete))
-      .then(() => {
+    try {
+        await deleteDoc(doc(firestore, 'products', idToDelete));
         toast({
           title: "Produit supprimé",
           description: `Le produit a été supprimé avec succès.`,
         });
-      })
-      .catch((error) => {
+    } catch (error) {
         console.error("Error deleting product:", error);
         toast({
           variant: "destructive",
@@ -85,7 +82,7 @@ export default function AdminProductsPage() {
                 operation: 'delete',
             }));
         }
-      });
+    }
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -311,7 +308,7 @@ export default function AdminProductsPage() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setProductIdToDelete(null)}>Annuler</AlertDialogCancel>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteProduct}>
               Supprimer
             </AlertDialogAction>
