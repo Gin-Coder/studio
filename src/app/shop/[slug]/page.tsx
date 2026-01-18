@@ -17,10 +17,11 @@ import OutfitSuggestions from './OutfitSuggestions';
 import VirtualTryOn from './VirtualTryOn';
 import ProductPrice from './ProductPrice';
 import { useLanguage } from '@/hooks/use-language';
-import type { Product } from '@/lib/types';
+import type { Product, Category } from '@/lib/types';
 import { useCollection, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, doc, query, where, limit } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useMemo } from 'react';
 
 
 const ProductDetailSkeleton = () => (
@@ -49,9 +50,19 @@ function ProductDetailClient({ product }: { product: Product }) {
     () => (firestore ? query(collection(firestore, 'products'), where('category', '==', product.category), limit(5)) : null),
     [firestore, product.category]
   );
-  const { data: relatedProducts, isLoading } = useCollection<Product>(relatedProductsQuery);
+  const { data: relatedProducts, isLoading: isLoadingRelated } = useCollection<Product>(relatedProductsQuery);
+
+  const categoriesQuery = useMemoFirebase(() => (firestore ? collection(firestore, 'categories') : null), [firestore]);
+  const { data: categories, isLoading: isLoadingCategories } = useCollection<Category>(categoriesQuery);
+
+  const categoryMap = useMemo(() => {
+    if (!categories) return new Map<string, string>();
+    return new Map(categories.map(cat => [cat.id, cat.nameKey]));
+  }, [categories]);
   
   const filteredRelatedProducts = relatedProducts?.filter(p => p.id !== product.id).slice(0, 4) || [];
+
+  const isLoading = isLoadingRelated || isLoadingCategories;
 
   return (
      <div className="container mx-auto px-4 py-8">
@@ -122,13 +133,13 @@ function ProductDetailClient({ product }: { product: Product }) {
       
       <VirtualTryOn />
 
-      <OutfitSuggestions product={product} />
+      <OutfitSuggestions product={product} categoryMap={categoryMap} />
 
       <div className="mt-16">
         <h2 className="mb-8 text-center font-headline text-3xl font-bold">{t('product.you_might_also_like')}</h2>
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           {isLoading && [...Array(4)].map((_, i) => <Skeleton key={i} className="h-[350px]" />)}
-          {!isLoading && filteredRelatedProducts.map(p => <ProductCard key={p.id} product={p} />)}
+          {!isLoading && filteredRelatedProducts.map(p => <ProductCard key={p.id} product={p} categoryMap={categoryMap} />)}
         </div>
       </div>
 

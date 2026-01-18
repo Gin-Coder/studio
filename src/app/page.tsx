@@ -2,7 +2,7 @@
 'use client';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRef } from 'react';
+import { useRef, useMemo } from 'react';
 import Autoplay from 'embla-carousel-autoplay';
 import Fade from 'embla-carousel-fade';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
@@ -66,6 +66,11 @@ export default function Home() {
   );
   const { data: bestSellers, isLoading: isLoadingBestSellers } = useCollection<Product>(publishedProductsQuery);
   const { data: newArrivals, isLoading: isLoadingNewArrivals } = useCollection<Product>(publishedProductsQuery);
+
+  const categoryMap = useMemo(() => {
+    if (!categories) return new Map<string, string>();
+    return new Map(categories.map(cat => [cat.id, cat.nameKey]));
+  }, [categories]);
   
   const isLoading = isLoadingCategories || isLoadingBestSellers || isLoadingNewArrivals;
 
@@ -150,7 +155,7 @@ export default function Home() {
                 {bestSellers.map((product) => (
                   <CarouselItem key={product.id} className="basis-1/1 sm:basis-1/2 lg:basis-1/4">
                     <div className="p-1">
-                      <ProductCard product={product} />
+                      <ProductCard product={product} categoryMap={categoryMap} />
                     </div>
                   </CarouselItem>
                 ))}
@@ -180,7 +185,7 @@ export default function Home() {
                 {newArrivals.map((product) => (
                   <CarouselItem key={product.id} className="basis-1/1 sm:basis-1/2 lg:basis-1/4">
                     <div className="p-1">
-                      <ProductCard product={product} />
+                      <ProductCard product={product} categoryMap={categoryMap} />
                     </div>
                   </CarouselItem>
                 ))}

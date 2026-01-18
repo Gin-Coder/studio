@@ -17,14 +17,17 @@ import { useCurrency } from '@/hooks/use-currency';
 
 interface ProductCardProps {
   product: Product;
+  categoryMap: Map<string, string>;
 }
 
-export default function ProductCard({ product }: ProductCardProps) {
+export default function ProductCard({ product, categoryMap }: ProductCardProps) {
   const { addToCart } = useCart();
   const { addToWishlist, isInWishlist, removeFromWishlist } = useWishlist();
   const { toast } = useToast();
   const { t, language } = useLanguage();
   const { currency, convertPrice } = useCurrency();
+
+  const categoryName = categoryMap.get(product.category) || product.category;
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -73,7 +76,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             className="object-cover transition-transform duration-300 group-hover:scale-105"
             data-ai-hint={product.imageHints[0]}
           />
-          <Badge variant="secondary" className="absolute top-2 left-2">{t(`filter.${product.category}`)}</Badge>
+          <Badge variant="secondary" className="absolute top-2 left-2">{t(categoryName)}</Badge>
           <Button
             size="icon"
             variant="ghost"

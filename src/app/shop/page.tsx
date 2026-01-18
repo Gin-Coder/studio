@@ -167,6 +167,11 @@ export default function ShopPage() {
   });
   const [sortOption, setSortOption] = useState('newest');
 
+  const categoryMap = useMemo(() => {
+    if (!categories) return new Map<string, string>();
+    return new Map(categories.map(cat => [cat.id, cat.nameKey]));
+  }, [categories]);
+
   const pageTitle = useMemo(() => {
     if (filters.categories.length === 1 && categories) {
         const category = categories.find(c => c.id === filters.categories[0]);
@@ -254,7 +259,7 @@ export default function ShopPage() {
           {!isLoading && (
             <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
               {sortedProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
+                <ProductCard key={product.id} product={product} categoryMap={categoryMap} />
               ))}
             </div>
           )}
