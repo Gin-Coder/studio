@@ -18,6 +18,7 @@ import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import type { Product, Category } from '@/lib/types';
 import { collection, limit, query, where } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
+import { dictionaries } from '@/lib/dictionaries';
 
 const HomeSkeleton = () => (
   <>
@@ -74,6 +75,27 @@ export default function Home() {
   
   const isLoading = isLoadingCategories || isLoadingBestSellers || isLoadingNewArrivals;
 
+  const getCategoryDisplayName = (category: Category) => {
+    const key = category.nameKey;
+    // If the key is already a translation key (e.g., 'filter.shoes'), just translate it.
+    if (key.includes('.')) {
+        return t(key);
+    }
+    // Otherwise, it might be a literal name like "Shoes" due to data corruption.
+    // Let's try to find if this literal name corresponds to a key in the English dictionary.
+    const enDict = dictionaries['en'];
+    const foundKey = Object.keys(enDict).find(k => enDict[k].toLowerCase() === key.toLowerCase());
+
+    // If we found a key (e.g., 'filter.shoes' for 'Shoes'), translate that key.
+    if (foundKey) {
+        return t(foundKey);
+    }
+    
+    // If no key was found, it's probably a user-created category.
+    // The t() function will just return the key itself, which is what we want.
+    return t(key);
+  };
+
   return (
     <div className="bg-background overflow-x-hidden">
       {/* Hero Section */}
@@ -128,7 +150,7 @@ export default function Home() {
                       <div className="relative w-full h-[60vh] md:h-[75vh]">
                         <Image
                           src={category.imageUrl}
-                          alt={t(category.nameKey)}
+                          alt={getCategoryDisplayName(category)}
                           fill
                           sizes="100vw"
                           className="object-cover"
@@ -136,7 +158,7 @@ export default function Home() {
                         />
                         <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-center text-white p-4 transition-colors duration-300 group-hover:bg-black/50">
                           <h3 className="font-headline text-4xl font-bold drop-shadow-md md:text-6xl lg:text-7xl transition-transform duration-300 group-hover:scale-105">
-                            {t(category.nameKey)}
+                            {getCategoryDisplayName(category)}
                           </h3>
                           <div className="mt-4 flex items-center text-lg font-semibold text-white opacity-0 transition-all duration-300 group-hover:opacity-100 -translate-y-2 group-hover:translate-y-0">
                             <span>{t('shop.title')}</span>
