@@ -112,27 +112,46 @@ export default function Home() {
             <h2 className="mb-8 text-center font-headline text-3xl font-bold md:mb-12 md:text-4xl">
               {t('home.categories.title')}
             </h2>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4 lg:gap-8">
-              {categories.map((category) => (
-                <Link href={`/shop?category=${category.id}`} key={category.id} className="group">
-                  <Card className="overflow-hidden transition-shadow duration-300 group-hover:shadow-xl">
-                    <CardContent className="relative aspect-square p-0">
-                      <Image
-                        src={category.imageUrl}
-                        alt={t(category.nameKey)}
-                        fill
-                        className="object-cover transition-transform duration-300 group-hover:scale-105"
-                        data-ai-hint={category.imageHint}
-                      />
-                      <div className="absolute inset-0 bg-black/30" />
-                      <h3 className="absolute bottom-4 left-4 font-headline text-xl font-semibold text-white md:text-2xl">
-                        {t(category.nameKey)}
-                      </h3>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
-            </div>
+            <Carousel
+              plugins={[autoplay.current, Fade()]}
+              opts={{ align: 'start', loop: true }}
+              className="w-full"
+              onMouseEnter={autoplay.current.stop}
+              onMouseLeave={autoplay.current.reset}
+            >
+              <CarouselContent className="-ml-4">
+                {categories.map((category) => (
+                  <CarouselItem key={category.id} className="pl-4 md:basis-1/2 lg:basis-1/3">
+                    <Link href={`/shop?category=${category.id}`} className="group block">
+                      <Card className="overflow-hidden rounded-lg shadow-md transition-shadow duration-300 hover:shadow-xl">
+                        <CardContent className="relative aspect-[4/3] p-0">
+                          <Image
+                            src={category.imageUrl}
+                            alt={t(category.nameKey)}
+                            fill
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                            className="object-cover transition-transform duration-500 group-hover:scale-105"
+                            data-ai-hint={category.imageHint}
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                          <div className="absolute bottom-0 left-0 p-4 md:p-6">
+                            <h3 className="font-headline text-xl font-bold text-white shadow-black/50 text-shadow md:text-2xl">
+                              {t(category.nameKey)}
+                            </h3>
+                             <div className="mt-1 flex items-center text-sm font-semibold text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                              <span>{t('shop.title')}</span>
+                              <ArrowRight className="ml-1.5 h-4 w-4 transform transition-transform duration-300 group-hover:translate-x-1" />
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious className="left-2 sm:left-[-2rem]" />
+              <CarouselNext className="right-2 sm:right-[-2rem]" />
+            </Carousel>
           </div>
         </section>
       )}
