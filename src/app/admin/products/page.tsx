@@ -18,7 +18,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
-import { collection, deleteDoc, doc, writeBatch } from "firebase/firestore";
+import { collection, deleteDoc, doc, getDocs, writeBatch } from "firebase/firestore";
 import type { Product } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
@@ -73,58 +73,91 @@ export default function AdminProductsPage() {
   };
 
   const handleImport = async () => {
-      if (!importFile || !firestore) return;
+    if (!importFile || !firestore) return;
 
-      setIsImporting(true);
-      try {
-          const fileContent = await importFile.text();
-          const productsToImport: Partial<Product>[] = JSON.parse(fileContent);
+    setIsImporting(true);
+    try {
+        const fileContent = await importFile.text();
+        const productsToImport: Partial<Product>[] = JSON.parse(fileContent);
 
-          if (!Array.isArray(productsToImport)) {
-              throw new Error("Le fichier JSON doit contenir un tableau de produits.");
-          }
+        if (!Array.isArray(productsToImport)) {
+            throw new Error("Le fichier JSON doit contenir un tableau de produits.");
+        }
 
-          const batch = writeBatch(firestore);
-          const productsCollection = collection(firestore, 'products');
+        // 1. Get all unique category slugs from the import file
+        const importCategorySlugs = new Set(productsToImport.map(p => p.category).filter(Boolean) as string[]);
 
-          productsToImport.forEach(productData => {
-              if (!productData.name || !productData.price || !productData.category) {
-                  console.warn("Skipping invalid product data:", productData);
-                  return; 
-              }
-              const newProductRef = doc(productsCollection);
-              batch.set(newProductRef, {
-                  ...productData,
-                  slug: productData.slug || slugify(productData.name),
-                  rating: productData.rating || 0,
-                  reviewCount: productData.reviewCount || 0,
-                  status: productData.status || 'draft',
-                  imageHints: productData.imageHints || [],
-                  tags: productData.tags || [],
-                  variants: productData.variants || [],
-                  images: productData.images || ['https://placehold.co/600x800'],
-              });
-          });
+        // 2. Fetch existing categories
+        const categoriesCollectionRef = collection(firestore, 'categories');
+        const categoriesSnapshot = await getDocs(categoriesCollectionRef);
+        const existingCategorySlugs = new Set(categoriesSnapshot.docs.map(d => d.id));
 
-          await batch.commit();
+        // 3. Determine which categories to create
+        const newCategorySlugs = [...importCategorySlugs].filter(slug => !existingCategorySlugs.has(slug));
+        
+        const batch = writeBatch(firestore);
 
-          toast({
-              title: "Importation réussie",
-              description: `${productsToImport.length} produits ont été importés avec succès.`,
-          });
-          setIsImportOpen(false);
-          setImportFile(null);
-      } catch (error: any) {
-          console.error("Failed to import products:", error);
-          toast({
-              variant: "destructive",
-              title: "Erreur d'importation",
-              description: error.message || "Impossible d'importer le fichier de produits.",
-          });
-      } finally {
-          setIsImporting(false);
-      }
-  };
+        // 4. Add new categories to the batch
+        if (newCategorySlugs.length > 0) {
+            newCategorySlugs.forEach(slug => {
+                const categoryDocRef = doc(categoriesCollectionRef, slug);
+                // Create a readable name from the slug
+                const nameKey = slug.charAt(0).toUpperCase() + slug.slice(1).replace(/-/g, ' ');
+                batch.set(categoryDocRef, {
+                    nameKey: nameKey,
+                    imageUrl: `https://picsum.photos/seed/${slug}/600/400`,
+                    imageHint: slug.replace(/-/g, ' '),
+                });
+            });
+        }
+
+        // 5. Add products to the batch
+        const productsCollection = collection(firestore, 'products');
+        productsToImport.forEach(productData => {
+            if (!productData.name || !productData.price || !productData.category) {
+                console.warn("Skipping invalid product data:", productData);
+                return; 
+            }
+            const newProductRef = doc(productsCollection); // Auto-generate ID
+            batch.set(newProductRef, {
+                ...productData,
+                slug: productData.slug || slugify(productData.name),
+                rating: productData.rating ?? 0,
+                reviewCount: productData.reviewCount ?? 0,
+                status: productData.status || 'draft',
+                imageHints: productData.imageHints || [],
+                tags: productData.tags || [],
+                variants: productData.variants || [],
+                images: productData.images || ['https://placehold.co/600x800'],
+            });
+        });
+
+        // 6. Commit all changes
+        await batch.commit();
+        
+        let toastDescription = `${productsToImport.length} produits ont été importés avec succès.`;
+        if (newCategorySlugs.length > 0) {
+          const categoryText = newCategorySlugs.length > 1 ? 'nouvelles catégories ont été créées' : 'nouvelle catégorie a été créée';
+          toastDescription += ` Et ${newCategorySlugs.length} ${categoryText}.`;
+        }
+
+        toast({
+            title: "Importation réussie",
+            description: toastDescription,
+        });
+        setIsImportOpen(false);
+        setImportFile(null);
+    } catch (error: any) {
+        console.error("Failed to import products:", error);
+        toast({
+            variant: "destructive",
+            title: "Erreur d'importation",
+            description: error.message || "Impossible d'importer le fichier de produits.",
+        });
+    } finally {
+        setIsImporting(false);
+    }
+};
 
 
   return (
