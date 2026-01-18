@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { useCollection, useFirestore, useMemoFirebase, errorEmitter, FirestorePermissionError } from "@/firebase";
 import { collection, deleteDoc, doc, getDocs, writeBatch } from "firebase/firestore";
-import type { Product } from "@/lib/types";
+import type { Product, Category } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useMemo } from "react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -33,7 +33,10 @@ export default function AdminProductsPage() {
   const { t, language } = useLanguage();
   const firestore = useFirestore();
   const productsQuery = useMemoFirebase(() => (firestore ? collection(firestore, 'products') : null), [firestore]);
-  const { data: products, isLoading } = useCollection<Product>(productsQuery);
+  const { data: products, isLoading: isLoadingProducts } = useCollection<Product>(productsQuery);
+  const categoriesQuery = useMemoFirebase(() => (firestore ? collection(firestore, 'categories') : null), [firestore]);
+  const { data: categories, isLoading: isLoadingCategories } = useCollection<Category>(categoriesQuery);
+
   const { toast } = useToast();
 
   const [productIdToDelete, setProductIdToDelete] = useState<string | null>(null);
@@ -46,15 +49,21 @@ export default function AdminProductsPage() {
     if (!productIdToDelete || !products) return null;
     return products.find(p => p.id === productIdToDelete);
   }, [productIdToDelete, products]);
+  
+  const categoryMap = useMemo(() => {
+    if (!categories) return new Map<string, string>();
+    return new Map(categories.map(cat => [cat.id, cat.nameKey]));
+  }, [categories]);
+
+  const isLoading = isLoadingProducts || isLoadingCategories;
+
 
   const handleDeleteProduct = () => {
     if (!productIdToDelete || !firestore) return;
     const idToDelete = productIdToDelete;
     
-    // Close the dialog first by resetting the state
     setProductIdToDelete(null);
 
-    // Perform the delete operation in the background
     deleteDoc(doc(firestore, 'products', idToDelete))
       .then(() => {
         toast({
@@ -97,24 +106,19 @@ export default function AdminProductsPage() {
             throw new Error("Le fichier JSON doit contenir un tableau de produits.");
         }
 
-        // 1. Get all unique category slugs from the import file
         const importCategorySlugs = new Set(productsToImport.map(p => p.category).filter(Boolean) as string[]);
 
-        // 2. Fetch existing categories
         const categoriesCollectionRef = collection(firestore, 'categories');
         const categoriesSnapshot = await getDocs(categoriesCollectionRef);
         const existingCategorySlugs = new Set(categoriesSnapshot.docs.map(d => d.id));
 
-        // 3. Determine which categories to create
         const newCategorySlugs = [...importCategorySlugs].filter(slug => !existingCategorySlugs.has(slug));
         
         const batch = writeBatch(firestore);
 
-        // 4. Add new categories to the batch
         if (newCategorySlugs.length > 0) {
             newCategorySlugs.forEach(slug => {
                 const categoryDocRef = doc(categoriesCollectionRef, slug);
-                // Create a readable name from the slug
                 const nameKey = slug.charAt(0).toUpperCase() + slug.slice(1).replace(/-/g, ' ');
                 batch.set(categoryDocRef, {
                     nameKey: nameKey,
@@ -124,14 +128,13 @@ export default function AdminProductsPage() {
             });
         }
 
-        // 5. Add products to the batch
         const productsCollection = collection(firestore, 'products');
         productsToImport.forEach(productData => {
             if (!productData.name || !productData.price || !productData.category) {
                 console.warn("Skipping invalid product data:", productData);
                 return; 
             }
-            const newProductRef = doc(productsCollection); // Auto-generate ID
+            const newProductRef = doc(productsCollection); 
             batch.set(newProductRef, {
                 ...productData,
                 slug: productData.slug || slugify(productData.name),
@@ -145,7 +148,6 @@ export default function AdminProductsPage() {
             });
         });
 
-        // 6. Commit all changes
         await batch.commit();
         
         let toastDescription = `${productsToImport.length} produits ont été importés avec succès.`;
@@ -243,7 +245,7 @@ export default function AdminProductsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {isLoading && !products && (
+              {isLoading && (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center">
                     <Loader2 className="mx-auto h-8 w-8 animate-spin text-muted-foreground" />
@@ -266,7 +268,7 @@ export default function AdminProductsPage() {
                     <Badge variant="outline">{product.status}</Badge>
                   </TableCell>
                   <TableCell>{formatPrice(convertPrice(product.price), language, currency)}</TableCell>
-                  <TableCell>{t(`filter.${product.category}`)}</TableCell>
+                  <TableCell>{t(categoryMap.get(product.category) || product.category)}</TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -309,7 +311,7 @@ export default function AdminProductsPage() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogCancel onClick={() => setProductIdToDelete(null)}>Annuler</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteProduct}>
               Supprimer
             </AlertDialogAction>
