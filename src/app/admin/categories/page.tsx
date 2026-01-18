@@ -95,48 +95,58 @@ export default function AdminCategoriesPage() {
     }
   };
 
-  const handleSave = async () => {
+  const handleSave = () => {
     if (!firestore || !currentCategory || !currentCategory.nameKey) {
         toast({ variant: 'destructive', title: "Le nom est requis" });
         return;
     }
     setIsSaving(true);
 
-    try {
-        let finalImageUrl = currentCategory.imageUrl;
-        if (finalImageUrl.startsWith('data:')) {
-            finalImageUrl = await uploadCategoryImage(finalImageUrl);
-        }
+    const processSave = async (imageUrl: string) => {
+        try {
+            if (!currentCategory) return;
+            const categoryId = currentCategory.id || slugify(currentCategory.nameKey);
+            const categoryRef = doc(firestore, 'categories', categoryId);
 
-        const categoryId = currentCategory.id || slugify(currentCategory.nameKey);
-        const categoryRef = doc(firestore, 'categories', categoryId);
+            const categoryData = {
+                nameKey: currentCategory.nameKey,
+                imageUrl: imageUrl || `https://picsum.photos/seed/${categoryId}/600/400`,
+                imageHint: currentCategory.imageHint || currentCategory.nameKey,
+            };
 
-        const categoryData = {
-            nameKey: currentCategory.nameKey,
-            imageUrl: finalImageUrl || `https://picsum.photos/seed/${categoryId}/600/400`,
-            imageHint: currentCategory.imageHint || currentCategory.nameKey,
-        };
+            if (isEditing) {
+                await updateDoc(categoryRef, categoryData);
+                toast({ title: 'Catégorie mise à jour' });
+            } else {
+                await setDoc(categoryRef, categoryData);
+                toast({ title: 'Catégorie créée' });
+            }
+            setDialogOpen(false);
+        } catch (error: any) {
+            console.error("Error saving category:", error);
+            toast({ variant: 'destructive', title: "Erreur lors de l'enregistrement", description: error.message });
+            if (error.code === 'permission-denied' && currentCategory) {
+                const categoryRef = doc(firestore, 'categories', currentCategory.id || 'new');
+                errorEmitter.emit('permission-error', new FirestorePermissionError({
+                    path: categoryRef.path,
+                    operation: isEditing ? 'update' : 'create',
+                }));
+            }
+        } finally {
+            setIsSaving(false);
+        }
+    };
 
-        if (isEditing) {
-            await updateDoc(categoryRef, categoryData);
-            toast({ title: 'Catégorie mise à jour' });
-        } else {
-            await setDoc(categoryRef, categoryData);
-            toast({ title: 'Catégorie créée' });
-        }
-        setDialogOpen(false);
-    } catch (error: any) {
-        console.error("Error saving category:", error);
-        toast({ variant: 'destructive', title: "Erreur lors de l'enregistrement", description: error.message });
-        if (error.code === 'permission-denied') {
-            const categoryRef = doc(firestore, 'categories', currentCategory.id || 'new');
-            errorEmitter.emit('permission-error', new FirestorePermissionError({
-                path: categoryRef.path,
-                operation: isEditing ? 'update' : 'create',
-            }));
-        }
-    } finally {
-        setIsSaving(false);
+    if (currentCategory.imageUrl.startsWith('data:')) {
+        uploadCategoryImage(currentCategory.imageUrl)
+            .then(processSave)
+            .catch(error => {
+                console.error("Error uploading image:", error);
+                toast({ variant: 'destructive', title: "Erreur de téléversement", description: error.message });
+                setIsSaving(false);
+            });
+    } else {
+        processSave(currentCategory.imageUrl);
     }
   };
 
