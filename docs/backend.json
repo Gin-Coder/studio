@@ -1,368 +1,232 @@
 {
   "entities": {
-    "User": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "User",
+    "UserProfile": {
+      "title": "User Profile",
       "type": "object",
-      "description": "Represents a user of the Danny Store e-commerce platform.",
+      "description": "Represents a user's public profile.",
       "properties": {
-        "id": {
+        "displayName": {
           "type": "string",
-          "description": "Unique identifier for the user."
-        },
-        "email": {
-          "type": "string",
-          "description": "User's email address.",
-          "format": "email"
-        },
-        "whatsappNumber": {
-          "type": "string",
-          "description": "User's WhatsApp number (required for order updates)."
-        },
-        "preferredLanguage": {
-          "type": "string",
-          "description": "User's preferred language (FR, EN, or Kreyòl)."
-        },
-        "authProvider": {
-          "type": "string",
-          "description": "The authentication provider used (e.g., Google, Facebook, Apple)."
+          "description": "The user's display name."
         }
-      },
-      "required": [
-        "id",
-        "email",
-        "whatsappNumber",
-        "preferredLanguage",
-        "authProvider"
-      ]
+      }
     },
-    "Product": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Product",
+    "Category": {
+      "title": "Category",
       "type": "object",
-      "description": "Represents a product in the Danny Store catalog.",
+      "description": "Represents a product category.",
       "properties": {
-        "id": {
+        "nameKey": {
           "type": "string",
-          "description": "Unique identifier for the product."
-        },
-        "name": {
-          "type": "string",
-          "description": "Name of the product."
-        },
-        "shortDescription": {
-          "type": "string",
-          "description": "Short description of the product."
-        },
-        "longDescription": {
-          "type": "string",
-          "description": "Detailed description of the product."
+          "description": "The key for the category name (for i18n)."
         },
         "imageUrl": {
           "type": "string",
-          "description": "URL of the product image.",
           "format": "uri"
         },
-        "category": {
-          "type": "string",
-          "description": "Category of the product (e.g., clothing, shoes, accessories)."
-        },
-        "averageRating": {
-          "type": "number",
-          "description": "Average rating of the product."
-        },
-        "numberOfReviews": {
-          "type": "number",
-          "description": "Number of reviews for the product."
+        "imageHint": {
+          "type": "string"
         }
       },
       "required": [
-        "id",
-        "name",
-        "shortDescription",
-        "longDescription",
-        "imageUrl",
-        "category",
-        "averageRating",
-        "numberOfReviews"
+        "nameKey",
+        "imageUrl"
       ]
     },
-    "ProductVariant": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "ProductVariant",
+    "SubCategory": {
+        "title": "Sub-Category",
+        "type": "object",
+        "description": "Represents a product sub-category.",
+        "properties": {
+            "nameKey": { "type": "string" },
+            "parentCategory": { "type": "string" }
+        },
+        "required": ["nameKey", "parentCategory"]
+    },
+    "Product": {
+      "title": "Product",
       "type": "object",
-      "description": "Represents a specific variant of a product (e.g., color, size).",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the product variant."
+        "name": {
+          "type": "string"
         },
-        "productId": {
-          "type": "string",
-          "description": "Reference to Product. (Relationship: Product 1:N ProductVariant)"
+        "slug": {
+          "type": "string"
         },
-        "color": {
-          "type": "string",
-          "description": "Color of the product variant."
+        "description": {
+          "type": "string"
         },
-        "size": {
-          "type": "string",
-          "description": "Size of the product variant."
+        "longDescription": {
+          "type": "string"
         },
-        "price": {
-          "type": "number",
-          "description": "Price of the product variant."
-        },
-        "promoPrice": {
-          "type": "number",
-          "description": "Promotional price of the product variant (if any)."
-        },
-        "tags": {
+        "images": {
           "type": "array",
-          "description": "Tags associated with the product variant.",
+          "items": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "imageHints": {
+          "type": "array",
           "items": {
             "type": "string"
           }
-        }
-      },
-      "required": [
-        "id",
-        "productId",
-        "color",
-        "size",
-        "price"
-      ]
-    },
-    "Order": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Order",
-      "type": "object",
-      "description": "Represents a customer order.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the order."
         },
-        "userId": {
-          "type": "string",
-          "description": "Reference to User. (Relationship: User 1:N Order)"
+        "price": {
+          "type": "number"
         },
-        "orderDate": {
-          "type": "string",
-          "description": "Date and time when the order was placed.",
-          "format": "date-time"
+        "category": {
+          "type": "string"
         },
-        "totalAmount": {
-          "type": "number",
-          "description": "Total amount of the order."
+        "subCategory": {
+            "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "variants": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "color": {
+                "type": "string"
+              },
+              "colorName": {
+                "type": "string"
+              },
+              "size": {
+                "type": "string"
+              },
+              "stock": {
+                "type": "number"
+              },
+              "imageUrl": {
+                "type": "string",
+                "format": "uri"
+              }
+            },
+            "required": ["id", "color", "colorName", "size", "stock"]
+          }
+        },
+        "rating": {
+          "type": "number"
+        },
+        "reviewCount": {
+          "type": "number"
         },
         "status": {
           "type": "string",
-          "description": "Status of the order (e.g., pending, processing, shipped, delivered)."
+          "enum": [
+            "draft",
+            "published",
+            "archived"
+          ]
+        },
+        "createdAt": {
+            "type": "string",
+            "format": "date-time"
+        },
+        "updatedAt": {
+            "type": "string",
+            "format": "date-time"
         }
       },
       "required": [
-        "id",
-        "userId",
-        "orderDate",
-        "totalAmount",
-        "status"
+        "name",
+        "slug",
+        "price",
+        "category",
+        "subCategory",
+        "status",
+        "variants"
       ]
     },
-    "OrderItem": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "OrderItem",
-      "type": "object",
-      "description": "Represents an item within an order.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the order item."
+    "Order": {
+        "title": "Order",
+        "type": "object",
+        "properties": {
+            "customer": {
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string"},
+                    "email": {"type": "string", "format": "email"}
+                },
+                "required": ["name", "email"]
+            },
+            "items": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "productId": {"type": "string"},
+                        "variantId": {"type": "string"},
+                        "name": {"type": "string"},
+                        "quantity": {"type": "number"},
+                        "price": {"type": "number"}
+                    },
+                    "required": ["productId", "variantId", "name", "quantity", "price"]
+                }
+            },
+            "total": {"type": "number"},
+            "status": {"type": "string", "enum": ["pending", "processing", "shipped", "delivered", "cancelled"]},
+            "createdAt": {"type": "string", "format": "date-time"}
         },
-        "orderId": {
-          "type": "string",
-          "description": "Reference to Order. (Relationship: Order 1:N OrderItem)"
-        },
-        "productVariantId": {
-          "type": "string",
-          "description": "Reference to ProductVariant. (Relationship: ProductVariant 1:N OrderItem)"
-        },
-        "quantity": {
-          "type": "number",
-          "description": "Quantity of the product variant in the order item."
-        },
-        "unitPrice": {
-          "type": "number",
-          "description": "Unit price of the product variant at the time of the order."
-        }
-      },
-      "required": [
-        "id",
-        "orderId",
-        "productVariantId",
-        "quantity",
-        "unitPrice"
-      ]
+        "required": ["customer", "items", "total", "status", "createdAt"]
     },
-    "Review": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Review",
-      "type": "object",
-      "description": "Represents a product review submitted by a user.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the review."
+    "StoreSettings": {
+        "title": "Store Settings",
+        "type": "object",
+        "properties": {
+            "storeName": {"type": "string"},
+            "contactEmail": {"type": "string", "format": "email"},
+            "defaultCurrency": {"type": "string"},
+            "defaultLanguage": {"type": "string"}
         },
-        "userId": {
-          "type": "string",
-          "description": "Reference to User. (Relationship: User 1:N Review)"
-        },
-        "productId": {
-          "type": "string",
-          "description": "Reference to Product. (Relationship: Product 1:N Review)"
-        },
-        "rating": {
-          "type": "number",
-          "description": "Rating given by the user (1-5)."
-        },
-        "comment": {
-          "type": "string",
-          "description": "Comment provided by the user in the review."
-        },
-        "reviewDate": {
-          "type": "string",
-          "description": "Date and time when the review was submitted.",
-          "format": "date-time"
-        }
-      },
-      "required": [
-        "id",
-        "userId",
-        "productId",
-        "rating",
-        "comment",
-        "reviewDate"
-      ]
+        "required": ["storeName", "contactEmail", "defaultCurrency", "defaultLanguage"]
     }
   },
   "auth": {
     "providers": [
-      "password",
       "anonymous"
     ]
   },
   "firestore": {
-    "structure": [
-      {
-        "path": "/users/{userId}",
-        "definition": {
-          "entityName": "User",
-          "schema": {
-            "$ref": "#/backend/entities/User"
-          },
-          "description": "Stores user profiles. Uses path-based ownership for private user data.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier for the user."
-            }
-          ]
-        }
+    "/users/{userId}": {
+      "schema": {
+        "$ref": "#/entities/UserProfile"
       },
-      {
-        "path": "/products/{productId}",
-        "definition": {
-          "entityName": "Product",
-          "schema": {
-            "$ref": "#/backend/entities/Product"
-          },
-          "description": "Stores product information. Allows for listing all products.",
-          "params": [
-            {
-              "name": "productId",
-              "description": "The unique identifier for the product."
-            }
-          ]
-        }
+      "description": "Stores user profiles."
+    },
+    "/products/{productId}": {
+      "schema": {
+        "$ref": "#/entities/Product"
       },
-      {
-        "path": "/productVariants/{productVariantId}",
-        "definition": {
-          "entityName": "ProductVariant",
-          "schema": {
-            "$ref": "#/backend/entities/ProductVariant"
-          },
-          "description": "Stores product variants. Allows for listing all product variants.",
-          "params": [
-            {
-              "name": "productVariantId",
-              "description": "The unique identifier for the product variant."
-            }
-          ]
-        }
+      "description": "Stores all product information. Publicly readable."
+    },
+    "/categories/{categoryId}": {
+      "schema": {
+        "$ref": "#/entities/Category"
       },
-      {
-        "path": "/users/{userId}/orders/{orderId}",
-        "definition": {
-          "entityName": "Order",
-          "schema": {
-            "$ref": "#/backend/entities/Order"
-          },
-          "description": "Stores orders associated with a user. Uses path-based ownership.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier for the user."
-            },
-            {
-              "name": "orderId",
-              "description": "The unique identifier for the order."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/users/{userId}/orders/{orderId}/orderItems/{orderItemId}",
-        "definition": {
-          "entityName": "OrderItem",
-          "schema": {
-            "$ref": "#/backend/entities/OrderItem"
-          },
-          "description": "Stores order items associated with an order. Uses path-based ownership.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier for the user."
-            },
-            {
-              "name": "orderId",
-              "description": "The unique identifier for the order."
-            },
-            {
-              "name": "orderItemId",
-              "description": "The unique identifier for the order item."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/reviews/{reviewId}",
-        "definition": {
-          "entityName": "Review",
-          "schema": {
-            "$ref": "#/backend/entities/Review"
-          },
-          "description": "Stores product reviews. Allows for listing all reviews.",
-          "params": [
-            {
-              "name": "reviewId",
-              "description": "The unique identifier for the review."
-            }
-          ]
-        }
-      }
-    ],
-    "reasoning": "The Firestore structure is designed to support the Danny Store e-commerce platform, focusing on products, orders, user reviews, and virtual try-on features. The primary goal is to create a structure that is secure, scalable, and easy to manage with clear authorization rules. The design emphasizes Authorization Independence to avoid complex hierarchical authorization and ensure atomic operations.\n\n1.  **Authorization Independence and QAPs:**\n\n    *   User-owned data (orders, reviews) is placed under `/users/{userId}` to leverage path-based security. This avoids `get()` calls and makes ownership clear.\n    *   Product data and product variant data are stored in a flat collections `/products` and `/productVariants` allowing for performant listing and easy filtering.\n\n2.  **Data Segregation:**\n\n    *   Reviews are stored in `/reviews/{reviewId}` rather than nested under `/products/{productId}/reviews/{reviewId}` to simplify listing reviews across all products and enables QAPs.\n\n3.  **Membership Map (Not Applicable):**\n\n    *   Since there are no collaborative data structures, a membership map is not required.\n\n\n4. **DBAC (No Custom Claims):** Roles are not specified, assuming that authorization relies solely on `request.auth.uid` and path-based ownership.\n\n5. **Virtual Try-On limitations:** Because of the limitation of the free plan on Google Cloud Storage, Virtual Try-On user generated images will be stored in the client. In a future release, with a paid plan, the images will be stored in a dedicated bucket.\n"
+      "description": "Stores product categories. Publicly readable."
+    },
+    "/subcategories/{subcategoryId}": {
+        "schema": { "$ref": "#/entities/SubCategory" },
+        "description": "Stores product sub-categories. Publicly readable."
+    },
+    "/orders/{orderId}": {
+        "schema": { "$ref": "#/entities/Order" },
+        "description": "Stores customer orders. Should only be readable by admins."
+    },
+    "/settings/storeConfig": {
+        "schema": { "$ref": "#/entities/StoreSettings" },
+        "description": "Stores global settings for the store. Should only be writable by admins."
+    }
   }
 }
