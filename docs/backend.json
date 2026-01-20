@@ -238,6 +238,27 @@
         "comment",
         "reviewDate"
       ]
+    },
+    "SubCategory": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "SubCategory",
+      "type": "object",
+      "description": "Represents a sub-category for products, linked to a parent category.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the SubCategory entity."
+        },
+        "nameKey": {
+          "type": "string",
+          "description": "The name of the sub-category (or a translation key)."
+        },
+        "parentCategory": {
+          "type": "string",
+          "description": "The ID of the parent Category."
+        }
+      },
+      "required": ["id", "nameKey", "parentCategory"]
     }
   },
   "auth": {
@@ -363,8 +384,24 @@
             }
           ]
         }
+      },
+      {
+        "path": "/subcategories/{subcategoryId}",
+        "definition": {
+          "entityName": "SubCategory",
+          "schema": {
+            "$ref": "#/backend/entities/SubCategory"
+          },
+          "description": "Stores all sub-categories. Publicly readable.",
+          "params": [
+            {
+              "name": "subcategoryId",
+              "description": "The unique identifier of the sub-category."
+            }
+          ]
+        }
       }
     ],
-    "reasoning": "The Firestore structure is designed to adhere to the principles of Authorization Independence, Structural Segregation, Access Modeling, and Data Clarity.  Authorization Independence is achieved by avoiding `get()` calls in security rules.  Path-based ownership is used for private user data. For collaborative data, a membership map (`members`) is used and denormalized where needed.\n\n**Explanation of Paths:**\n\n*   **/users/{userId}**: Stores user profiles. Uses path-based ownership, ensuring only the authenticated user can access their own profile.\n*   **/products/{productId}**: Stores product information. Publicly accessible, so no specific authorization data is stored here.\n*   **/products/{productId}/variants/{variantId}**: Stores product variants. Child of product. Publicly accessible.\n*   **/users/{userId}/orders/{orderId}**: Stores orders for each user, ensuring only the user can access their orders. Path based ownership. \n*   **/users/{userId}/orders/{orderId}/items/{itemId}**: Stores order items for a specific order. Again path-based ownership.\n*   **/products/{productId}/reviews/{reviewId}**: Stores reviews for each product.  Uses path-based ownership to ensure only the user can create/modify their own review.\n\nThis structure supports the required QAPs. Secure `list` operations are enabled via structural segregation (separate collections for different access needs) and path-based ownership."
+    "reasoning": "The Firestore structure is designed to adhere to the principles of Authorization Independence, Structural Segregation, Access Modeling, and Data Clarity.  Authorization Independence is achieved by avoiding `get()` calls in security rules.  Path-based ownership is used for private user data. For collaborative data, a membership map (`members`) is used and denormalized where needed.\n\n**Explanation of Paths:**\n\n*   **/users/{userId}**: Stores user profiles. Uses path-based ownership, ensuring only the authenticated user can access their own profile.\n*   **/products/{productId}**: Stores product information. Publicly accessible, so no specific authorization data is stored here.\n*   **/products/{productId}/variants/{variantId}**: Stores product variants. Child of product. Publicly accessible.\n*   **/users/{userId}/orders/{orderId}**: Stores orders for each user, ensuring only the user can access their orders. Path based ownership. \n*   **/users/{userId}/orders/{orderId}/items/{itemId}**: Stores order items for a specific order. Again path-based ownership.\n*   **/products/{productId}/reviews/{reviewId}**: Stores reviews for each product.  Uses path-based ownership to ensure only the user can create/modify their own review.\n*   **/subcategories/{subcategoryId}**: Stores sub-categories. Publicly readable by all users, writable only by admins.\n\nThis structure supports the required QAPs. Secure `list` operations are enabled via structural segregation (separate collections for different access needs) and path-based ownership."
   }
 }
