@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
 import { collection } from 'firebase/firestore';
 import type { Product, Category } from '@/lib/types';
-import { DollarSign, Package, Shapes, PlusCircle, ExternalLink } from 'lucide-react';
+import { Package, Shapes, PlusCircle, ExternalLink } from 'lucide-react';
 import { formatPrice } from '@/lib/utils';
 import { useCurrency } from '@/hooks/use-currency';
 import { useLanguage } from '@/hooks/use-language';
@@ -99,25 +99,14 @@ export default function AdminDashboard() {
                 </Button>
             </div>
         </div>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2">
         {isLoading ? (
             <>
-                <StatCardSkeleton />
                 <StatCardSkeleton />
                 <StatCardSkeleton />
             </>
         ) : (
             <>
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Revenu Total (Illustratif)</CardTitle>
-                    <DollarSign className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">$45,231.89</div>
-                    <p className="text-xs text-muted-foreground">+20.1% depuis le mois dernier</p>
-                  </CardContent>
-                </Card>
                  <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">Total des Produits</CardTitle>
