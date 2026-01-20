@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils';
 export const metadata: Metadata = {
   title: 'Danny Store',
   description: 'Premium lifestyle e-commerce for Haiti and the world.',
+  metadataBase: new URL('https://dannystore.com'),
   openGraph: {
     title: 'Danny Store',
     description: 'Premium lifestyle e-commerce for Haiti and the world.',

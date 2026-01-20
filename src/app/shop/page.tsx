@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import type { Product, Category } from '@/lib/types';
 import ProductCard from '@/components/ProductCard';
@@ -147,8 +147,42 @@ const Filters = ({ filters, setFilters, categories }: { filters: FilterState, se
     );
 };
 
+const ShopPageSkeleton = () => (
+    <div className="container mx-auto py-4 sm:py-8">
+      <div className="mb-8">
+        <Skeleton className="h-10 w-1/3" />
+        <Skeleton className="h-5 w-3/4 mt-2" />
+        <div className="mt-6 relative">
+            <Skeleton className="h-12 w-full" />
+        </div>
+      </div>
+      <div className="flex">
+        <aside className="hidden w-64 pr-8 lg:block">
+            <Skeleton className="h-8 w-24 mb-4" />
+            <div className="space-y-4">
+                <Skeleton className="h-24 w-full" />
+                <Skeleton className="h-24 w-full" />
+                <Skeleton className="h-24 w-full" />
+            </div>
+        </aside>
+        <main className="flex-1">
+          <div className="flex items-center justify-between mb-4">
+             <div className="lg:hidden">
+                <Skeleton className="h-10 w-10" />
+            </div>
+            <div className="flex-1" />
+            <Skeleton className="h-10 w-[180px]" />
+          </div>
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
+            {[...Array(8)].map((_, i) => <Skeleton key={i} className="h-[400px] w-full" />)}
+          </div>
+        </main>
+      </div>
+    </div>
+);
 
-export default function ShopPage() {
+
+function ShopPageContent() {
   const { t } = useLanguage();
   const searchParams = useSearchParams();
   const categoryParam = searchParams.get('category');
@@ -297,4 +331,12 @@ export default function ShopPage() {
       </div>
     </div>
   );
+}
+
+export default function ShopPage() {
+    return (
+        <Suspense fallback={<ShopPageSkeleton />}>
+            <ShopPageContent />
+        </Suspense>
+    )
 }
