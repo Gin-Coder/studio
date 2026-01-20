@@ -137,31 +137,35 @@
           "type": "string",
           "description": "Unique identifier for the Order entity."
         },
-        "userId": {
-          "type": "string",
-          "description": "Reference to User. (Relationship: User 1:N Order)"
+        "customer": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "email": {
+              "type": "string",
+              "format": "email"
+            }
+          }
         },
-        "orderDate": {
-          "type": "string",
-          "description": "Date and time when the order was placed.",
-          "format": "date-time"
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/backend/entities/OrderItem"
+          }
         },
-        "totalAmount": {
-          "type": "number",
-          "description": "Total amount of the order."
+        "total": {
+          "type": "number"
         },
         "status": {
+          "type": "string"
+        },
+        "createdAt": {
           "type": "string",
-          "description": "Status of the order (e.g., pending, processing, shipped, delivered)."
+          "format": "date-time"
         }
-      },
-      "required": [
-        "id",
-        "userId",
-        "orderDate",
-        "totalAmount",
-        "status"
-      ]
+      }
     },
     "OrderItem": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -169,34 +173,22 @@
       "type": "object",
       "description": "Represents an item within an order.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the OrderItem entity."
+        "productId": {
+          "type": "string"
         },
-        "orderId": {
-          "type": "string",
-          "description": "Reference to Order. (Relationship: Order 1:N OrderItem)"
+        "variantId": {
+          "type": "string"
         },
-        "productVariantId": {
-          "type": "string",
-          "description": "Reference to ProductVariant. (Relationship: ProductVariant 1:N OrderItem)"
+        "name": {
+          "type": "string"
         },
         "quantity": {
-          "type": "number",
-          "description": "Quantity of the product variant in the order."
+          "type": "number"
         },
         "price": {
-          "type": "number",
-          "description": "Price of the product variant at the time of the order."
+          "type": "number"
         }
-      },
-      "required": [
-        "id",
-        "orderId",
-        "productVariantId",
-        "quantity",
-        "price"
-      ]
+      }
     },
     "Review": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -239,6 +231,36 @@
         "reviewDate"
       ]
     },
+    "Category": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Category",
+      "type": "object",
+      "description": "Represents a product category.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Category entity (slugified name)."
+        },
+        "nameKey": {
+          "type": "string",
+          "description": "The name of the category (or a translation key)."
+        },
+        "imageUrl": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL for the category's representative image."
+        },
+        "imageHint": {
+          "type": "string",
+          "description": "A hint for AI image search."
+        }
+      },
+      "required": [
+        "id",
+        "nameKey",
+        "imageUrl"
+      ]
+    },
     "SubCategory": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "SubCategory",
@@ -258,7 +280,32 @@
           "description": "The ID of the parent Category."
         }
       },
-      "required": ["id", "nameKey", "parentCategory"]
+      "required": [
+        "id",
+        "nameKey",
+        "parentCategory"
+      ]
+    },
+    "StoreSettings": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "StoreSettings",
+      "type": "object",
+      "description": "Holds global settings for the store.",
+      "properties": {
+        "storeName": {
+          "type": "string"
+        },
+        "contactEmail": {
+          "type": "string",
+          "format": "email"
+        },
+        "defaultCurrency": {
+          "type": "string"
+        },
+        "defaultLanguage": {
+          "type": "string"
+        }
+      }
     }
   },
   "auth": {
@@ -276,7 +323,7 @@
           "schema": {
             "$ref": "#/backend/entities/User"
           },
-          "description": "Stores user profiles.  Uses path-based ownership. User can only access their own profile.",
+          "description": "Stores user profiles. Uses path-based ownership. User can only access their own profile.",
           "params": [
             {
               "name": "userId",
@@ -302,65 +349,49 @@
         }
       },
       {
-        "path": "/products/{productId}/variants/{variantId}",
+        "path": "/categories/{categoryId}",
         "definition": {
-          "entityName": "ProductVariant",
+          "entityName": "Category",
           "schema": {
-            "$ref": "#/backend/entities/ProductVariant"
+            "$ref": "#/backend/entities/Category"
           },
-          "description": "Stores product variants. Publicly accessible.",
+          "description": "Stores product categories. Publicly accessible for read operations, admin-only for writes.",
           "params": [
             {
-              "name": "productId",
-              "description": "The unique identifier of the parent product."
-            },
-            {
-              "name": "variantId",
-              "description": "The unique identifier of the product variant."
+              "name": "categoryId",
+              "description": "The unique identifier for the category."
             }
           ]
         }
       },
       {
-        "path": "/users/{userId}/orders/{orderId}",
+        "path": "/subcategories/{subcategoryId}",
+        "definition": {
+          "entityName": "SubCategory",
+          "schema": {
+            "$ref": "#/backend/entities/SubCategory"
+          },
+          "description": "Stores product sub-categories. Publicly accessible for read operations, admin-only for writes.",
+          "params": [
+            {
+              "name": "subcategoryId",
+              "description": "The unique identifier for the sub-category."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/orders/{orderId}",
         "definition": {
           "entityName": "Order",
           "schema": {
             "$ref": "#/backend/entities/Order"
           },
-          "description": "Stores orders for each user. Path-based ownership. User can only access their own orders.",
+          "description": "Stores all orders. Admin-only access.",
           "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier of the user."
-            },
             {
               "name": "orderId",
               "description": "The unique identifier of the order."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/users/{userId}/orders/{orderId}/items/{itemId}",
-        "definition": {
-          "entityName": "OrderItem",
-          "schema": {
-            "$ref": "#/backend/entities/OrderItem"
-          },
-          "description": "Stores order items for a specific order. Path-based ownership.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier of the user."
-            },
-            {
-              "name": "orderId",
-              "description": "The unique identifier of the order."
-            },
-            {
-              "name": "itemId",
-              "description": "The unique identifier of the order item."
             }
           ]
         }
@@ -372,7 +403,7 @@
           "schema": {
             "$ref": "#/backend/entities/Review"
           },
-          "description": "Stores reviews for each product. Path-based ownership. Users can only create and modify their own reviews.",
+          "description": "Stores reviews for each product. Users can create/modify their own reviews.",
           "params": [
             {
               "name": "productId",
@@ -386,22 +417,22 @@
         }
       },
       {
-        "path": "/subcategories/{subcategoryId}",
+        "path": "/settings/{configId}",
         "definition": {
-          "entityName": "SubCategory",
+          "entityName": "StoreSettings",
           "schema": {
-            "$ref": "#/backend/entities/SubCategory"
+            "$ref": "#/backend/entities/StoreSettings"
           },
-          "description": "Stores all sub-categories. Publicly readable.",
+          "description": "Stores global configuration. Publicly readable, admin-only for writes.",
           "params": [
             {
-              "name": "subcategoryId",
-              "description": "The unique identifier of the sub-category."
+              "name": "configId",
+              "description": "The ID of the configuration document (e.g., 'storeConfig')."
             }
           ]
         }
       }
     ],
-    "reasoning": "The Firestore structure is designed to adhere to the principles of Authorization Independence, Structural Segregation, Access Modeling, and Data Clarity.  Authorization Independence is achieved by avoiding `get()` calls in security rules.  Path-based ownership is used for private user data. For collaborative data, a membership map (`members`) is used and denormalized where needed.\n\n**Explanation of Paths:**\n\n*   **/users/{userId}**: Stores user profiles. Uses path-based ownership, ensuring only the authenticated user can access their own profile.\n*   **/products/{productId}**: Stores product information. Publicly accessible, so no specific authorization data is stored here.\n*   **/products/{productId}/variants/{variantId}**: Stores product variants. Child of product. Publicly accessible.\n*   **/users/{userId}/orders/{orderId}**: Stores orders for each user, ensuring only the user can access their orders. Path based ownership. \n*   **/users/{userId}/orders/{orderId}/items/{itemId}**: Stores order items for a specific order. Again path-based ownership.\n*   **/products/{productId}/reviews/{reviewId}**: Stores reviews for each product.  Uses path-based ownership to ensure only the user can create/modify their own review.\n*   **/subcategories/{subcategoryId}**: Stores sub-categories. Publicly readable by all users, writable only by admins.\n\nThis structure supports the required QAPs. Secure `list` operations are enabled via structural segregation (separate collections for different access needs) and path-based ownership."
+    "reasoning": "The Firestore structure is updated to be consistent with the application's data models and access patterns. Public collections like 'products', 'categories', and 'subcategories' are marked as publicly accessible for reads. Admin-centric data like 'orders' and 'settings' are defined for admin-only write access. User-specific data remains under the '/users/{userId}' path to enforce ownership-based security."
   }
 }
