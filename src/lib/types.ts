@@ -83,3 +83,38 @@ export type SavedOutfit = {
   items: Product[];
   imageUrl: string;
 };
+
+export type Address = {
+    street: string;
+    city: string;
+    country: string;
+};
+
+export type OrderItem = {
+    productId: string;
+    variantId: string;
+    name: string;
+    quantity: number;
+    price: number; // Price at the time of purchase
+};
+
+export type Order = {
+    id: string;
+    customer: {
+        name: string;
+        email: string;
+        phone?: string;
+        address?: Address;
+    };
+    items: OrderItem[];
+    total: number;
+    status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+    createdAt: any; // Firestore Timestamp
+};
+
+export type StoreSettings = {
+    storeName: string;
+    contactEmail: string;
+    defaultCurrency: Currency;
+    defaultLanguage: Language;
+};

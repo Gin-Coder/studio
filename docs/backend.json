@@ -32,18 +32,10 @@
             "required": ["id", "size", "color", "colorName", "stock"]
           }
         },
-        "createdAt": {
-          "type": "string",
-          "format": "date-time",
-          "description": "The date and time the product was created."
-        },
-        "updatedAt": {
-          "type": "string",
-          "format": "date-time",
-          "description": "The date and time the product was last updated."
-        }
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["name", "slug", "price", "category", "status"]
+      "required": ["name", "slug", "price", "category", "status", "createdAt", "updatedAt"]
     },
     "Category": {
       "title": "Category",
@@ -55,6 +47,67 @@
         "imageUrl": { "type": "string" }
       },
       "required": ["nameKey", "imageUrl"]
+    },
+    "Order": {
+        "title": "Order",
+        "description": "A customer order.",
+        "type": "object",
+        "properties": {
+            "customer": {
+                "type": "object",
+                "properties": {
+                    "name": { "type": "string" },
+                    "email": { "type": "string" },
+                    "phone": { "type": "string" },
+                    "address": { "$ref": "#/entities/Address" }
+                },
+                "required": ["name", "email"]
+            },
+            "items": {
+                "type": "array",
+                "items": { "$ref": "#/entities/OrderItem" }
+            },
+            "total": { "type": "number" },
+            "status": { "type": "string", "enum": ["pending", "processing", "shipped", "delivered", "cancelled"] },
+            "createdAt": { "type": "string", "format": "date-time" }
+        },
+        "required": ["customer", "items", "total", "status", "createdAt"]
+    },
+    "OrderItem": {
+        "title": "Order Item",
+        "description": "An item within an order.",
+        "type": "object",
+        "properties": {
+            "productId": { "type": "string" },
+            "variantId": { "type": "string" },
+            "name": { "type": "string" },
+            "quantity": { "type": "number" },
+            "price": { "type": "number" }
+        },
+        "required": ["productId", "variantId", "name", "quantity", "price"]
+    },
+    "Address": {
+        "title": "Address",
+        "description": "A shipping or billing address.",
+        "type": "object",
+        "properties": {
+            "street": { "type": "string" },
+            "city": { "type": "string" },
+            "country": { "type": "string" }
+        },
+        "required": ["street", "city", "country"]
+    },
+    "StoreSettings": {
+      "title": "Store Settings",
+      "description": "General settings for the e-commerce store.",
+      "type": "object",
+      "properties": {
+        "storeName": { "type": "string" },
+        "contactEmail": { "type": "string", "format": "email" },
+        "defaultCurrency": { "type": "string", "enum": ["USD", "EUR", "HTG"] },
+        "defaultLanguage": { "type": "string", "enum": ["en", "fr", "ht"] }
+      },
+      "required": ["storeName", "contactEmail", "defaultCurrency", "defaultLanguage"]
     }
   },
   "auth": {
@@ -68,6 +121,14 @@
     "/categories/{categoryId}": {
       "schema": { "$ref": "#/entities/Category" },
       "description": "Stores product category documents."
+    },
+    "/orders/{orderId}": {
+      "schema": { "$ref": "#/entities/Order" },
+      "description": "Stores customer order documents."
+    },
+    "/settings/storeConfig": {
+        "schema": { "$ref": "#/entities/StoreSettings" },
+        "description": "Stores the single configuration document for the store."
     }
   }
 }
