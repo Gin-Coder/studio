@@ -77,8 +77,8 @@ export default function Header() {
     setIsMounted(true);
   }, []);
   
-  // Don't render header on admin pages
-  if (pathname.startsWith('/admin')) {
+  // Don't render header on admin or login pages
+  if (pathname.startsWith('/admin') || pathname.startsWith('/login')) {
     return null;
   }
   
@@ -147,9 +147,6 @@ export default function Header() {
               <Logo />
               <span className="font-headline text-lg font-bold text-primary">Danny Store</span>
             </Link>
-            <nav className="flex items-center space-x-1 text-sm font-medium">
-              <NavLinks />
-            </nav>
           </div>
         </div>
 
