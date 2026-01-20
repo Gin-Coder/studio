@@ -208,6 +208,13 @@ function ShopPageContent() {
     setSearchQuery(searchParam || '');
   }, [searchParam]);
 
+  useEffect(() => {
+    setFilters(prev => ({
+        ...prev,
+        categories: categoryParam ? [categoryParam] : []
+    }));
+  }, [categoryParam]);
+
   const categoryMap = useMemo(() => {
     if (!categories) return new Map<string, string>();
     return new Map(categories.map(cat => [cat.id, cat.nameKey]));
@@ -323,6 +330,11 @@ function ShopPageContent() {
                 <ProductCard key={product.id} product={product} categoryMap={categoryMap} />
               ))}
             </div>
+          )}
+          {!isLoading && sortedProducts.length === 0 && (
+              <div className="col-span-full text-center py-16">
+                  <p className="text-muted-foreground">{t('search.no_results')}</p>
+              </div>
           )}
           <div className="mt-8 flex justify-center">
             <Button variant="outline" disabled>{t('shop.load_more')}</Button>

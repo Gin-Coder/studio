@@ -43,18 +43,26 @@ const CategoryNavContent = () => {
 
     const getCategoryDisplayName = (category: Category) => {
         const key = category.nameKey;
+        // If the key is already a translation key (e.g., 'filter.shoes'), just translate it.
         if (key && key.includes('.')) {
             return t(key);
         }
         
+        // Otherwise, it might be a literal name like "Shoes", possibly with typos.
+        // Let's try to find if this literal name corresponds to a key in the English dictionary.
         const enDict = dictionaries['en'];
         const lowerKey = key ? key.toLowerCase() : '';
         if (!lowerKey) return '';
 
+        // Only search within category translation keys to avoid unrelated matches
         const categoryKeys = Object.keys(enDict).filter(k => k.startsWith('filter.'));
 
         const foundKey = categoryKeys.find(k => {
             const dictValueLower = enDict[k].toLowerCase();
+            
+            // Use startsWith and a length check to make matching more robust against typos
+            // without being too greedy. One must be a prefix of the other, and their lengths
+            // should be similar (e.g., at least 80% of each other).
             const lengthRatio = Math.min(lowerKey.length, dictValueLower.length) / Math.max(lowerKey.length, dictValueLower.length);
 
             if (lengthRatio >= 0.8) {
@@ -65,10 +73,13 @@ const CategoryNavContent = () => {
             return false;
         });
 
+        // If we found a key (e.g., 'filter.shoes' for 'Shoe'), translate that key.
         if (foundKey) {
             return t(foundKey);
         }
         
+        // If no key was found, it's probably a user-created category.
+        // The t() function will just return the key itself if no translation is found.
         return t(key);
     };
     
@@ -79,7 +90,7 @@ const CategoryNavContent = () => {
 
     return (
         <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm sticky top-[64px] z-40">
-            <div className="container mx-auto flex h-12 items-center justify-start px-4">
+            <div className="container mx-auto flex h-12 items-center justify-center md:justify-start px-4">
                 <div className="flex items-center -ml-4 overflow-x-auto no-scrollbar">
                     {isLoading ? (
                         <div className="flex items-center space-x-8 pl-4">
