@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { Home, ShoppingCart, FileText, Settings, LogOut, PanelLeft, ExternalLink, Shapes, ClipboardList, Warehouse, Spline } from 'lucide-react';
+import { Home, ShoppingCart, FileText, Settings, LogOut, PanelLeft, ExternalLink, Shapes, ClipboardList, Warehouse, Spline, Network } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -16,6 +16,7 @@ const AdminSidebarNav = () => {
         { href: '/admin', label: 'Tableau de bord', icon: Home },
         { href: '/admin/products', label: 'Produits', icon: ShoppingCart },
         { href: '/admin/categories', label: 'Catégories', icon: Shapes },
+        { href: '/admin/subcategories', label: 'Sous-catégories', icon: Network },
         { href: '/admin/pages', label: 'Pages', icon: FileText },
         { href: '/admin/settings', label: 'Paramètres', icon: Settings },
         { href: '/admin/orders', label: 'Gestion des commandes', icon: ClipboardList },

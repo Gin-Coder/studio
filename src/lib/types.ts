@@ -11,6 +11,7 @@ export type Product = {
   imageHints: string[];
   price: number;
   category: string;
+  subCategory: string;
   tags: string[];
   variants: Variant[];
   rating: number;
@@ -34,6 +35,12 @@ export type Category = {
   nameKey: string;
   imageUrl: string;
   imageHint: string;
+};
+
+export type SubCategory = {
+  id: string;
+  nameKey: string;
+  parentCategory: string;
 };
 
 export type Review = {

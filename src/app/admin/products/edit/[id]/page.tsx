@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter, useParams, notFound } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -17,7 +17,7 @@ import { useLanguage } from '@/hooks/use-language';
 import { useToast } from '@/hooks/use-toast';
 import { useCollection, useDoc, useFirestore, useMemoFirebase, errorEmitter, FirestorePermissionError } from '@/firebase';
 import { collection, doc, setDoc, serverTimestamp } from 'firebase/firestore';
-import type { Category, Product } from '@/lib/types';
+import type { Category, Product, SubCategory } from '@/lib/types';
 import { getStorage, ref, uploadString, getDownloadURL } from 'firebase/storage';
 import { slugify, stringToColor } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -70,6 +70,9 @@ export default function EditProductPage() {
     const categoriesQuery = useMemoFirebase(() => (firestore ? collection(firestore, 'categories') : null), [firestore]);
     const { data: categories, isLoading: isLoadingCategories } = useCollection<Category>(categoriesQuery);
 
+    const subCategoriesQuery = useMemoFirebase(() => (firestore ? collection(firestore, 'subcategories') : null), [firestore]);
+    const { data: subCategories, isLoading: isLoadingSubCategories } = useCollection<SubCategory>(subCategoriesQuery);
+
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
     const [longDescription, setLongDescription] = useState('');
@@ -77,6 +80,7 @@ export default function EditProductPage() {
     const [imageUrl, setImageUrl] = useState('');
     const [status, setStatus] = useState('draft');
     const [categoryId, setCategoryId] = useState('');
+    const [subCategoryId, setSubCategoryId] = useState('');
     const [price, setPrice] = useState('');
     const [priceCurrency, setPriceCurrency] = useState('USD');
     
@@ -94,6 +98,7 @@ export default function EditProductPage() {
             setPriceCurrency('USD');
             setStatus(product.status);
             setCategoryId(product.category);
+            setSubCategoryId(product.subCategory || '');
             setImageUrl(product.images[0] || '');
             setVariants(product.variants.map((v, i) => ({
                 id: i, // Use index as a simple key
@@ -104,6 +109,18 @@ export default function EditProductPage() {
             })));
         }
     }, [product]);
+    
+    const availableSubCategories = useMemo(() => {
+        if (!categoryId || !subCategories) return [];
+        return subCategories.filter(sc => sc.parentCategory === categoryId);
+    }, [categoryId, subCategories]);
+
+    useEffect(() => {
+        // If the current subcategory doesn't belong to the new category, reset it
+        if (subCategoryId && !availableSubCategories.some(sc => sc.id === subCategoryId)) {
+            setSubCategoryId('');
+        }
+    }, [categoryId, subCategoryId, availableSubCategories]);
 
     const handleVariantChange = (index: number, field: keyof Omit<VariantFormState, 'id'>, value: string) => {
         const newVariants = [...variants];
@@ -173,8 +190,8 @@ export default function EditProductPage() {
 
 
     const handleSaveProduct = async () => {
-        if (!firestore || !name || !price || !categoryId) {
-            toast({ variant: "destructive", title: "Champs requis manquants", description: "Veuillez remplir le nom, le prix et la catégorie." });
+        if (!firestore || !name || !price || !categoryId || !subCategoryId) {
+            toast({ variant: "destructive", title: "Champs requis manquants", description: "Veuillez remplir le nom, le prix, la catégorie et la sous-catégorie." });
             return;
         }
         setIsSaving(true);
@@ -212,11 +229,12 @@ export default function EditProductPage() {
                 longDescription: longDescription,
                 price: priceInUSD,
                 category: categoryId,
+                subCategory: subCategoryId,
                 status,
                 variants: finalVariants,
                 images: [finalImageUrl, ...finalVariants.map(v => v.imageUrl).filter(Boolean)],
                 imageHints: ['user uploaded'],
-                tags: [categoryId],
+                tags: [categoryId, subCategoryId],
                 updatedAt: serverTimestamp(),
             };
             
@@ -468,6 +486,17 @@ export default function EditProductPage() {
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {categories?.map(cat => ( <SelectItem key={cat.id} value={cat.id}>{t(cat.nameKey)}</SelectItem> ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div className="grid gap-3">
+                                            <Label htmlFor="subcategory">Sous-catégorie</Label>
+                                            <Select value={subCategoryId} onValueChange={setSubCategoryId} disabled={!categoryId || isLoadingSubCategories}>
+                                                <SelectTrigger id="subcategory" aria-label="Sélectionner une sous-catégorie">
+                                                    <SelectValue placeholder={!categoryId ? "Choisissez d'abord une catégorie" : "Sélectionner une sous-catégorie"} />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {availableSubCategories.map(sc => ( <SelectItem key={sc.id} value={sc.id}>{t(sc.nameKey)}</SelectItem> ))}
                                                 </SelectContent>
                                             </Select>
                                         </div>

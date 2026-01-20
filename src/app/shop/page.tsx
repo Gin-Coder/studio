@@ -3,7 +3,7 @@
 
 import { useState, useMemo, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import type { Product, Category } from '@/lib/types';
+import type { Product, Category, SubCategory } from '@/lib/types';
 import ProductCard from '@/components/ProductCard';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetTrigger } from '@/components/ui/sheet';
@@ -27,12 +27,13 @@ const uniqueColors = ['White', 'Black', 'Blue', 'Gray', 'Brown', 'Gold'];
 
 type FilterState = {
     categories: string[];
+    subCategories: string[];
     price: number;
     sizes: string[];
     colors: string[];
 }
 
-const Filters = ({ filters, setFilters, categories }: { filters: FilterState, setFilters: React.Dispatch<React.SetStateAction<FilterState>>, categories: Category[] | null }) => {
+const Filters = ({ filters, setFilters, categories, subCategories }: { filters: FilterState, setFilters: React.Dispatch<React.SetStateAction<FilterState>>, categories: Category[] | null, subCategories: SubCategory[] | null }) => {
     const { t, language } = useLanguage();
     const { currency, convertPrice } = useCurrency();
     
@@ -42,6 +43,15 @@ const Filters = ({ filters, setFilters, categories }: { filters: FilterState, se
             categories: checked
                 ? [...prev.categories, categoryId]
                 : prev.categories.filter(c => c !== categoryId)
+        }));
+    };
+
+    const handleSubCategoryChange = (subCategoryId: string, checked: boolean) => {
+        setFilters(prev => ({
+            ...prev,
+            subCategories: checked
+                ? [...prev.subCategories, subCategoryId]
+                : prev.subCategories.filter(sc => sc !== subCategoryId)
         }));
     };
 
@@ -85,6 +95,29 @@ const Filters = ({ filters, setFilters, categories }: { filters: FilterState, se
                                     className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                                 >
                                     {t(category.nameKey)}
+                                </label>
+                            </div>
+                        ))}
+                        </div>
+                    </AccordionContent>
+                </AccordionItem>
+                <AccordionItem value="subcategory">
+                    <AccordionTrigger>Sous-catégorie</AccordionTrigger>
+                    <AccordionContent>
+                        {!subCategories && <Loader2 className="h-5 w-5 animate-spin" />}
+                        <div className="grid gap-2">
+                        {subCategories?.map((sc) => (
+                             <div key={sc.id} className="flex items-center space-x-2">
+                                <Checkbox 
+                                    id={`sc-${sc.id}`} 
+                                    checked={filters.subCategories.includes(sc.id)}
+                                    onCheckedChange={(checked) => handleSubCategoryChange(sc.id, !!checked)}
+                                />
+                                <label
+                                    htmlFor={`sc-${sc.id}`}
+                                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                >
+                                    {t(sc.nameKey)}
                                 </label>
                             </div>
                         ))}
@@ -195,8 +228,12 @@ function ShopPageContent() {
   const categoriesQuery = useMemoFirebase(() => (firestore ? collection(firestore, 'categories') : null), [firestore]);
   const { data: categories, isLoading: isLoadingCategories } = useCollection<Category>(categoriesQuery);
   
+  const subCategoriesQuery = useMemoFirebase(() => (firestore ? collection(firestore, 'subcategories') : null), [firestore]);
+  const { data: subCategories, isLoading: isLoadingSubCategories } = useCollection<SubCategory>(subCategoriesQuery);
+  
   const [filters, setFilters] = useState<FilterState>({
     categories: categoryParam ? [categoryParam] : [],
+    subCategories: [],
     price: 500,
     sizes: [],
     colors: []
@@ -211,7 +248,8 @@ function ShopPageContent() {
   useEffect(() => {
     setFilters(prev => ({
         ...prev,
-        categories: categoryParam ? [categoryParam] : []
+        categories: categoryParam ? [categoryParam] : [],
+        subCategories: [], // Reset subcategories when main category changes
     }));
   }, [categoryParam]);
 
@@ -242,11 +280,12 @@ function ShopPageContent() {
                             product.tags.some(t => t.toLowerCase().includes(lowercasedQuery));
 
         const categoryMatch = filters.categories.length === 0 || filters.categories.includes(product.category);
+        const subCategoryMatch = filters.subCategories.length === 0 || filters.subCategories.includes(product.subCategory);
         const priceMatch = product.price <= filters.price;
         const sizeMatch = filters.sizes.length === 0 || product.variants.some(v => filters.sizes.includes(v.size));
         const colorMatch = filters.colors.length === 0 || product.variants.some(v => filters.colors.includes(v.colorName));
         
-        return searchMatch && categoryMatch && priceMatch && sizeMatch && colorMatch && product.status === 'published';
+        return searchMatch && categoryMatch && subCategoryMatch && priceMatch && sizeMatch && colorMatch && product.status === 'published';
     });
   }, [filters, products, searchQuery, categoryMap, t]);
 
@@ -261,7 +300,7 @@ function ShopPageContent() {
     return sorted;
   }, [filteredProducts, sortOption]);
 
-  const isLoading = isLoadingProducts || isLoadingCategories;
+  const isLoading = isLoadingProducts || isLoadingCategories || isLoadingSubCategories;
 
   return (
     <div className="container mx-auto py-4 sm:py-8">
@@ -282,7 +321,7 @@ function ShopPageContent() {
       <div className="flex">
         <aside className="hidden w-64 pr-8 lg:block">
             <h2 className="text-xl font-headline font-semibold mb-4">{t('shop.filters')}</h2>
-            <Filters filters={filters} setFilters={setFilters} categories={categories} />
+            <Filters filters={filters} setFilters={setFilters} categories={categories} subCategories={subCategories} />
         </aside>
         <main className="flex-1">
           <div className="flex items-center justify-between mb-4">
@@ -302,7 +341,7 @@ function ShopPageContent() {
                         </SheetDescription>
                     </SheetHeader>
                   <ScrollArea className="h-full pr-4 mt-4">
-                    <Filters filters={filters} setFilters={setFilters} categories={categories} />
+                    <Filters filters={filters} setFilters={setFilters} categories={categories} subCategories={subCategories} />
                   </ScrollArea>
                 </SheetContent>
               </Sheet>

@@ -12,6 +12,7 @@
         "price": { "type": "number" },
         "status": { "type": "string", "enum": ["draft", "published", "archived"] },
         "category": { "type": "string" },
+        "subCategory": { "type": "string", "description": "Reference to the sub-category ID." },
         "images": { "type": "array", "items": { "type": "string" } },
         "imageHints": { "type": "array", "items": { "type": "string" } },
         "rating": { "type": "number" },
@@ -35,7 +36,7 @@
         "createdAt": { "type": "string", "format": "date-time" },
         "updatedAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["name", "slug", "price", "category", "status", "createdAt", "updatedAt"]
+      "required": ["name", "slug", "price", "category", "subCategory", "status", "createdAt", "updatedAt"]
     },
     "Category": {
       "title": "Category",
@@ -47,6 +48,16 @@
         "imageUrl": { "type": "string" }
       },
       "required": ["nameKey", "imageUrl"]
+    },
+    "SubCategory": {
+      "title": "Sub-Category",
+      "description": "A sub-category for organizing products, belonging to a parent category.",
+      "type": "object",
+      "properties": {
+        "nameKey": { "type": "string" },
+        "parentCategory": { "type": "string", "description": "The ID of the parent category." }
+      },
+      "required": ["nameKey", "parentCategory"]
     },
     "Order": {
         "title": "Order",
@@ -121,6 +132,10 @@
     "/categories/{categoryId}": {
       "schema": { "$ref": "#/entities/Category" },
       "description": "Stores product category documents."
+    },
+    "/subcategories/{subCategoryId}": {
+      "schema": { "$ref": "#/entities/SubCategory" },
+      "description": "Stores product sub-category documents."
     },
     "/orders/{orderId}": {
       "schema": { "$ref": "#/entities/Order" },
