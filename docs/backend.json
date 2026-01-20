@@ -271,6 +271,42 @@
         "sessionDate",
         "tryonCount"
       ]
+    },
+    "Category": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Category",
+      "type": "object",
+      "description": "Represents a product category.",
+      "properties": {
+        "nameKey": { "type": "string" },
+        "imageUrl": { "type": "string", "format": "uri" },
+        "imageHint": { "type": "string" }
+      },
+      "required": ["nameKey", "imageUrl"]
+    },
+    "SubCategory": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "SubCategory",
+      "type": "object",
+      "description": "Represents a product sub-category.",
+      "properties": {
+        "nameKey": { "type": "string" },
+        "parentCategory": { "type": "string" }
+      },
+      "required": ["nameKey", "parentCategory"]
+    },
+    "StoreSettings": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "StoreSettings",
+      "type": "object",
+      "description": "Represents the store's global settings.",
+      "properties": {
+        "storeName": { "type": "string" },
+        "contactEmail": { "type": "string", "format": "email" },
+        "defaultCurrency": { "type": "string", "enum": ["USD", "EUR", "HTG"] },
+        "defaultLanguage": { "type": "string", "enum": ["en", "fr", "ht"] }
+      },
+      "required": ["storeName", "contactEmail", "defaultCurrency", "defaultLanguage"]
     }
   },
   "auth": {
@@ -284,136 +320,45 @@
       {
         "path": "/users/{userId}",
         "definition": {
-          "entityName": "user",
-          "schema": {
-            "$ref": "#/backend/entities/User"
-          },
-          "description": "Stores user profiles. Path-based ownership. All documents are owned by the user with ID {userId}.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier for the user."
-            }
-          ]
+          "schema": { "$ref": "#/backend/entities/User" },
+          "description": "Stores user profiles."
         }
       },
       {
         "path": "/products/{productId}",
         "definition": {
-          "entityName": "product",
-          "schema": {
-            "$ref": "#/backend/entities/Product"
-          },
-          "description": "Stores product catalog information.  This collection is publicly readable.",
-          "params": [
-            {
-              "name": "productId",
-              "description": "The unique identifier for the product."
-            }
-          ]
+          "schema": { "$ref": "#/backend/entities/Product" },
+          "description": "Stores product catalog information."
         }
       },
       {
-        "path": "/products/{productId}/variants/{variantId}",
+        "path": "/categories/{categoryId}",
         "definition": {
-          "entityName": "productVariant",
-          "schema": {
-            "$ref": "#/backend/entities/ProductVariant"
-          },
-          "description": "Stores product variants for a specific product.",
-          "params": [
-            {
-              "name": "productId",
-              "description": "The unique identifier for the product."
-            },
-            {
-              "name": "variantId",
-              "description": "The unique identifier for the product variant."
-            }
-          ]
+          "schema": { "$ref": "#/backend/entities/Category" },
+          "description": "Stores product categories. Publicly readable."
         }
       },
       {
-        "path": "/users/{userId}/orders/{orderId}",
+        "path": "/subcategories/{subcategoryId}",
         "definition": {
-          "entityName": "order",
-          "schema": {
-            "$ref": "#/backend/entities/Order"
-          },
-          "description": "Stores order information for each user. Path-based ownership.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier for the user."
-            },
-            {
-              "name": "orderId",
-              "description": "The unique identifier for the order."
-            }
-          ]
+          "schema": { "$ref": "#/backend/entities/SubCategory" },
+          "description": "Stores product sub-categories. Publicly readable."
         }
       },
       {
-        "path": "/orders/{orderId}/items/{itemId}",
+        "path": "/orders/{orderId}",
         "definition": {
-          "entityName": "orderItem",
-          "schema": {
-            "$ref": "#/backend/entities/OrderItem"
-          },
-          "description": "Stores items within an order.",
-          "params": [
-            {
-              "name": "orderId",
-              "description": "The unique identifier for the order."
-            },
-            {
-              "name": "itemId",
-              "description": "The unique identifier for the order item."
-            }
-          ]
+          "schema": { "$ref": "#/backend/entities/Order" },
+          "description": "Stores order information."
         }
       },
       {
-        "path": "/products/{productId}/reviews/{reviewId}",
+        "path": "/settings/{settingsId}",
         "definition": {
-          "entityName": "productReview",
-          "schema": {
-            "$ref": "#/backend/entities/ProductReview"
-          },
-          "description": "Stores product reviews.",
-          "params": [
-            {
-              "name": "productId",
-              "description": "The unique identifier for the product."
-            },
-            {
-              "name": "reviewId",
-              "description": "The unique identifier for the product review."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/users/{userId}/tryon_sessions/{sessionId}",
-        "definition": {
-          "entityName": "virtualTryOnSession",
-          "schema": {
-            "$ref": "#/backend/entities/VirtualTryOnSession"
-          },
-          "description": "Stores virtual try-on sessions.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier for the user."
-            },
-            {
-              "name": "sessionId",
-              "description": "The unique identifier for the try-on session."
-            }
-          ]
+          "schema": { "$ref": "#/backend/entities/StoreSettings" },
+          "description": "Stores global store settings. Should only contain a single document, e.g., 'storeConfig'."
         }
       }
-    ],
-    "reasoning": "The Firestore structure is designed to ensure security, scalability, and ease of debugging, following the principles of Authorization Independence, Clarity of Intent, DBAC (Database-Based Access Control), and QAPs (Rules are not Filters). Authorization Independence is achieved through denormalization of authorization data.  Specifically, any data that requires authorization based on parent document attributes will have those attributes copied into the child documents, eliminating the need for `get()` calls in security rules.\n\n**Data Structure Justification:**\n\n*   `/users/{userId}`: Stores user profiles. Ensures private data is stored under path-based ownership, enabling easy-to-write security rules.\n*   `/products/{productId}`: Stores product catalog information.  This collection does not contain user-specific data and thus has simpler security rules.\n*   `/products/{productId}/variants/{variantId}`: Stores product variants. Located as a subcollection to maintain the relationship to products.\n*   `/users/{userId}/orders/{orderId}`: Stores order information for each user, continuing hierarchical path structure for user-owned data. This enables easy enforcement of ownership.\n*   `/orders/{orderId}/items/{itemId}`:  Stores order items, nested under orders to represent the order-item relationship.\n*   `/products/{productId}/reviews/{reviewId}`: Stores product reviews, nested under products, for easy access to reviews for a specific product.\n*   `/users/{userId}/tryon_sessions/{sessionId}`: Stores virtual try-on session data, nested under users.\n\n**Authorization Independence (Denormalization):**\n\n*   Subcollections such as `orders` and `productReviews` are structured under `/users/{userId}` or `/products/{productId}`, respectively. This allows security rules to easily validate the `userId` or `productId` against `request.auth.uid` without needing to read parent documents.\n\n**QAPs (Rules are not Filters):**\n\n*   The segregation of user-specific data into `/users/{userId}` subcollections ensures that list operations are secure.  For example, listing orders is done within the user's own collection, preventing unauthorized access to other users' order data.\n*   Publicly accessible collections like `/products` enable listing products without complex filtering rules, as all documents in this collection share the same access requirements.\n\nThe design avoids complex nested `get()` calls within security rules by denormalizing authorization context where needed, ensuring that security rules remain simple, efficient, and debuggable. Each collection is designed with a homogeneous security posture, making the security rules easier to reason about and maintain."
+    ]
   }
 }
