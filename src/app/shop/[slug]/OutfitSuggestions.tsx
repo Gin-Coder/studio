@@ -2,10 +2,11 @@
 'use client';
 
 import ProductCard from '@/components/ProductCard';
-import type { Product } from '@/lib/types';
+import type { Product, Category } from '@/lib/types';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, query, where, limit } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useMemo } from 'react';
 
 interface OutfitSuggestionsProps {
   product: Product;
