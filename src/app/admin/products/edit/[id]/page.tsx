@@ -16,7 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLanguage } from '@/hooks/use-language';
 import { useToast } from '@/hooks/use-toast';
 import { useCollection, useDoc, useFirestore, useMemoFirebase, errorEmitter, FirestorePermissionError } from '@/firebase';
-import { collection, doc, setDoc } from 'firebase/firestore';
+import { collection, doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import type { Category, Product } from '@/lib/types';
 import { getStorage, ref, uploadString, getDownloadURL } from 'firebase/storage';
 import { slugify, stringToColor } from '@/lib/utils';
@@ -217,6 +217,7 @@ export default function EditProductPage() {
                 images: [finalImageUrl, ...finalVariants.map(v => v.imageUrl).filter(Boolean)],
                 imageHints: ['user uploaded'],
                 tags: [categoryId],
+                updatedAt: serverTimestamp(),
             };
             
             const productRef = doc(firestore, "products", id);

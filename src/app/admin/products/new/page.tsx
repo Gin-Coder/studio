@@ -16,7 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLanguage } from '@/hooks/use-language';
 import { useToast } from '@/hooks/use-toast';
 import { useCollection, useFirestore, useMemoFirebase, errorEmitter, FirestorePermissionError } from '@/firebase';
-import { addDoc, collection, doc, setDoc } from 'firebase/firestore';
+import { addDoc, collection, doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import type { Category } from '@/lib/types';
 import { getStorage, ref, uploadString, getDownloadURL } from 'firebase/storage';
 import { slugify, stringToColor } from '@/lib/utils';
@@ -177,6 +177,8 @@ export default function NewProductPage() {
                 tags: [categoryId],
                 rating: 0,
                 reviewCount: 0,
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp(),
             };
             
             const productsCollection = collection(firestore, "products");

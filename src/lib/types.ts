@@ -16,6 +16,8 @@ export type Product = {
   rating: number;
   reviewCount: number;
   status: 'draft' | 'published' | 'archived';
+  createdAt?: any;
+  updatedAt?: any;
 };
 
 export type Variant = {

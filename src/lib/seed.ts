@@ -1,5 +1,5 @@
 
-import { collection, doc, writeBatch, Firestore } from 'firebase/firestore';
+import { collection, doc, writeBatch, Firestore, serverTimestamp } from 'firebase/firestore';
 import { categories } from './mock-data';
 import { PlaceHolderImages } from './placeholder-images';
 import type { Product } from './types';
@@ -121,7 +121,11 @@ export async function seedDatabase(db: Firestore) {
   const productsCollection = collection(db, 'products');
   products.forEach((product) => {
     const productRef = doc(productsCollection); // Auto-generate ID
-    batch.set(productRef, product);
+    batch.set(productRef, {
+      ...product,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
   });
   console.log('Seeding products...');
 

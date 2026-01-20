@@ -31,6 +31,16 @@
             },
             "required": ["id", "size", "color", "colorName", "stock"]
           }
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The date and time the product was created."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The date and time the product was last updated."
         }
       },
       "required": ["name", "slug", "price", "category", "status"]
