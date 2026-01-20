@@ -9,9 +9,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 interface OutfitSuggestionsProps {
   product: Product;
+  categoryMap: Map<string, string>;
 }
 
-export default function OutfitSuggestions({ product }: OutfitSuggestionsProps) {
+export default function OutfitSuggestions({ product, categoryMap }: OutfitSuggestionsProps) {
     const firestore = useFirestore();
     const suggestionsQuery = useMemoFirebase(
         () => (firestore ? query(collection(firestore, 'products'), where('category', '==', product.category), where('status', '==', 'published'), limit(5)) : null),
@@ -29,7 +30,7 @@ export default function OutfitSuggestions({ product }: OutfitSuggestionsProps) {
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         {isLoading && [...Array(4)].map((_, i) => <Skeleton key={i} className="h-[400px] w-full" />)}
         {!isLoading && outfitSuggestions.map(p => (
-          <ProductCard key={p.id} product={p} />
+          <ProductCard key={p.id} product={p} categoryMap={categoryMap} />
         ))}
       </div>
     </div>

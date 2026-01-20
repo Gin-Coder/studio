@@ -143,14 +143,15 @@ export default function AdminCategoriesPage() {
     }
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!firestore || !categoryIdToDelete) return;
     
     const categoryRef = doc(firestore, 'categories', categoryIdToDelete);
     
-    deleteDoc(categoryRef).then(() => {
+    try {
+        await deleteDoc(categoryRef);
         toast({ title: "Catégorie supprimée" });
-    }).catch((error: any) => {
+    } catch (error: any) {
         console.error("Error deleting category:", error);
         toast({ variant: 'destructive', title: "Erreur de suppression", description: error.message });
         if (error.code === 'permission-denied') {
@@ -159,9 +160,9 @@ export default function AdminCategoriesPage() {
                 operation: 'delete',
             }));
         }
-    });
-
-    setCategoryIdToDelete(null);
+    } finally {
+      setCategoryIdToDelete(null);
+    }
   };
 
   return (

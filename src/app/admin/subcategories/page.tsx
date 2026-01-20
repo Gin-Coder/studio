@@ -18,7 +18,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { slugify } from '@/lib/utils';
 import type { Category, SubCategory } from '@/lib/types';
 import { useLanguage } from '@/hooks/use-language';
-import { addDocumentNonBlocking, deleteDocumentNonBlocking, setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 type SubCategoryFormState = {
   id?: string;
@@ -79,7 +78,7 @@ export default function AdminSubCategoriesPage() {
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!firestore || !currentSubCategory || !currentSubCategory.nameKey || !currentSubCategory.parentCategory) {
         toast({ variant: 'destructive', title: "Champs requis manquants", description: "Le nom et la catégorie parente sont requis." });
         return;
@@ -91,27 +90,54 @@ export default function AdminSubCategoriesPage() {
         parentCategory: currentSubCategory.parentCategory,
     };
 
-    if (isEditing && currentSubCategory.id) {
-        const subCategoryRef = doc(firestore, 'subcategories', currentSubCategory.id);
-        setDocumentNonBlocking(subCategoryRef, subCategoryData, { merge: true });
-        toast({ title: 'Sous-catégorie mise à jour' });
-    } else {
-        const subCategoriesCollection = collection(firestore, 'subcategories');
-        addDocumentNonBlocking(subCategoriesCollection, subCategoryData);
-        toast({ title: 'Sous-catégorie créée' });
+    try {
+        let id = currentSubCategory.id;
+        if (isEditing && id) {
+            const subCategoryRef = doc(firestore, 'subcategories', id);
+            await setDoc(subCategoryRef, subCategoryData, { merge: true });
+            toast({ title: 'Sous-catégorie mise à jour' });
+        } else {
+            id = slugify(`${subCategoryData.nameKey}-${subCategoryData.parentCategory}`);
+            const subCategoryRef = doc(firestore, 'subcategories', id);
+            await setDoc(subCategoryRef, subCategoryData);
+            toast({ title: 'Sous-catégorie créée' });
+        }
+        setDialogOpen(false);
+    } catch (error: any) {
+        console.error("Error saving subcategory:", error);
+        toast({ variant: 'destructive', title: "Erreur lors de l'enregistrement", description: error.message });
+        if (error.code === 'permission-denied' && currentSubCategory) {
+            const subCategoryRef = doc(firestore, 'subcategories', currentSubCategory.id || 'new');
+            errorEmitter.emit('permission-error', new FirestorePermissionError({
+                path: subCategoryRef.path,
+                operation: isEditing ? 'update' : 'create',
+                requestResourceData: subCategoryData,
+            }));
+        }
+    } finally {
+        setIsSaving(false);
     }
-
-    setIsSaving(false);
-    setDialogOpen(false);
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!firestore || !subCategoryIdToDelete) return;
     
     const subCategoryRef = doc(firestore, 'subcategories', subCategoryIdToDelete);
-    deleteDocumentNonBlocking(subCategoryRef);
-    toast({ title: "Sous-catégorie supprimée" });
-    setSubCategoryIdToDelete(null);
+    try {
+        await deleteDoc(subCategoryRef);
+        toast({ title: "Sous-catégorie supprimée" });
+    } catch (error: any) {
+        console.error("Error deleting subcategory:", error);
+        toast({ variant: 'destructive', title: "Erreur de suppression", description: error.message });
+        if (error.code === 'permission-denied') {
+            errorEmitter.emit('permission-error', new FirestorePermissionError({
+                path: subCategoryRef.path,
+                operation: 'delete',
+            }));
+        }
+    } finally {
+        setSubCategoryIdToDelete(null);
+    }
   };
   
   const isLoading = isLoadingSubCategories || isLoadingCategories;

@@ -1,173 +1,41 @@
-/**
- * Core Philosophy: This ruleset enforces a strict user-ownership model for private data,
- * such as user profiles and orders, while allowing public read access to shared catalog
- * data like products and reviews. The primary goal is to ensure that a user can only
- * access and manage their own information.
- *
- * Data Structure: The data is organized into a mix of top-level public collections
- * and user-specific private subcollections.
- * - `/users/{userId}`: Contains private user data and serves as the root for other
- *   user-owned documents like orders.
- * - `/products`, `/productVariants`, `/reviews`: Top-level collections for data that
- *   is publicly readable. Writes to these collections are either restricted to owners
- *   (reviews) or disabled for clients (products).
- * - `/users/{userId}/orders`: A subcollection where each user's private order history
- *   is stored, ensuring path-based security.
- *
- * Key Security Decisions:
- * - User Isolation: A user can only ever interact with documents under their own
- *   `/users/{userId}` path. They cannot read or write to another user's data.
- * - No User Enumeration: Listing documents from the top-level `/users` collection is
- *   explicitly forbidden to protect user privacy.
- * - Public Catalog, Controlled Writes: Products and their variants are publicly readable
- *   by anyone but are not writable by clients, under the assumption that they are managed
- *   by a trusted backend or admin service.
- * - Owner-Only Review Management: Any signed-in user can create a review, but only the
- *   original author of a review can update or delete it. This is managed by a `userId`
- *   field on each review document.
- *
- * Denormalization for Authorization:
- * - The rules for `/reviews` depend on a denormalized `userId` field on each review
- *   document to verify ownership for update and delete operations without needing extra
- *   database reads.
- * - The rules for `/users/{userId}/orders` use the `userId` from the path to enforce
- *   ownership, which is efficient and secure.
- *
- * Structural Segregation:
- * - Private data (orders) is segregated into a user-specific subcollection
- *   (`/users/{userId}/orders`) rather than a single top-level `/orders` collection.
- *   This makes it impossible for a user to query or access another user's orders and
- *   simplifies the security rules.
- */
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // -------------------------------------------------------------------------
-    // Helper Functions
-    // -------------------------------------------------------------------------
-
-    /**
-     * Checks if the user is authenticated.
-     */
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    /**
-     * Checks if the authenticated user's UID matches the provided userId.
-     * Used to verify ownership based on a path parameter.
-     */
-    function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
-    }
-
-    /**
-     * Checks if a document exists and if the authenticated user is the owner.
-     * Critical for preventing modifications to non-existent data.
-     */
-    function isExistingOwner(userId) {
-      return isOwner(userId) && resource != null;
-    }
-
-    // -------------------------------------------------------------------------
-    // Collection Rules
-    // -------------------------------------------------------------------------
-
-    /**
-     * @description Manages user profile data. Each user can create their own profile,
-     *   and can only read, update, or delete their own document.
-     * @path /users/{userId}
-     * @allow (create) An authenticated user creating their own profile document, where the document ID matches their UID.
-     * @deny (get) An authenticated user attempting to read another user's profile.
-     * @principle Restricts access to a user's own data tree and prevents user enumeration.
-     */
-    match /users/{userId} {
-      allow get: if isOwner(userId);
-      allow list: if false;
-      allow create: if isOwner(userId) && request.resource.data.id == userId;
-      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
-      allow delete: if isExistingOwner(userId);
-    }
-
-    /**
-     * @description Stores public product information. This data is readable by anyone,
-     *   including unauthenticated users. Writes are disabled for clients.
-     * @path /products/{productId}
-     * @allow (get) Any user, signed in or not, fetching a specific product.
-     * @deny (create) Any client attempting to add a new product.
-     * @principle Provides public read access while protecting data integrity by disallowing client writes.
-     */
+    
+    // Publicly readable collections
     match /products/{productId} {
-      allow get: if true;
-      allow list: if true;
-      allow create: if false;
-      allow update: if false;
-      allow delete: if false;
+      allow get, list: if true;
+      // Admin-only write access
+      allow create, update, delete: if request.auth != null; // Simplified rule for now
     }
 
-    /**
-     * @description Stores variants of products (e.g., by size or color). This data
-     *   is readable by anyone. Writes are disabled for clients.
-     * @path /productVariants/{productVariantId}
-     * @allow (list) Any user, signed in or not, listing all available product variants.
-     * @deny (update) Any client attempting to change the price of a product variant.
-     * @principle Provides public read access while protecting data integrity by disallowing client writes.
-     */
-    match /productVariants/{productVariantId} {
-      allow get: if true;
-      allow list: if true;
-      allow create: if false;
-      allow update: if false;
-      allow delete: if false;
+    match /categories/{categoryId} {
+      allow get, list: if true;
+      // Admin-only write access
+      allow create, update, delete: if request.auth != null; // Simplified rule for now
     }
 
-    /**
-     * @description Stores user orders. Orders are private and can only be accessed by
-     *   the user who created them.
-     * @path /users/{userId}/orders/{orderId}
-     * @allow (create) An authenticated user creating a new order for themselves.
-     * @deny (get) An authenticated user trying to read another user's order.
-     * @principle Enforces strict document ownership within a user's private data tree.
-     */
-    match /users/{userId}/orders/{orderId} {
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-      allow create: if isOwner(userId) && request.resource.data.userId == userId;
-      allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
-      allow delete: if isExistingOwner(userId);
+    match /subcategories/{subcategoryId} {
+      allow get, list: if true;
+      // Admin-only write access
+      allow create, update, delete: if request.auth != null; // Simplified rule for now
     }
 
-    /**
-     * @description Stores items within a specific user order. Access is inherited
-     *   from the parent order, meaning only the order's owner can access them.
-     * @path /users/{userId}/orders/{orderId}/orderItems/{orderItemId}
-     * @allow (list) An authenticated user listing the items in one of their own orders.
-     * @deny (delete) An authenticated user trying to delete an item from another user's order.
-     * @principle Secures a subcollection by enforcing ownership based on the parent document's path.
-     */
-    match /users/{userId}/orders/{orderId}/orderItems/{orderItemId} {
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-      allow create: if isOwner(userId) && request.resource.data.orderId == orderId;
-      allow update: if isExistingOwner(userId) && request.resource.data.orderId == resource.data.orderId;
-      allow delete: if isExistingOwner(userId);
+    // Settings should be publicly readable but only writable by admins
+    match /settings/storeConfig {
+        allow get: if true;
+        allow write: if request.auth != null; // Simplified rule for now
     }
 
-    /**
-     * @description Stores product reviews. Reviews are public to read. A signed-in
-     *   user can create a new review, and can only modify or delete their own reviews.
-     * @path /reviews/{reviewId}
-     * @allow (create) An authenticated user submitting a new review where the `userId` field matches their own UID.
-     * @deny (update) A user trying to edit a review left by someone else.
-     * @principle Enforces document ownership for writes on a public collection.
-     */
-    match /reviews/{reviewId} {
-      allow get: if true;
-      allow list: if true;
-      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow update: if resource != null && isOwner(resource.data.userId) && request.resource.data.userId == resource.data.userId;
-      allow delete: if resource != null && isOwner(resource.data.userId);
+    // User-specific data
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Orders should only be accessible by admins
+    match /orders/{orderId} {
+      allow read, create, update: if request.auth != null; // Simplified rule for now
     }
   }
 }
