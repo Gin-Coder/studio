@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { Home, ShoppingCart, FileText, Settings, PanelLeft, ExternalLink, Shapes, ClipboardList, Warehouse, Spline, Network, Users } from 'lucide-react';
+import { Home, ShoppingCart, FileText, Settings, PanelLeft, ExternalLink, Shapes, ClipboardList, Warehouse, Spline, Network, Users, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,9 @@ import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/s
 import { Logo } from '@/components/ui/logo';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
+import { useAuth } from '@/firebase';
+import { signOut } from 'firebase/auth';
+import { useToast } from '@/hooks/use-toast';
 
 const AdminSidebarNav = () => {
     const pathname = usePathname();
@@ -45,20 +48,42 @@ const AdminSidebarNav = () => {
 };
 
 const SidebarItems = ({ isMobile = false }: { isMobile?: boolean }) => {
-    const viewStoreButton = (
-        <Button asChild variant="outline" className="w-full justify-start">
-            <Link href="/" target="_blank" rel="noopener noreferrer">
-                <ExternalLink className="mr-2 h-4 w-4" />
-                Voir la boutique
-            </Link>
-        </Button>
-    );
+    const router = useRouter();
+    const auth = useAuth();
+    const { toast } = useToast();
 
-    const content = (
+    const handleLogout = async () => {
+        try {
+            await signOut(auth);
+            toast({
+                title: "Déconnexion réussie",
+                description: "Vous avez été déconnecté de votre session.",
+            });
+            router.push('/login');
+        } catch (error) {
+            console.error("Erreur de déconnexion: ", error);
+            toast({
+                variant: "destructive",
+                title: "Erreur",
+                description: "Impossible de se déconnecter. Veuillez réessayer.",
+            });
+        }
+    };
+    
+    const navContent = (
         <>
             <AdminSidebarNav />
             <Separator className="my-4" />
-            {viewStoreButton}
+            <Button asChild variant="outline" className="w-full justify-start">
+                <Link href="/" target="_blank" rel="noopener noreferrer">
+                    <ExternalLink className="mr-2 h-4 w-4" />
+                    Voir la boutique
+                </Link>
+            </Button>
+            <Button variant="ghost" className="w-full justify-start mt-2" onClick={handleLogout}>
+                <LogOut className="mr-2 h-4 w-4" />
+                Déconnexion
+            </Button>
         </>
     );
     
@@ -66,15 +91,13 @@ const SidebarItems = ({ isMobile = false }: { isMobile?: boolean }) => {
         return (
             <SheetClose asChild>
                 <div className='flex flex-col gap-2'>
-                    <AdminSidebarNav />
-                    <Separator className="my-4" />
-                    {viewStoreButton}
+                    {navContent}
                 </div>
             </SheetClose>
         )
     }
 
-    return content;
+    return navContent;
 }
 
 
