@@ -1,12 +1,35 @@
+
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Règle de diagnostic temporaire :
-    // Autorise la lecture et l'écriture sur toute la base de données
-    // si l'utilisateur est authentifié.
-    // AVERTISSEMENT : Ne pas utiliser en production.
-    match /{document=**} {
+
+    // Public collections are readable by anyone, but only writable by admins.
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    match /subcategories/{subcategoryId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // The users collection is listable and readable by any authenticated user (admin).
+    // A user can only write to their own document.
+    match /users/{userId} {
+      allow list, get: if request.auth != null;
+      allow write: if request.auth.uid == userId;
+    }
+
+    // Orders and Settings are only accessible by authenticated users.
+    match /orders/{orderId} {
+      allow read, write: if request.auth != null;
+    }
+    match /settings/{settingId} {
       allow read, write: if request.auth != null;
     }
   }
