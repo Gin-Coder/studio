@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { useDoc, useFirestore, useMemoFirebase, errorEmitter, FirestorePermissionError } from '@/firebase';
+import { useDoc, useFirestore, useMemoFirebase, errorEmitter, FirestorePermissionError, useUser } from '@/firebase';
 import { doc, setDoc } from 'firebase/firestore';
 import { Loader2 } from 'lucide-react';
 import type { StoreSettings, Currency, Language } from '@/lib/types';
@@ -37,7 +37,13 @@ const SettingsSkeleton = () => (
 export default function AdminSettingsPage() {
   const { toast } = useToast();
   const firestore = useFirestore();
-  const settingsRef = useMemoFirebase(() => firestore ? doc(firestore, 'settings', 'storeConfig') : null, [firestore]);
+  const { isUserLoading } = useUser();
+  
+  const settingsRef = useMemoFirebase(() => {
+    if (!firestore || isUserLoading) return null;
+    return doc(firestore, 'settings', 'storeConfig');
+  }, [firestore, isUserLoading]);
+
   const { data: settings, isLoading } = useDoc<StoreSettings>(settingsRef);
   
   const [storeName, setStoreName] = useState('');
@@ -82,12 +88,14 @@ export default function AdminSettingsPage() {
       });
   };
 
+  const isDataLoading = isLoading || isUserLoading;
+
   return (
     <>
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-3xl font-bold">Paramètres</h1>
       </div>
-      {isLoading ? <SettingsSkeleton /> : (
+      {isDataLoading ? <SettingsSkeleton /> : (
         <Card>
           <CardHeader>
             <CardTitle>Paramètres de la boutique</CardTitle>

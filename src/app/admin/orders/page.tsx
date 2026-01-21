@@ -1,10 +1,11 @@
+
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { ClipboardList, Loader2, MoreHorizontal } from "lucide-react";
-import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
+import { useCollection, useFirestore, useMemoFirebase, useUser } from "@/firebase";
 import { collection, query, orderBy } from 'firebase/firestore';
 import type { Order } from '@/lib/types';
 import { formatPrice } from "@/lib/utils";
@@ -23,9 +24,16 @@ export default function AdminOrdersPage() {
   const firestore = useFirestore();
   const { currency, convertPrice } = useCurrency();
   const { language } = useLanguage();
+  const { isUserLoading } = useUser();
 
-  const ordersQuery = useMemoFirebase(() => firestore ? query(collection(firestore, 'orders'), orderBy('createdAt', 'desc')) : null, [firestore]);
+  const ordersQuery = useMemoFirebase(() => {
+    if (!firestore || isUserLoading) return null;
+    return query(collection(firestore, 'orders'), orderBy('createdAt', 'desc'))
+  }, [firestore, isUserLoading]);
+
   const { data: orders, isLoading } = useCollection<Order>(ordersQuery);
+
+  const isDataLoading = isLoading || isUserLoading;
 
   return (
     <>
@@ -50,14 +58,14 @@ export default function AdminOrdersPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {isLoading && (
+              {isDataLoading && (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center h-48">
                     <Loader2 className="mx-auto h-8 w-8 animate-spin text-muted-foreground" />
                   </TableCell>
                 </TableRow>
               )}
-              {!isLoading && (!orders || orders.length === 0) && (
+              {!isDataLoading && (!orders || orders.length === 0) && (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center h-48">
                     <ClipboardList className="mx-auto h-12 w-12 text-muted-foreground" />

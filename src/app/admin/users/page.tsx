@@ -1,10 +1,11 @@
+
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Users } from "lucide-react";
-import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
+import { useCollection, useFirestore, useMemoFirebase, useUser } from "@/firebase";
 import { collection, query, orderBy } from 'firebase/firestore';
 
 type UserProfile = {
@@ -18,9 +19,16 @@ type UserProfile = {
 
 export default function AdminUsersPage() {
   const firestore = useFirestore();
+  const { isUserLoading } = useUser();
 
-  const usersQuery = useMemoFirebase(() => firestore ? query(collection(firestore, 'users'), orderBy('lastLogin', 'desc')) : null, [firestore]);
+  const usersQuery = useMemoFirebase(() => {
+    if (!firestore || isUserLoading) return null;
+    return query(collection(firestore, 'users'), orderBy('lastLogin', 'desc'));
+  }, [firestore, isUserLoading]);
+  
   const { data: users, isLoading } = useCollection<UserProfile>(usersQuery);
+
+  const isDataLoading = isLoading || isUserLoading;
 
   return (
     <>
@@ -43,14 +51,14 @@ export default function AdminUsersPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {isLoading && (
+              {isDataLoading && (
                 <TableRow>
                   <TableCell colSpan={4} className="text-center h-48">
                     <Loader2 className="mx-auto h-8 w-8 animate-spin text-muted-foreground" />
                   </TableCell>
                 </TableRow>
               )}
-              {!isLoading && (!users || users.length === 0) && (
+              {!isDataLoading && (!users || users.length === 0) && (
                 <TableRow>
                   <TableCell colSpan={4} className="text-center h-48">
                     <Users className="mx-auto h-12 w-12 text-muted-foreground" />
