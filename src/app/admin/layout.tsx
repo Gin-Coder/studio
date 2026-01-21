@@ -1,7 +1,8 @@
+
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { Home, ShoppingCart, FileText, Settings, PanelLeft, ExternalLink, Shapes, ClipboardList, Warehouse, Spline, Network, Users, LogOut } from 'lucide-react';
+import { Home, ShoppingCart, FileText, Settings, PanelLeft, ExternalLink, Shapes, ClipboardList, Warehouse, Spline, Network, Users, LogOut, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -9,9 +10,15 @@ import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/s
 import { Logo } from '@/components/ui/logo';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
-import { useAuth } from '@/firebase';
+import { useAuth, useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
+import { useEffect } from 'react';
+import { doc } from 'firebase/firestore';
+
+type UserProfile = {
+  role?: string;
+};
 
 const AdminSidebarNav = () => {
     const pathname = usePathname();
@@ -102,6 +109,45 @@ const SidebarItems = ({ isMobile = false }: { isMobile?: boolean }) => {
 
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
+    const router = useRouter();
+    const { toast } = useToast();
+    const { user, isUserLoading } = useUser();
+    const firestore = useFirestore();
+
+    const userProfileRef = useMemoFirebase(
+        () => (firestore && user ? doc(firestore, 'users', user.uid) : null),
+        [firestore, user]
+    );
+
+    const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userProfileRef);
+
+    useEffect(() => {
+        if (isUserLoading) return;
+        if (!user) {
+            router.replace('/admin/login');
+            return;
+        }
+        if (isProfileLoading) return;
+        
+        if (user && userProfile?.role !== 'admin') {
+            toast({
+                variant: 'destructive',
+                title: 'Accès non autorisé',
+                description: "Vous n'avez pas les permissions pour accéder à cette page.",
+            });
+            router.replace('/');
+        }
+    }, [user, userProfile, isUserLoading, isProfileLoading, router, toast]);
+
+    const isLoading = isUserLoading || (user && isProfileLoading);
+
+    if (isLoading || !user || userProfile?.role !== 'admin') {
+        return (
+            <div className="flex h-screen w-full items-center justify-center bg-muted">
+                <Loader2 className="h-12 w-12 animate-spin text-primary" />
+            </div>
+        );
+    }
 
     return (
         <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
