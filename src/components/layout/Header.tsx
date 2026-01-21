@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -16,7 +15,19 @@ import {
   ShoppingCart,
   Heart,
   Sparkles,
+  User as UserIcon,
+  LogOut,
+  Loader2,
 } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Logo } from '@/components/ui/logo';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
@@ -27,8 +38,10 @@ import { useCart } from '@/hooks/use-cart';
 import { useWishlist } from '@/hooks/use-wishlist';
 import { Separator } from '../ui/separator';
 import { useState, useEffect } from 'react';
-import { usePathname } from 'next/navigation';
-
+import { usePathname, useRouter } from 'next/navigation';
+import { useUser, useAuth } from '@/firebase';
+import { signOut } from 'firebase/auth';
+import { useToast } from '@/hooks/use-toast';
 
 const NavLinks = ({ inSheet = false }: { inSheet?: boolean }) => {
   const { t } = useLanguage();
@@ -66,6 +79,80 @@ const NavLinks = ({ inSheet = false }: { inSheet?: boolean }) => {
   return <>{content}</>;
 };
 
+const UserNav = () => {
+    const { user, isUserLoading } = useUser();
+    const auth = useAuth();
+    const router = useRouter();
+    const { toast } = useToast();
+    const { t } = useLanguage();
+
+    const handleLogout = async () => {
+        try {
+            await signOut(auth);
+            toast({
+                title: t('logout.success_title'),
+                description: t('logout.success_desc'),
+            });
+            router.push('/');
+        } catch (error) {
+            console.error("Logout Error: ", error);
+            toast({
+                variant: "destructive",
+                title: t('logout.error_title'),
+                description: t('logout.error_desc'),
+            });
+        }
+    };
+
+    if (isUserLoading) {
+        return <Button variant="ghost" size="icon" disabled><Loader2 className="h-5 w-5 animate-spin"/></Button>;
+    }
+
+    if (!user) {
+        return (
+            <Button variant="ghost" size="icon" asChild>
+                <Link href="/account/login">
+                    <UserIcon />
+                    <span className="sr-only">{t('nav.login')}</span>
+                </Link>
+            </Button>
+        );
+    }
+    
+    return (
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                    <Avatar className="h-8 w-8">
+                        <AvatarImage src={user.photoURL || ''} alt={user.displayName || 'User'} />
+                        <AvatarFallback>{user.displayName?.[0] || user.email?.[0]}</AvatarFallback>
+                    </Avatar>
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" forceMount>
+                <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium leading-none">{user.displayName}</p>
+                        <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
+                    </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                    <Link href="/account">
+                        <UserIcon className="mr-2 h-4 w-4" />
+                        <span>{t('nav.my_account')}</span>
+                    </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={handleLogout}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>{t('nav.logout')}</span>
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
+    );
+};
+
+
 export default function Header() {
   const { cartCount } = useCart();
   const { wishlistCount } = useWishlist();
@@ -78,7 +165,7 @@ export default function Header() {
   }, []);
   
   // Don't render header on admin or login pages
-  if (pathname.startsWith('/admin') || pathname.startsWith('/login')) {
+  if (pathname.startsWith('/admin') || pathname.startsWith('/admin/login')) {
     return null;
   }
   
@@ -195,6 +282,11 @@ export default function Header() {
                 <span className="sr-only">{t('nav.cart_link')}</span>
               </Link>
             </Button>
+            
+            <Separator orientation="vertical" className="h-6 mx-2 hidden sm:block" />
+
+            <UserNav />
+
             <div className="hidden md:flex">
               <LanguageSwitcher />
               <CurrencySwitcher />

@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useRouter } from 'next/navigation';
@@ -14,7 +13,7 @@ import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 
-export default function LoginPage() {
+export default function CustomerLoginPage() {
   const router = useRouter();
   const { t } = useLanguage();
   const { firestore } = useFirebase();
@@ -31,18 +30,24 @@ export default function LoginPage() {
         if (result) {
           const user = result.user;
           const userRef = doc(firestore, 'users', user.uid);
+          // Only create/update the profile, don't add admin roles here.
           await setDoc(userRef, {
             displayName: user.displayName || user.email?.split('@')[0],
             email: user.email,
             lastLogin: serverTimestamp(),
           }, { merge: true });
           
-          router.push('/admin');
+          toast({
+            title: t('login.customer.success_title'),
+            description: t('login.customer.success_desc', { name: user.displayName || user.email || '' }),
+          });
+          router.push('/account'); // Redirect to customer account page
         } else {
+          // If no redirect result, check if user is already logged in
           if (auth.currentUser) {
-            router.push('/admin');
+            router.push('/account'); // Already logged in, go to account page
           } else {
-            setIsProcessing(false);
+            setIsProcessing(false); // Not logged in, show login button
           }
         }
       })
@@ -50,12 +55,12 @@ export default function LoginPage() {
         console.error("Google Login Redirect Error:", error);
         toast({
           variant: 'destructive',
-          title: "Erreur de connexion",
-          description: "Une erreur est survenue lors de la connexion avec Google. Assurez-vous que les pop-ups sont autorisées.",
+          title: t('login.error_title'),
+          description: t('login.error_desc'),
         });
         setIsProcessing(false);
       });
-  }, [auth, firestore, router, toast]);
+  }, [auth, firestore, router, toast, t]);
 
   const handleGoogleLogin = () => {
     if (!auth) return;
@@ -69,7 +74,7 @@ export default function LoginPage() {
       return (
         <>
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          Vérification en cours...
+          {t('login.processing')}
         </>
       );
     }
@@ -78,14 +83,14 @@ export default function LoginPage() {
 
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
+    <div className="container flex min-h-[60vh] items-center justify-center py-12">
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
             <Link href="/" className="mb-4 inline-block">
                 <Logo className="mx-auto" />
             </Link>
-          <CardTitle className="text-2xl font-bold">{t('login.title')}</CardTitle>
-          <CardDescription>{t('login.google_description')}</CardDescription>
+          <CardTitle className="text-2xl font-bold">{t('login.customer.title')}</CardTitle>
+          <CardDescription>{t('login.customer.desc')}</CardDescription>
         </CardHeader>
         <CardContent>
           <Button onClick={handleGoogleLogin} className="w-full" disabled={isProcessing}>

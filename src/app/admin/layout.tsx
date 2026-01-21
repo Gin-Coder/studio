@@ -59,7 +59,7 @@ const SidebarItems = ({ isMobile = false }: { isMobile?: boolean }) => {
                 title: "Déconnexion réussie",
                 description: "Vous avez été déconnecté de votre session.",
             });
-            router.push('/login');
+            router.push('/admin/login');
         } catch (error) {
             console.error("Erreur de déconnexion: ", error);
             toast({
