@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,7 +11,7 @@ import { Loader2 } from 'lucide-react';
 import { Logo } from '@/components/ui/logo';
 import Link from 'next/link';
 import { useAuth, useFirestore, errorEmitter, FirestorePermissionError } from '@/firebase';
-import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { GoogleAuthProvider, signInWithRedirect, getRedirectResult, AuthError } from 'firebase/auth';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -29,9 +29,45 @@ export default function LoginPage() {
   const auth = useAuth();
   const firestore = useFirestore();
   const { toast } = useToast();
+  
+  useEffect(() => {
+    if (!auth || !firestore) return;
+    setIsLoading(true);
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result) {
+          const user = result.user;
+          const userRef = doc(firestore, 'users', user.uid);
+          const userProfileData = {
+            displayName: user.displayName,
+            email: user.email,
+            lastLogin: serverTimestamp()
+          };
+
+          return setDoc(userRef, userProfileData, { merge: true }).then(() => {
+            toast({
+              title: "Connexion réussie",
+              description: `Bienvenue, ${user.displayName || user.email}!`,
+            });
+            router.push('/admin');
+          });
+        }
+        setIsLoading(false);
+      })
+      .catch((error: AuthError) => {
+        console.error("Login redirect error:", error);
+        toast({
+          variant: "destructive",
+          title: "Erreur de connexion",
+          description: "La connexion avec Google a échoué. Veuillez réessayer.",
+        });
+        setIsLoading(false);
+      });
+  }, [auth, firestore, router, toast]);
+
 
   const handleGoogleLogin = async () => {
-    if (!auth || !firestore) {
+    if (!auth) {
         toast({
             variant: "destructive",
             title: "Erreur",
@@ -42,46 +78,7 @@ export default function LoginPage() {
     setIsLoading(true);
     
     const provider = new GoogleAuthProvider();
-
-    try {
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-
-      // Create or update user profile in Firestore
-      const userRef = doc(firestore, 'users', user.uid);
-      const userProfileData = {
-        displayName: user.displayName,
-        email: user.email,
-        lastLogin: serverTimestamp()
-      };
-
-      setDoc(userRef, userProfileData, { merge: true })
-        .then(() => {
-          toast({
-            title: "Connexion réussie",
-            description: `Bienvenue, ${user.displayName || user.email}!`,
-          });
-          router.push('/admin');
-        })
-        .catch(error => {
-          // This will catch permission errors on setDoc
-          errorEmitter.emit('permission-error', new FirestorePermissionError({
-            path: userRef.path,
-            operation: 'write',
-            requestResourceData: userProfileData,
-          }));
-          setIsLoading(false);
-        });
-
-    } catch (error: any) {
-      // This will catch errors from signInWithPopup itself
-      toast({
-        variant: "destructive",
-        title: "Erreur de connexion",
-        description: "La connexion avec Google a échoué. Veuillez réessayer.",
-      });
-      setIsLoading(false);
-    }
+    await signInWithRedirect(auth, provider);
   };
 
   return (
