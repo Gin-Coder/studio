@@ -143,7 +143,7 @@ export default function EditProductPage() {
         }
     };
     
-    const handleAddNewCategory = async () => {
+    const handleAddNewCategory = () => {
         if (newCategoryName.trim() === '') {
             toast({ variant: 'destructive', title: "Erreur", description: "Le nom de la catégorie ne peut pas être vide." });
             return;
@@ -169,21 +169,22 @@ export default function EditProductPage() {
             imageHint: 'placeholder'
         };
 
-        try {
-            await setDoc(categoryRef, newCategoryData)
+        setDoc(categoryRef, newCategoryData)
+          .then(() => {
             setCategoryId(newCategoryId);
             setNewCategoryName('');
             toast({ title: "Catégorie ajoutée", description: `La catégorie "${newCategoryName}" a été ajoutée.` });
-        } catch (error) {
-            console.error("Error adding category to Firestore:", error);
+          })
+          .catch(error => {
             errorEmitter.emit('permission-error', new FirestorePermissionError({
                 path: categoryRef.path,
                 operation: 'create',
                 requestResourceData: newCategoryData,
             }));
-        } finally {
+          })
+          .finally(() => {
             setIsSavingCategory(false);
-        }
+          });
     };
 
 
@@ -193,64 +194,65 @@ export default function EditProductPage() {
             return;
         }
         setIsSaving(true);
+        
+        // This part can remain async as it deals with client-side processing before Firestore
+        let finalImageUrl = imageUrl;
+        if (imageUrl.startsWith('data:')) {
+            finalImageUrl = await uploadImage(imageUrl);
+        }
 
-        try {
-            let finalImageUrl = imageUrl;
-            if (imageUrl.startsWith('data:')) {
-                finalImageUrl = await uploadImage(imageUrl);
+        const finalVariants = await Promise.all(variants.map(async (v) => {
+            let variantImageUrl = v.imageUrl;
+            if (v.imageUrl && v.imageUrl.startsWith('data:')) {
+                variantImageUrl = await uploadImage(v.imageUrl);
             }
+            return {
+                id: `${slugify(name)}-${slugify(v.size)}-${slugify(v.color)}`,
+                size: v.size,
+                color: stringToColor(v.color),
+                colorName: v.color,
+                stock: parseInt(v.stock, 10) || 0,
+                imageUrl: variantImageUrl,
+            }
+        }));
+        
+        const CONVERSION_RATES: Record<string, number> = { USD: 1, EUR: 0.93, HTG: 135 };
+        const rate = CONVERSION_RATES[priceCurrency] || 1;
+        const priceInUSD = parseFloat(price) / rate;
 
-            const finalVariants = await Promise.all(variants.map(async (v) => {
-                let variantImageUrl = v.imageUrl;
-                if (v.imageUrl && v.imageUrl.startsWith('data:')) {
-                    variantImageUrl = await uploadImage(v.imageUrl);
-                }
-                return {
-                    id: `${slugify(name)}-${slugify(v.size)}-${slugify(v.color)}`,
-                    size: v.size,
-                    color: stringToColor(v.color),
-                    colorName: v.color,
-                    stock: parseInt(v.stock, 10) || 0,
-                    imageUrl: variantImageUrl,
-                }
-            }));
-            
-            const CONVERSION_RATES: Record<string, number> = { USD: 1, EUR: 0.93, HTG: 135 };
-            const rate = CONVERSION_RATES[priceCurrency] || 1;
-            const priceInUSD = parseFloat(price) / rate;
-
-            const productDataForFirestore = {
-                name,
-                slug: slugify(name),
-                description: description,
-                longDescription: longDescription,
-                price: priceInUSD,
-                category: categoryId,
-                subCategory: subCategoryId,
-                status,
-                variants: finalVariants,
-                images: [finalImageUrl, ...finalVariants.map(v => v.imageUrl).filter(Boolean)],
-                imageHints: ['user uploaded'],
-                tags: [categoryId, subCategoryId],
-                updatedAt: serverTimestamp(),
-            };
-            
-            const productRef = doc(firestore, "products", id);
-            
-            await setDoc(productRef, productDataForFirestore, { merge: true });
+        const productDataForFirestore = {
+            name,
+            slug: slugify(name),
+            description: description,
+            longDescription: longDescription,
+            price: priceInUSD,
+            category: categoryId,
+            subCategory: subCategoryId,
+            status,
+            variants: finalVariants,
+            images: [finalImageUrl, ...finalVariants.map(v => v.imageUrl).filter(Boolean)],
+            imageHints: ['user uploaded'],
+            tags: [categoryId, subCategoryId],
+            updatedAt: serverTimestamp(),
+        };
+        
+        const productRef = doc(firestore, "products", id);
+        
+        setDoc(productRef, productDataForFirestore, { merge: true })
+          .then(() => {
             toast({ title: "Produit mis à jour !", description: `Le produit "${name}" a été mis à jour avec succès.` });
             router.push('/admin/products');
-
-        } catch (error: any) {
-             console.error("Failed to save product:", error);
-             const productRef = doc(firestore, "products", id);
+          })
+          .catch(error => {
              errorEmitter.emit('permission-error', new FirestorePermissionError({
                 path: productRef.path,
                 operation: 'update',
+                requestResourceData: productDataForFirestore
             }));
-        } finally {
+          })
+          .finally(() => {
             setIsSaving(false);
-        }
+          });
     };
 
     const handleCancel = () => {

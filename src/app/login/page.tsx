@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -9,7 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import { Logo } from '@/components/ui/logo';
 import Link from 'next/link';
-import { useAuth, useFirestore } from '@/firebase';
+import { useAuth, useFirestore, errorEmitter, FirestorePermissionError } from '@/firebase';
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 
@@ -48,27 +49,38 @@ export default function LoginPage() {
 
       // Create or update user profile in Firestore
       const userRef = doc(firestore, 'users', user.uid);
-      await setDoc(userRef, {
+      const userProfileData = {
         displayName: user.displayName,
         email: user.email,
         lastLogin: serverTimestamp()
-      }, { merge: true });
-      
-      toast({
-        title: "Connexion réussie",
-        description: `Bienvenue, ${user.displayName || user.email}!`,
-      });
+      };
 
-      router.push('/admin');
+      setDoc(userRef, userProfileData, { merge: true })
+        .then(() => {
+          toast({
+            title: "Connexion réussie",
+            description: `Bienvenue, ${user.displayName || user.email}!`,
+          });
+          router.push('/admin');
+        })
+        .catch(error => {
+          // This will catch permission errors on setDoc
+          errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: userRef.path,
+            operation: 'write',
+            requestResourceData: userProfileData,
+          }));
+          setIsLoading(false);
+        });
+
     } catch (error: any) {
-      console.error("Google sign-in failed", error);
+      // This will catch errors from signInWithPopup itself
       toast({
         variant: "destructive",
         title: "Erreur de connexion",
         description: "La connexion avec Google a échoué. Veuillez réessayer.",
       });
-    } finally {
-        setIsLoading(false);
+      setIsLoading(false);
     }
   };
 

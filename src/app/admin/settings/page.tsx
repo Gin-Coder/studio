@@ -66,19 +66,20 @@ export default function AdminSettingsPage() {
       defaultLanguage,
     };
 
-    setDoc(settingsRef, settingsData, { merge: true }).then(() => {
-      toast({ title: 'Paramètres sauvegardés', description: 'Vos modifications ont été enregistrées avec succès.' });
-    }).catch((error: any) => {
-      console.error("Error saving settings:", error);
-      toast({ variant: 'destructive', title: "Erreur d'enregistrement", description: error.message });
-      errorEmitter.emit('permission-error', new FirestorePermissionError({
-          path: settingsRef.path,
-          operation: 'update',
-          requestResourceData: settingsData,
-      }));
-    }).finally(() => {
-      setIsSaving(false);
-    });
+    setDoc(settingsRef, settingsData, { merge: true })
+      .then(() => {
+        toast({ title: 'Paramètres sauvegardés', description: 'Vos modifications ont été enregistrées avec succès.' });
+      })
+      .catch((error) => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: settingsRef.path,
+            operation: 'update',
+            requestResourceData: settingsData,
+        }));
+      })
+      .finally(() => {
+        setIsSaving(false);
+      });
   };
 
   return (

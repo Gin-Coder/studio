@@ -19,7 +19,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Checkbox } from '@/components/ui/checkbox';
 import { slugify } from '@/lib/utils';
 import type { Category } from '@/lib/types';
-import { setDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 // The state for the category form
 type CategoryFormState = {
@@ -107,53 +106,55 @@ export default function AdminCategoriesPage() {
     let categoryId = currentCategory.id || slugify(currentCategory.nameKey);
     const categoryRef = doc(firestore, 'categories', categoryId);
     
-    try {
-        let finalImageUrl = currentCategory.imageUrl;
-        if (currentCategory.imageUrl.startsWith('data:')) {
-            finalImageUrl = await uploadCategoryImage(currentCategory.imageUrl);
-        }
+    // This part can remain async as it deals with client-side processing before Firestore
+    let finalImageUrl = currentCategory.imageUrl;
+    if (currentCategory.imageUrl.startsWith('data:')) {
+        finalImageUrl = await uploadCategoryImage(currentCategory.imageUrl);
+    }
 
-        const categoryData = {
-            nameKey: currentCategory.nameKey,
-            imageUrl: finalImageUrl || `https://picsum.photos/seed/${categoryId}/600/400`,
-            imageHint: currentCategory.imageHint || currentCategory.nameKey,
-        };
+    const categoryData = {
+        nameKey: currentCategory.nameKey,
+        imageUrl: finalImageUrl || `https://picsum.photos/seed/${categoryId}/600/400`,
+        imageHint: currentCategory.imageHint || currentCategory.nameKey,
+    };
 
-        await setDoc(categoryRef, categoryData, { merge: true });
-
+    setDoc(categoryRef, categoryData, { merge: true })
+      .then(() => {
         toast({ title: isEditing ? 'Catégorie mise à jour' : 'Catégorie créée' });
         setDialogOpen(false);
-
-    } catch (error: any) {
-        console.error("Error saving category:", error);
+      })
+      .catch((error) => {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: categoryRef.path,
             operation: isEditing ? 'update' : 'create',
-            requestResourceData: currentCategory,
+            requestResourceData: categoryData,
         }));
-    } finally {
+      })
+      .finally(() => {
         setIsSaving(false);
-    }
+      });
   };
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (!firestore || !categoryIdToDelete) return;
     const categoryRef = doc(firestore, 'categories', categoryIdToDelete);
-    try {
-      await deleteDoc(categoryRef)
-      toast({ title: "Catégorie supprimée" });
-    } catch(error: any) {
-        console.error("Error deleting category:", error);
+    
+    deleteDoc(categoryRef)
+      .then(() => {
+        toast({ title: "Catégorie supprimée" });
+      })
+      .catch((error) => {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: categoryRef.path,
             operation: 'delete',
         }));
-    } finally {
-      setCategoryIdToDelete(null);
-    }
+      })
+      .finally(() => {
+        setCategoryIdToDelete(null);
+      });
   };
 
-  const handleDeleteSelected = async () => {
+  const handleDeleteSelected = () => {
     if (!firestore || selectedCategoryIds.length === 0) return;
     
     const batch = writeBatch(firestore);
@@ -162,23 +163,24 @@ export default function AdminCategoriesPage() {
         batch.delete(docRef);
     });
 
-    try {
-        await batch.commit();
+    batch.commit()
+      .then(() => {
         toast({
             title: `${selectedCategoryIds.length} catégories supprimées`,
             description: "Les catégories sélectionnées ont été supprimées.",
         });
-    } catch(error) {
-        console.error("Error bulk deleting categories:", error);
+      })
+      .catch((error) => {
         toast({
             variant: "destructive",
             title: "Erreur de suppression",
-            description: "Une erreur est survenue lors de la suppression des catégories.",
+            description: "Une erreur est survenue lors de la suppression des catégories. Vérifiez les permissions.",
         });
-    } finally {
+      })
+      .finally(() => {
         setSelectedCategoryIds([]);
         setIsBulkDeleteOpen(false);
-    }
+      });
   }
 
   return (

@@ -81,7 +81,7 @@ export default function AdminSubCategoriesPage() {
     }
   };
 
-  const handleSave = async () => {
+  const handleSave = () => {
     if (!firestore || !currentSubCategory || !currentSubCategory.nameKey || !currentSubCategory.parentCategory) {
         toast({ variant: 'destructive', title: "Champs requis manquants", description: "Le nom et la catégorie parente sont requis." });
         return;
@@ -96,41 +96,43 @@ export default function AdminSubCategoriesPage() {
     const id = currentSubCategory.id || slugify(`${subCategoryData.nameKey}-${subCategoryData.parentCategory}`);
     const subCategoryRef = doc(firestore, 'subcategories', id);
 
-    try {
-        await setDoc(subCategoryRef, subCategoryData, { merge: true });
+    setDoc(subCategoryRef, subCategoryData, { merge: true })
+      .then(() => {
         toast({ title: isEditing ? 'Sous-catégorie mise à jour' : 'Sous-catégorie créée' });
         setDialogOpen(false);
-    } catch (error: any) {
-        console.error("Error saving subcategory:", error);
+      })
+      .catch(error => {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: subCategoryRef.path,
             operation: isEditing ? 'update' : 'create',
             requestResourceData: subCategoryData,
         }));
-    } finally {
+      })
+      .finally(() => {
         setIsSaving(false);
-    }
+      });
   };
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (!firestore || !subCategoryIdToDelete) return;
     
     const subCategoryRef = doc(firestore, 'subcategories', subCategoryIdToDelete);
-    try {
-        await deleteDoc(subCategoryRef);
+    deleteDoc(subCategoryRef)
+      .then(() => {
         toast({ title: "Sous-catégorie supprimée" });
-    } catch(error: any) {
-        console.error("Error deleting subcategory:", error);
+      })
+      .catch(error => {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: subCategoryRef.path,
             operation: 'delete',
         }));
-    } finally {
+      })
+      .finally(() => {
         setSubCategoryIdToDelete(null);
-    }
+      });
   };
 
-  const handleDeleteSelected = async () => {
+  const handleDeleteSelected = () => {
     if (!firestore || selectedSubCategoryIds.length === 0) return;
     
     const batch = writeBatch(firestore);
@@ -139,23 +141,24 @@ export default function AdminSubCategoriesPage() {
         batch.delete(docRef);
     });
 
-    try {
-        await batch.commit();
+    batch.commit()
+      .then(() => {
         toast({
             title: `${selectedSubCategoryIds.length} sous-catégories supprimées`,
             description: "Les sous-catégories sélectionnées ont été supprimées.",
         });
-    } catch(error) {
-        console.error("Error bulk deleting subcategories:", error);
+      })
+      .catch(error => {
         toast({
             variant: "destructive",
             title: "Erreur de suppression",
             description: "Une erreur est survenue lors de la suppression des sous-catégories.",
         });
-    } finally {
+      })
+      .finally(() => {
         setSelectedSubCategoryIds([]);
         setIsBulkDeleteOpen(false);
-    }
+      });
   }
   
   const isLoading = isLoadingSubCategories || isLoadingCategories;

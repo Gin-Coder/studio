@@ -19,7 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useCollection, useFirestore, useMemoFirebase, errorEmitter, FirestorePermissionError } from "@/firebase";
-import { collection, deleteDoc, doc, getDocs, writeBatch, serverTimestamp } from "firebase/firestore";
+import { collection, deleteDoc, doc, getDocs, writeBatch, serverTimestamp, addDoc } from "firebase/firestore";
 import type { Product, Category } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useMemo } from "react";
@@ -61,28 +61,29 @@ export default function AdminProductsPage() {
   const isLoading = isLoadingProducts || isLoadingCategories;
 
 
-  const handleDeleteProduct = async () => {
+  const handleDeleteProduct = () => {
     if (!productIdToDelete || !firestore) return;
     const productDocRef = doc(firestore, 'products', productIdToDelete);
     
-    try {
-      await deleteDoc(productDocRef);
-      toast({
-        title: "Produit supprimé",
-        description: `Le produit a été supprimé avec succès.`,
-      });
-    } catch (error) {
-        console.error("Error deleting product:", error);
+    deleteDoc(productDocRef)
+      .then(() => {
+        toast({
+          title: "Produit supprimé",
+          description: `Le produit a été supprimé avec succès.`,
+        });
+      })
+      .catch((error) => {
         errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: productDocRef.path,
             operation: 'delete',
         }));
-    } finally {
+      })
+      .finally(() => {
         setProductIdToDelete(null);
-    }
+      });
   };
 
-  const handleDeleteSelected = async () => {
+  const handleDeleteSelected = () => {
     if (!firestore || selectedProductIds.length === 0) return;
     
     const batch = writeBatch(firestore);
@@ -91,23 +92,24 @@ export default function AdminProductsPage() {
         batch.delete(docRef);
     });
 
-    try {
-        await batch.commit();
+    batch.commit()
+      .then(() => {
         toast({
             title: `${selectedProductIds.length} produits supprimés`,
             description: "Les produits sélectionnés ont été supprimés avec succès.",
         });
-    } catch(error) {
-        console.error("Error bulk deleting products:", error);
+      })
+      .catch((error) => {
         toast({
             variant: "destructive",
             title: "Erreur de suppression",
             description: "Une erreur est survenue lors de la suppression des produits.",
         });
-    } finally {
+      })
+      .finally(() => {
         setSelectedProductIds([]);
         setIsBulkDeleteOpen(false);
-    }
+      });
   }
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -127,29 +129,12 @@ export default function AdminProductsPage() {
         if (!Array.isArray(productsToImport)) {
             throw new Error("Le fichier JSON doit contenir un tableau de produits.");
         }
-
-        const importCategorySlugs = new Set(productsToImport.map(p => p.category).filter(Boolean) as string[]);
-
-        const categoriesCollectionRef = collection(firestore, 'categories');
-        const categoriesSnapshot = await getDocs(categoriesCollectionRef);
-        const existingCategorySlugs = new Set(categoriesSnapshot.docs.map(d => d.id));
-
-        const newCategorySlugs = [...importCategorySlugs].filter(slug => !existingCategorySlugs.has(slug));
         
+        // This is a complex operation with multiple writes.
+        // For simplicity in this context, we will use a batch and catch any final error.
+        // A more granular error handling would require iterating and catching each write.
         const batch = writeBatch(firestore);
-
-        if (newCategorySlugs.length > 0) {
-            newCategorySlugs.forEach(slug => {
-                const categoryDocRef = doc(categoriesCollectionRef, slug);
-                const nameKey = slug.charAt(0).toUpperCase() + slug.slice(1).replace(/-/g, ' ');
-                batch.set(categoryDocRef, {
-                    nameKey: nameKey,
-                    imageUrl: `https://picsum.photos/seed/${slug}/600/400`,
-                    imageHint: slug.replace(/-/g, ' '),
-                });
-            });
-        }
-
+        
         const productsCollection = collection(firestore, 'products');
         productsToImport.forEach(productData => {
             if (!productData.name || !productData.price || !productData.category) {
@@ -157,7 +142,7 @@ export default function AdminProductsPage() {
                 return; 
             }
             const newProductRef = doc(productsCollection); 
-            batch.set(newProductRef, {
+            const completeProductData = {
                 ...productData,
                 slug: productData.slug || slugify(productData.name),
                 rating: productData.rating ?? 0,
@@ -169,32 +154,27 @@ export default function AdminProductsPage() {
                 images: productData.images || ['https://placehold.co/600x800'],
                 createdAt: serverTimestamp(),
                 updatedAt: serverTimestamp(),
-            });
+            };
+            batch.set(newProductRef, completeProductData);
         });
 
         await batch.commit();
         
-        let toastDescription = `${productsToImport.length} produits ont été importés avec succès.`;
-        if (newCategorySlugs.length > 0) {
-          const categoryText = newCategorySlugs.length > 1 ? 'nouvelles catégories ont été créées' : 'nouvelle catégorie a été créée';
-          toastDescription += ` Et ${newCategorySlugs.length} ${categoryText}.`;
-        }
-
         toast({
             title: "Importation réussie",
-            description: toastDescription,
+            description: `${productsToImport.length} produits ont été importés avec succès.`
         });
-        setIsImportOpen(false);
-        setImportFile(null);
+
     } catch (error: any) {
-        console.error("Failed to import products:", error);
         toast({
             variant: "destructive",
             title: "Erreur d'importation",
-            description: error.message || "Impossible d'importer le fichier de produits.",
+            description: error.message || "Impossible d'importer le fichier de produits. Vérifiez les permissions et le format du fichier.",
         });
     } finally {
         setIsImporting(false);
+        setIsImportOpen(false);
+        setImportFile(null);
     }
 };
 
