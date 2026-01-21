@@ -34,14 +34,21 @@
       ]
     },
     "SubCategory": {
-        "title": "Sub-Category",
-        "type": "object",
-        "description": "Represents a product sub-category.",
-        "properties": {
-            "nameKey": { "type": "string" },
-            "parentCategory": { "type": "string" }
+      "title": "Sub-Category",
+      "type": "object",
+      "description": "Represents a product sub-category.",
+      "properties": {
+        "nameKey": {
+          "type": "string"
         },
-        "required": ["nameKey", "parentCategory"]
+        "parentCategory": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "nameKey",
+        "parentCategory"
+      ]
     },
     "Product": {
       "title": "Product",
@@ -79,7 +86,7 @@
           "type": "string"
         },
         "subCategory": {
-            "type": "string"
+          "type": "string"
         },
         "tags": {
           "type": "array",
@@ -112,7 +119,13 @@
                 "format": "uri"
               }
             },
-            "required": ["id", "color", "colorName", "size", "stock"]
+            "required": [
+              "id",
+              "color",
+              "colorName",
+              "size",
+              "stock"
+            ]
           }
         },
         "rating": {
@@ -130,12 +143,12 @@
           ]
         },
         "createdAt": {
-            "type": "string",
-            "format": "date-time"
+          "type": "string",
+          "format": "date-time"
         },
         "updatedAt": {
-            "type": "string",
-            "format": "date-time"
+          "type": "string",
+          "format": "date-time"
         }
       },
       "required": [
@@ -149,52 +162,110 @@
       ]
     },
     "Order": {
-        "title": "Order",
-        "type": "object",
-        "properties": {
-            "customer": {
-                "type": "object",
-                "properties": {
-                    "name": {"type": "string"},
-                    "email": {"type": "string", "format": "email"}
-                },
-                "required": ["name", "email"]
+      "title": "Order",
+      "type": "object",
+      "properties": {
+        "customer": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
             },
-            "items": {
-                "type": "array",
-                "items": {
-                    "type": "object",
-                    "properties": {
-                        "productId": {"type": "string"},
-                        "variantId": {"type": "string"},
-                        "name": {"type": "string"},
-                        "quantity": {"type": "number"},
-                        "price": {"type": "number"}
-                    },
-                    "required": ["productId", "variantId", "name", "quantity", "price"]
-                }
-            },
-            "total": {"type": "number"},
-            "status": {"type": "string", "enum": ["pending", "processing", "shipped", "delivered", "cancelled"]},
-            "createdAt": {"type": "string", "format": "date-time"}
+            "email": {
+              "type": "string",
+              "format": "email"
+            }
+          },
+          "required": [
+            "name",
+            "email"
+          ]
         },
-        "required": ["customer", "items", "total", "status", "createdAt"]
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "productId": {
+                "type": "string"
+              },
+              "variantId": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "quantity": {
+                "type": "number"
+              },
+              "price": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "productId",
+              "variantId",
+              "name",
+              "quantity",
+              "price"
+            ]
+          }
+        },
+        "total": {
+          "type": "number"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "processing",
+            "shipped",
+            "delivered",
+            "cancelled"
+          ]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "customer",
+        "items",
+        "total",
+        "status",
+        "createdAt"
+      ]
     },
     "StoreSettings": {
-        "title": "Store Settings",
-        "type": "object",
-        "properties": {
-            "storeName": {"type": "string"},
-            "contactEmail": {"type": "string", "format": "email"},
-            "defaultCurrency": {"type": "string"},
-            "defaultLanguage": {"type": "string"}
+      "title": "Store Settings",
+      "type": "object",
+      "properties": {
+        "storeName": {
+          "type": "string"
         },
-        "required": ["storeName", "contactEmail", "defaultCurrency", "defaultLanguage"]
+        "contactEmail": {
+          "type": "string",
+          "format": "email"
+        },
+        "defaultCurrency": {
+          "type": "string"
+        },
+        "defaultLanguage": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "storeName",
+        "contactEmail",
+        "defaultCurrency",
+        "defaultLanguage"
+      ]
     }
   },
   "auth": {
     "providers": [
-      "anonymous"
+      "google.com"
     ]
   },
   "firestore": {
@@ -217,16 +288,22 @@
       "description": "Stores product categories. Publicly readable."
     },
     "/subcategories/{subcategoryId}": {
-        "schema": { "$ref": "#/entities/SubCategory" },
-        "description": "Stores product sub-categories. Publicly readable."
+      "schema": {
+        "$ref": "#/entities/SubCategory"
+      },
+      "description": "Stores product sub-categories. Publicly readable."
     },
     "/orders/{orderId}": {
-        "schema": { "$ref": "#/entities/Order" },
-        "description": "Stores customer orders. Should only be readable by admins."
+      "schema": {
+        "$ref": "#/entities/Order"
+      },
+      "description": "Stores customer orders. Should only be readable by admins."
     },
-    "/settings/storeConfig": {
-        "schema": { "$ref": "#/entities/StoreSettings" },
-        "description": "Stores global settings for the store. Should only be writable by admins."
+    "/settings/{settingId}": {
+      "schema": {
+        "$ref": "#/entities/StoreSettings"
+      },
+      "description": "Stores global settings for the store. Should only be writable by admins."
     }
   }
 }

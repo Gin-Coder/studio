@@ -1,4 +1,3 @@
-
 type Dictionary = {
   [key: string]: string;
 };
@@ -182,7 +181,9 @@ export const dictionaries: Dictionaries = {
     'login.password': 'Password',
     'login.button': 'Login',
     'login.logging_in': 'Logging in...',
-    'login.error.invalid_credentials': 'Invalid email or password. Please try again.'
+    'login.error.invalid_credentials': 'Invalid email or password. Please try again.',
+    'login.google_button': 'Sign in with Google',
+    'login.google_description': 'Use your Google account to access the dashboard.'
   },
   fr: {
     'nav.home': 'Accueil',
@@ -358,7 +359,9 @@ export const dictionaries: Dictionaries = {
     'login.password': 'Mot de passe',
     'login.button': 'Se connecter',
     'login.logging_in': 'Connexion en cours...',
-    'login.error.invalid_credentials': 'E-mail ou mot de passe invalide. Veuillez réessayer.'
+    'login.error.invalid_credentials': 'E-mail ou mot de passe invalide. Veuillez réessayer.',
+    'login.google_button': 'Se connecter avec Google',
+    'login.google_description': 'Utilisez votre compte Google pour accéder au tableau de bord.'
   },
   ht: {
     'nav.home': 'Akèy',
@@ -534,6 +537,8 @@ export const dictionaries: Dictionaries = {
     'login.password': 'Modpas',
     'login.button': 'Konekte',
     'login.logging_in': 'Koneksyon an ap fèt...',
-    'login.error.invalid_credentials': 'Imèl oswa modpas pa kòrèk. Tanpri eseye ankò.'
+    'login.error.invalid_credentials': 'Imèl oswa modpas pa kòrèk. Tanpri eseye ankò.',
+    'login.google_button': 'Konekte ak Google',
+    'login.google_description': 'Sèvi ak kont Google ou pou jwenn aksè nan tablodbò a.'
   },
 };
