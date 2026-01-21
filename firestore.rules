@@ -1,46 +1,42 @@
-
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper function to check if a user is authenticated.
-    function isAuthenticated() {
-      return request.auth != null;
-    }
-
-    // Public collections that anyone can read.
-    // Only authenticated users (admins) can write to them.
+    // ===== PUBLIC COLLECTIONS =====
+    // Anyone can read these collections. Only authenticated users (admins) can write.
     match /products/{productId} {
       allow read: if true;
-      allow write: if isAuthenticated();
+      allow write: if request.auth != null;
     }
 
     match /categories/{categoryId} {
       allow read: if true;
-      allow write: if isAuthenticated();
+      allow write: if request.auth != null;
     }
-    
+
     match /subcategories/{subcategoryId} {
       allow read: if true;
-      allow write: if isAuthenticated();
+      allow write: if request.auth != null;
     }
 
-    // The 'users' collection.
-    // Any authenticated user (an admin) can list and read all user profiles.
+    // ===== ADMIN-ONLY & USER-SPECIFIC COLLECTIONS =====
     match /users/{userId} {
-      allow list, get: if isAuthenticated();
-      // A user can create or update their own profile upon signing in.
-      allow create, update: if isAuthenticated() && request.auth.uid == userId;
+      // Admins (any authenticated user) can read and list all user profiles.
+      allow read, list: if request.auth != null;
+      
+      // A user can only write to their own profile.
+      allow write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // Collections that are only accessible by authenticated admins.
     match /orders/{orderId} {
-      allow read, write: if isAuthenticated();
+      // Only admins can manage orders.
+      allow read, write: if request.auth != null;
     }
 
     match /settings/{settingId} {
-      allow read, write: if isAuthenticated();
+      // Only admins can manage settings.
+      allow read, write: if request.auth != null;
     }
   }
 }
