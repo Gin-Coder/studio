@@ -9,7 +9,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { formatPrice, slugify } from "@/lib/utils";
 import { useCurrency } from "@/hooks/use-currency";
 import { useLanguage } from "@/hooks/use-language";
-import { PlusCircle, MoreHorizontal, Loader2, Upload } from "lucide-react";
+import { PlusCircle, MoreHorizontal, Loader2, Upload, Trash2 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -39,7 +40,9 @@ export default function AdminProductsPage() {
 
   const { toast } = useToast();
 
+  const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
   const [productIdToDelete, setProductIdToDelete] = useState<string | null>(null);
+  const [isBulkDeleteOpen, setIsBulkDeleteOpen] = useState(false);
 
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
@@ -58,31 +61,54 @@ export default function AdminProductsPage() {
   const isLoading = isLoadingProducts || isLoadingCategories;
 
 
-  const handleDeleteProduct = () => {
+  const handleDeleteProduct = async () => {
     if (!productIdToDelete || !firestore) return;
-    const idToDelete = productIdToDelete;
-    const productDocRef = doc(firestore, 'products', idToDelete);
+    const productDocRef = doc(firestore, 'products', productIdToDelete);
     
-    deleteDoc(productDocRef).then(() => {
-        toast({
-          title: "Produit supprimé",
-          description: `Le produit a été supprimé avec succès.`,
-        });
-    }).catch((error) => {
+    try {
+      await deleteDoc(productDocRef);
+      toast({
+        title: "Produit supprimé",
+        description: `Le produit a été supprimé avec succès.`,
+      });
+    } catch (error) {
         console.error("Error deleting product:", error);
-        toast({
-          variant: "destructive",
-          title: "Erreur",
-          description: "La suppression du produit a échoué.",
-        });
         errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: productDocRef.path,
             operation: 'delete',
         }));
-    }).finally(() => {
+    } finally {
         setProductIdToDelete(null);
-    })
+    }
   };
+
+  const handleDeleteSelected = async () => {
+    if (!firestore || selectedProductIds.length === 0) return;
+    
+    const batch = writeBatch(firestore);
+    selectedProductIds.forEach(id => {
+        const docRef = doc(firestore, 'products', id);
+        batch.delete(docRef);
+    });
+
+    try {
+        await batch.commit();
+        toast({
+            title: `${selectedProductIds.length} produits supprimés`,
+            description: "Les produits sélectionnés ont été supprimés avec succès.",
+        });
+    } catch(error) {
+        console.error("Error bulk deleting products:", error);
+        toast({
+            variant: "destructive",
+            title: "Erreur de suppression",
+            description: "Une erreur est survenue lors de la suppression des produits.",
+        });
+    } finally {
+        setSelectedProductIds([]);
+        setIsBulkDeleteOpen(false);
+    }
+  }
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -176,50 +202,64 @@ export default function AdminProductsPage() {
   return (
     <>
       <div className="flex items-center justify-between gap-4">
-        <h1 className="text-3xl font-bold">Produits</h1>
-        <div className="flex gap-2">
-            <Dialog open={isImportOpen} onOpenChange={setIsImportOpen}>
-              <DialogTrigger asChild>
-                  <Button variant="outline">
-                      <Upload className="mr-2 h-4 w-4" />
-                      Importer en masse
-                  </Button>
-              </DialogTrigger>
-              <DialogContent>
-                  <DialogHeader>
-                      <DialogTitle>Importer des produits en masse</DialogTitle>
-                      <DialogDescription>
-                          Téléversez un fichier JSON pour ajouter plusieurs produits à la fois.
-                          Le fichier doit être un tableau d'objets produits.
-                      </DialogDescription>
-                  </DialogHeader>
-                  <div className="grid gap-4 py-4">
-                      <div className="grid gap-2">
-                          <Label htmlFor="import-file">Fichier JSON</Label>
-                          <Input id="import-file" type="file" accept=".json" onChange={handleFileSelect} />
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                          <a href="/products-example.json" download className="underline hover:text-primary">
-                            Téléchargez un exemple de fichier JSON
-                          </a> pour voir le format requis.
-                      </p>
-                  </div>
-                  <DialogFooter>
-                      <Button variant="outline" onClick={() => setIsImportOpen(false)}>Annuler</Button>
-                      <Button onClick={handleImport} disabled={!importFile || isImporting}>
-                          {isImporting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                          {isImporting ? "Importation..." : "Importer les produits"}
-                      </Button>
-                  </DialogFooter>
-              </DialogContent>
-            </Dialog>
-            <Button asChild>
-              <Link href="/admin/products/new">
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Ajouter un produit
-              </Link>
-            </Button>
-        </div>
+        {selectedProductIds.length > 0 ? (
+            <>
+                <h1 className="text-xl font-semibold text-muted-foreground">
+                    {selectedProductIds.length} produit(s) sélectionné(s)
+                </h1>
+                <Button variant="destructive" onClick={() => setIsBulkDeleteOpen(true)}>
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Supprimer la sélection
+                </Button>
+            </>
+        ) : (
+            <>
+                <h1 className="text-3xl font-bold">Produits</h1>
+                <div className="flex gap-2">
+                    <Dialog open={isImportOpen} onOpenChange={setIsImportOpen}>
+                      <DialogTrigger asChild>
+                          <Button variant="outline">
+                              <Upload className="mr-2 h-4 w-4" />
+                              Importer en masse
+                          </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                          <DialogHeader>
+                              <DialogTitle>Importer des produits en masse</DialogTitle>
+                              <DialogDescription>
+                                  Téléversez un fichier JSON pour ajouter plusieurs produits à la fois.
+                                  Le fichier doit être un tableau d'objets produits.
+                              </DialogDescription>
+                          </DialogHeader>
+                          <div className="grid gap-4 py-4">
+                              <div className="grid gap-2">
+                                  <Label htmlFor="import-file">Fichier JSON</Label>
+                                  <Input id="import-file" type="file" accept=".json" onChange={handleFileSelect} />
+                              </div>
+                              <p className="text-xs text-muted-foreground">
+                                  <a href="/products-example.json" download className="underline hover:text-primary">
+                                    Téléchargez un exemple de fichier JSON
+                                  </a> pour voir le format requis.
+                              </p>
+                          </div>
+                          <DialogFooter>
+                              <Button variant="outline" onClick={() => setIsImportOpen(false)}>Annuler</Button>
+                              <Button onClick={handleImport} disabled={!importFile || isImporting}>
+                                  {isImporting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                  {isImporting ? "Importation..." : "Importer les produits"}
+                              </Button>
+                          </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+                    <Button asChild>
+                      <Link href="/admin/products/new">
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Ajouter un produit
+                      </Link>
+                    </Button>
+                </div>
+            </>
+        )}
       </div>
       <Card>
         <CardHeader>
@@ -230,6 +270,19 @@ export default function AdminProductsPage() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead padding="checkbox" className="w-12">
+                  <Checkbox
+                    checked={products && selectedProductIds.length === products.length}
+                    onCheckedChange={(checked) => {
+                      if (checked && products) {
+                        setSelectedProductIds(products.map(p => p.id));
+                      } else {
+                        setSelectedProductIds([]);
+                      }
+                    }}
+                    aria-label="Tout sélectionner"
+                  />
+                </TableHead>
                 <TableHead className="hidden w-[100px] sm:table-cell">
                   <span className="sr-only">Image</span>
                 </TableHead>
@@ -245,13 +298,26 @@ export default function AdminProductsPage() {
             <TableBody>
               {isLoading && (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center">
+                  <TableCell colSpan={7} className="text-center">
                     <Loader2 className="mx-auto h-8 w-8 animate-spin text-muted-foreground" />
                   </TableCell>
                 </TableRow>
               )}
               {products && products.map((product) => (
-                <TableRow key={product.id}>
+                <TableRow key={product.id} data-state={selectedProductIds.includes(product.id) && "selected"}>
+                  <TableCell padding="checkbox">
+                    <Checkbox
+                      checked={selectedProductIds.includes(product.id)}
+                      onCheckedChange={(checked) => {
+                        setSelectedProductIds(
+                          checked
+                            ? [...selectedProductIds, product.id]
+                            : selectedProductIds.filter(id => id !== product.id)
+                        );
+                      }}
+                      aria-label="Sélectionner la ligne"
+                    />
+                  </TableCell>
                   <TableCell className="hidden sm:table-cell">
                     <Image
                       alt={product.name}
@@ -312,6 +378,23 @@ export default function AdminProductsPage() {
             <AlertDialogCancel>Annuler</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteProduct}>
               Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={isBulkDeleteOpen} onOpenChange={setIsBulkDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmer la suppression en masse</AlertDialogTitle>
+            <AlertDialogDescription>
+              Cette action est irréversible. Vous êtes sur le point de supprimer définitivement {selectedProductIds.length} produit(s).
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteSelected}>
+              Confirmer la suppression
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

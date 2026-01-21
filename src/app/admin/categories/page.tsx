@@ -4,7 +4,7 @@
 import { useState, useMemo } from 'react';
 import Image from 'next/image';
 import { useCollection, useFirestore, useMemoFirebase, errorEmitter, FirestorePermissionError } from '@/firebase';
-import { collection, doc, setDoc, deleteDoc } from 'firebase/firestore';
+import { collection, doc, setDoc, deleteDoc, writeBatch } from 'firebase/firestore';
 import { getStorage, ref, uploadString, getDownloadURL } from 'firebase/storage';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,6 +16,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, PlusCircle, MoreHorizontal, Pencil, Trash2, Eye } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Checkbox } from '@/components/ui/checkbox';
 import { slugify } from '@/lib/utils';
 import type { Category } from '@/lib/types';
 import { setDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
@@ -48,12 +49,12 @@ export default function AdminCategoriesPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [currentCategory, setCurrentCategory] = useState<CategoryFormState | null>(null);
   
-  // State for deletion confirmation, only stores the ID
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
   const [categoryIdToDelete, setCategoryIdToDelete] = useState<string | null>(null);
+  const [isBulkDeleteOpen, setIsBulkDeleteOpen] = useState(false);
 
   const isEditing = useMemo(() => !!currentCategory?.id, [currentCategory]);
 
-  // Derived state to find the full category object to delete
   const categoryToDelete = useMemo(() => {
     if (!categoryIdToDelete || !categories) return null;
     return categories.find(c => c.id === categoryIdToDelete);
@@ -104,14 +105,13 @@ export default function AdminCategoriesPage() {
     setIsSaving(true);
 
     let categoryId = currentCategory.id || slugify(currentCategory.nameKey);
-
+    const categoryRef = doc(firestore, 'categories', categoryId);
+    
     try {
         let finalImageUrl = currentCategory.imageUrl;
         if (currentCategory.imageUrl.startsWith('data:')) {
             finalImageUrl = await uploadCategoryImage(currentCategory.imageUrl);
         }
-
-        const categoryRef = doc(firestore, 'categories', categoryId);
 
         const categoryData = {
             nameKey: currentCategory.nameKey,
@@ -126,7 +126,6 @@ export default function AdminCategoriesPage() {
 
     } catch (error: any) {
         console.error("Error saving category:", error);
-        const categoryRef = doc(firestore, 'categories', categoryId);
         errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: categoryRef.path,
             operation: isEditing ? 'update' : 'create',
@@ -139,9 +138,7 @@ export default function AdminCategoriesPage() {
 
   const handleDelete = async () => {
     if (!firestore || !categoryIdToDelete) return;
-    
     const categoryRef = doc(firestore, 'categories', categoryIdToDelete);
-    
     try {
       await deleteDoc(categoryRef)
       toast({ title: "Catégorie supprimée" });
@@ -156,14 +153,56 @@ export default function AdminCategoriesPage() {
     }
   };
 
+  const handleDeleteSelected = async () => {
+    if (!firestore || selectedCategoryIds.length === 0) return;
+    
+    const batch = writeBatch(firestore);
+    selectedCategoryIds.forEach(id => {
+        const docRef = doc(firestore, 'categories', id);
+        batch.delete(docRef);
+    });
+
+    try {
+        await batch.commit();
+        toast({
+            title: `${selectedCategoryIds.length} catégories supprimées`,
+            description: "Les catégories sélectionnées ont été supprimées.",
+        });
+    } catch(error) {
+        console.error("Error bulk deleting categories:", error);
+        toast({
+            variant: "destructive",
+            title: "Erreur de suppression",
+            description: "Une erreur est survenue lors de la suppression des catégories.",
+        });
+    } finally {
+        setSelectedCategoryIds([]);
+        setIsBulkDeleteOpen(false);
+    }
+  }
+
   return (
     <>
       <div className="flex items-center justify-between gap-4">
-        <h1 className="text-3xl font-bold">Catégories</h1>
-        <Button onClick={openNewDialog}>
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Ajouter une catégorie
-        </Button>
+        {selectedCategoryIds.length > 0 ? (
+          <>
+            <h1 className="text-xl font-semibold text-muted-foreground">
+                {selectedCategoryIds.length} catégorie(s) sélectionnée(s)
+            </h1>
+            <Button variant="destructive" onClick={() => setIsBulkDeleteOpen(true)}>
+                <Trash2 className="mr-2 h-4 w-4" />
+                Supprimer la sélection
+            </Button>
+          </>
+        ) : (
+          <>
+            <h1 className="text-3xl font-bold">Catégories</h1>
+            <Button onClick={openNewDialog}>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Ajouter une catégorie
+            </Button>
+          </>
+        )}
       </div>
       <Card>
         <CardHeader>
@@ -174,6 +213,19 @@ export default function AdminCategoriesPage() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead padding="checkbox" className="w-12">
+                   <Checkbox
+                    checked={categories && selectedCategoryIds.length === categories.length && categories.length > 0}
+                    onCheckedChange={(checked) => {
+                      if (checked && categories) {
+                        setSelectedCategoryIds(categories.map(c => c.id));
+                      } else {
+                        setSelectedCategoryIds([]);
+                      }
+                    }}
+                    aria-label="Tout sélectionner"
+                  />
+                </TableHead>
                 <TableHead className="hidden w-[100px] sm:table-cell">Image</TableHead>
                 <TableHead>Nom</TableHead>
                 <TableHead><span className="sr-only">Actions</span></TableHead>
@@ -181,10 +233,23 @@ export default function AdminCategoriesPage() {
             </TableHeader>
             <TableBody>
               {isLoading && (
-                <TableRow><TableCell colSpan={3} className="text-center"><Loader2 className="mx-auto h-8 w-8 animate-spin text-muted-foreground" /></TableCell></TableRow>
+                <TableRow><TableCell colSpan={4} className="text-center"><Loader2 className="mx-auto h-8 w-8 animate-spin text-muted-foreground" /></TableCell></TableRow>
               )}
               {categories?.map((cat) => (
-                <TableRow key={cat.id}>
+                <TableRow key={cat.id} data-state={selectedCategoryIds.includes(cat.id) && "selected"}>
+                   <TableCell padding="checkbox">
+                    <Checkbox
+                      checked={selectedCategoryIds.includes(cat.id)}
+                      onCheckedChange={(checked) => {
+                        setSelectedCategoryIds(
+                          checked
+                            ? [...selectedCategoryIds, cat.id]
+                            : selectedCategoryIds.filter(id => id !== cat.id)
+                        );
+                      }}
+                      aria-label="Sélectionner la ligne"
+                    />
+                  </TableCell>
                   <TableCell className="hidden sm:table-cell">
                     <Image alt={cat.nameKey} className="aspect-square rounded-md object-cover" height="64" src={cat.imageUrl || 'https://placehold.co/64x64'} width="64" />
                   </TableCell>
@@ -284,6 +349,23 @@ export default function AdminCategoriesPage() {
           <AlertDialogFooter>
             <AlertDialogCancel>Annuler</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete}>Supprimer</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={isBulkDeleteOpen} onOpenChange={setIsBulkDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmer la suppression en masse</AlertDialogTitle>
+            <AlertDialogDescription>
+              Cette action est irréversible. Vous êtes sur le point de supprimer définitivement {selectedCategoryIds.length} catégorie(s). Les produits associés ne seront pas supprimés mais devront être réassignés.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteSelected}>
+              Confirmer la suppression
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

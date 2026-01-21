@@ -3,7 +3,7 @@
 
 import { useState, useMemo } from 'react';
 import { useCollection, useFirestore, useMemoFirebase, errorEmitter, FirestorePermissionError } from '@/firebase';
-import { collection, doc, setDoc, deleteDoc } from 'firebase/firestore';
+import { collection, doc, setDoc, deleteDoc, writeBatch } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, PlusCircle, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Checkbox } from '@/components/ui/checkbox';
 import { slugify } from '@/lib/utils';
 import type { Category, SubCategory } from '@/lib/types';
 import { useLanguage } from '@/hooks/use-language';
@@ -40,7 +41,9 @@ export default function AdminSubCategoriesPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [currentSubCategory, setCurrentSubCategory] = useState<SubCategoryFormState | null>(null);
   
+  const [selectedSubCategoryIds, setSelectedSubCategoryIds] = useState<string[]>([]);
   const [subCategoryIdToDelete, setSubCategoryIdToDelete] = useState<string | null>(null);
+  const [isBulkDeleteOpen, setIsBulkDeleteOpen] = useState(false);
 
   const isEditing = useMemo(() => !!currentSubCategory?.id, [currentSubCategory]);
 
@@ -126,17 +129,59 @@ export default function AdminSubCategoriesPage() {
         setSubCategoryIdToDelete(null);
     }
   };
+
+  const handleDeleteSelected = async () => {
+    if (!firestore || selectedSubCategoryIds.length === 0) return;
+    
+    const batch = writeBatch(firestore);
+    selectedSubCategoryIds.forEach(id => {
+        const docRef = doc(firestore, 'subcategories', id);
+        batch.delete(docRef);
+    });
+
+    try {
+        await batch.commit();
+        toast({
+            title: `${selectedSubCategoryIds.length} sous-catégories supprimées`,
+            description: "Les sous-catégories sélectionnées ont été supprimées.",
+        });
+    } catch(error) {
+        console.error("Error bulk deleting subcategories:", error);
+        toast({
+            variant: "destructive",
+            title: "Erreur de suppression",
+            description: "Une erreur est survenue lors de la suppression des sous-catégories.",
+        });
+    } finally {
+        setSelectedSubCategoryIds([]);
+        setIsBulkDeleteOpen(false);
+    }
+  }
   
   const isLoading = isLoadingSubCategories || isLoadingCategories;
 
   return (
     <>
       <div className="flex items-center justify-between gap-4">
-        <h1 className="text-3xl font-bold">Sous-catégories</h1>
-        <Button onClick={openNewDialog}>
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Ajouter une sous-catégorie
-        </Button>
+        {selectedSubCategoryIds.length > 0 ? (
+            <>
+                <h1 className="text-xl font-semibold text-muted-foreground">
+                    {selectedSubCategoryIds.length} sous-catégorie(s) sélectionnée(s)
+                </h1>
+                <Button variant="destructive" onClick={() => setIsBulkDeleteOpen(true)}>
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Supprimer la sélection
+                </Button>
+            </>
+        ) : (
+          <>
+            <h1 className="text-3xl font-bold">Sous-catégories</h1>
+            <Button onClick={openNewDialog}>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Ajouter une sous-catégorie
+            </Button>
+          </>
+        )}
       </div>
       <Card>
         <CardHeader>
@@ -147,6 +192,19 @@ export default function AdminSubCategoriesPage() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead padding="checkbox" className="w-12">
+                   <Checkbox
+                    checked={subCategories && selectedSubCategoryIds.length === subCategories.length && subCategories.length > 0}
+                    onCheckedChange={(checked) => {
+                      if (checked && subCategories) {
+                        setSelectedSubCategoryIds(subCategories.map(sc => sc.id));
+                      } else {
+                        setSelectedSubCategoryIds([]);
+                      }
+                    }}
+                    aria-label="Tout sélectionner"
+                  />
+                </TableHead>
                 <TableHead>Nom</TableHead>
                 <TableHead>Catégorie Parente</TableHead>
                 <TableHead><span className="sr-only">Actions</span></TableHead>
@@ -154,10 +212,23 @@ export default function AdminSubCategoriesPage() {
             </TableHeader>
             <TableBody>
               {isLoading && (
-                <TableRow><TableCell colSpan={3} className="text-center"><Loader2 className="mx-auto h-8 w-8 animate-spin text-muted-foreground" /></TableCell></TableRow>
+                <TableRow><TableCell colSpan={4} className="text-center"><Loader2 className="mx-auto h-8 w-8 animate-spin text-muted-foreground" /></TableCell></TableRow>
               )}
               {subCategories?.map((sc) => (
-                <TableRow key={sc.id}>
+                <TableRow key={sc.id} data-state={selectedSubCategoryIds.includes(sc.id) && "selected"}>
+                   <TableCell padding="checkbox">
+                    <Checkbox
+                      checked={selectedSubCategoryIds.includes(sc.id)}
+                      onCheckedChange={(checked) => {
+                        setSelectedSubCategoryIds(
+                          checked
+                            ? [...selectedSubCategoryIds, sc.id]
+                            : selectedSubCategoryIds.filter(id => id !== sc.id)
+                        );
+                      }}
+                      aria-label="Sélectionner la ligne"
+                    />
+                  </TableCell>
                   <TableCell className="font-medium">{sc.nameKey}</TableCell>
                   <TableCell>{t(categoryMap.get(sc.parentCategory) || sc.parentCategory)}</TableCell>
                   <TableCell className="text-right">
@@ -226,6 +297,24 @@ export default function AdminSubCategoriesPage() {
           <AlertDialogFooter>
             <AlertDialogCancel>Annuler</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete}>Supprimer</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      
+      {/* Alert for Bulk Delete Confirmation */}
+      <AlertDialog open={isBulkDeleteOpen} onOpenChange={setIsBulkDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmer la suppression en masse</AlertDialogTitle>
+            <AlertDialogDescription>
+              Cette action est irréversible. Vous êtes sur le point de supprimer définitivement {selectedSubCategoryIds.length} sous-catégorie(s). Les produits associés devront être réassignés.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteSelected}>
+              Confirmer la suppression
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
