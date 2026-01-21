@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -192,11 +193,11 @@ export default function Header() {
             </SheetTrigger>
             <SheetContent side="left" className="w-full max-w-sm p-0">
                <SheetHeader className="p-4 border-b">
-                 <SheetTitle className="sr-only">Menu de navigation</SheetTitle>
+                 <SheetTitle className="sr-only">{t('nav.navigation_menu')}</SheetTitle>
                  <SheetClose asChild>
                    <Link href="/" className="flex items-center gap-2">
                      <Logo />
-                     <span className="font-bold">Danny Store</span>
+                     <span className="font-bold">{t('store.name')}</span>
                    </Link>
                  </SheetClose>
                </SheetHeader>
@@ -232,7 +233,7 @@ export default function Header() {
           <div className="hidden md:flex md:items-center">
             <Link href="/" className="mr-6 flex items-center gap-2">
               <Logo />
-              <span className="font-headline text-lg font-bold text-primary">Danny Store</span>
+              <span className="font-headline text-lg font-bold text-primary">{t('store.name')}</span>
             </Link>
           </div>
         </div>

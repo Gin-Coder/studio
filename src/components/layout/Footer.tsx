@@ -47,7 +47,7 @@ export default function Footer() {
 
         <div className="flex flex-col items-center sm:flex-row sm:justify-between">
           <p className="text-sm text-muted-foreground mb-4 sm:mb-0">
-            &copy; {new Date().getFullYear()} Danny Store. {t('footer.rights')}
+            &copy; {new Date().getFullYear()} {t('store.name')}. {t('footer.rights')}
           </p>
           <div className="flex items-center gap-x-2">
             

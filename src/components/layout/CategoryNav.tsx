@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -7,7 +8,6 @@ import { useLanguage } from '@/hooks/use-language';
 import type { Category } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { dictionaries } from '@/lib/dictionaries';
 import { cn } from '@/lib/utils';
 import { Suspense } from 'react';
 
@@ -42,45 +42,7 @@ const CategoryNavContent = () => {
     }
 
     const getCategoryDisplayName = (category: Category) => {
-        const key = category.nameKey;
-        // If the key is already a translation key (e.g., 'filter.shoes'), just translate it.
-        if (key && key.includes('.')) {
-            return t(key);
-        }
-        
-        // Otherwise, it might be a literal name like "Shoes", possibly with typos.
-        // Let's try to find if this literal name corresponds to a key in the English dictionary.
-        const enDict = dictionaries['en'];
-        const lowerKey = key ? key.toLowerCase() : '';
-        if (!lowerKey) return '';
-
-        // Only search within category translation keys to avoid unrelated matches
-        const categoryKeys = Object.keys(enDict).filter(k => k.startsWith('filter.'));
-
-        const foundKey = categoryKeys.find(k => {
-            const dictValueLower = enDict[k].toLowerCase();
-            
-            // Use startsWith and a length check to make matching more robust against typos
-            // without being too greedy. One must be a prefix of the other, and their lengths
-            // should be similar (e.g., at least 80% of each other).
-            const lengthRatio = Math.min(lowerKey.length, dictValueLower.length) / Math.max(lowerKey.length, dictValueLower.length);
-
-            if (lengthRatio >= 0.8) {
-                 if (dictValueLower.startsWith(lowerKey) || lowerKey.startsWith(dictValueLower)) {
-                     return true;
-                 }
-            }
-            return false;
-        });
-
-        // If we found a key (e.g., 'filter.shoes' for 'Shoe'), translate that key.
-        if (foundKey) {
-            return t(foundKey);
-        }
-        
-        // If no key was found, it's probably a user-created category.
-        // The t() function will just return the key itself if no translation is found.
-        return t(key);
+        return t(category.nameKey);
     };
     
     const isShopPage = pathname.startsWith('/shop');

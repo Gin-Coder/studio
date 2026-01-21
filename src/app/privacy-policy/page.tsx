@@ -1,52 +1,55 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useLanguage } from '@/hooks/use-language';
 
 export default function PrivacyPolicyPage() {
   const [lastUpdated, setLastUpdated] = useState('');
+  const { t } = useLanguage();
 
   useEffect(() => {
     // This will only run on the client, after hydration, to avoid mismatch
     setLastUpdated(new Date().toLocaleDateString());
-  }, []); // Empty dependency array ensures this runs once on mount
+  }, []);
 
   return (
     <div className="container mx-auto max-w-3xl py-16">
       <div className="prose dark:prose-invert">
-        <h1 className="font-headline text-4xl font-bold text-primary">Privacy Policy</h1>
-        <p className="text-muted-foreground">Last updated: {lastUpdated || '...'}</p>
+        <h1 className="font-headline text-4xl font-bold text-primary">{t('privacy_policy.title')}</h1>
+        <p className="text-muted-foreground">{t('privacy_policy.last_updated', { date: lastUpdated || '...' })}</p>
         
         <p>
-          Welcome to Danny Store. We are committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website.
+          {t('privacy_policy.p1')}
         </p>
 
-        <h2 className="font-headline">2. How We Use Your Information</h2>
+        <h2 className="font-headline">{t('privacy_policy.h2')}</h2>
         <ul>
-          <li>To process and manage your orders and returns.</li>
-          <li>To communicate with you, including sending order confirmations via WhatsApp.</li>
-          <li>To provide customer support.</li>
-          <li>To improve our website and services.</li>
-          <li>To send you promotional materials, if you opt-in.</li>
+          <li>{t('privacy_policy.l1')}</li>
+          <li>{t('privacy_policy.l2')}</li>
+          <li>{t('privacy_policy.l3')}</li>
+          <li>{t('privacy_policy.l4')}</li>
+          <li>{t('privacy_policy.l5')}</li>
         </ul>
 
-        <h2 className="font-headline">3. Information Sharing</h2>
+        <h2 className="font-headline">{t('privacy_policy.h3')}</h2>
         <p>
-          We do not sell, trade, or otherwise transfer your personally identifiable information to outside parties. This does not include trusted third parties who assist us in operating our website or servicing you, so long as those parties agree to keep this information confidential.
+          {t('privacy_policy.p2')}
         </p>
 
-        <h2 className="font-headline">4. Data Security</h2>
+        <h2 className="font-headline">{t('privacy_policy.h4')}</h2>
         <p>
-          We implement a variety of security measures to maintain the safety of your personal information. However, no method of transmission over the Internet or method of electronic storage is 100% secure.
+          {t('privacy_policy.p3')}
         </p>
         
-        <h2 className="font-headline">5. Your Rights</h2>
+        <h2 className="font-headline">{t('privacy_policy.h5')}</h2>
         <p>
-          You have the right to access, update, or delete your personal information at any time by logging into your account or contacting us directly.
+          {t('privacy_policy.p4')}
         </p>
 
-        <h2 className="font-headline">Contact Us</h2>
+        <h2 className="font-headline">{t('privacy_policy.h6')}</h2>
         <p>
-          If you have any questions about this Privacy Policy, please contact us at <a href="mailto:privacy@dannystore.com">privacy@dannystore.com</a>.
+          {t('privacy_policy.p5')}
         </p>
       </div>
     </div>

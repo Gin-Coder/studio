@@ -159,7 +159,7 @@ export function AISearch({ isDialog = false }: AISearchProps) {
           >
             <Search className="mr-2 h-4 w-4" />
             <span className="hidden lg:inline-flex">{t('nav.search_placeholder')}</span>
-            <span className="inline-flex lg:hidden">Search...</span>
+            <span className="inline-flex lg:hidden">{t('nav.mobile_search_placeholder')}</span>
           </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" onOpenAutoFocus={(e) => e.preventDefault()}>

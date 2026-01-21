@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -16,8 +17,8 @@ interface ProductActionsProps {
 
 export default function ProductActions({ product }: ProductActionsProps) {
   const { addToCart } = useCart();
-  const [selectedColor, setSelectedColor] = useState(product.variants[0].colorName);
-  const [selectedSize, setSelectedSize] = useState(product.variants[0].size);
+  const [selectedColor, setSelectedColor] = useState(product.variants[0]?.colorName || '');
+  const [selectedSize, setSelectedSize] = useState(product.variants[0]?.size || '');
   const { toast } = useToast();
   const { t } = useLanguage();
 
@@ -47,10 +48,10 @@ export default function ProductActions({ product }: ProductActionsProps) {
   return (
     <div className="mt-8 space-y-4">
       <div>
-        <h3 className="text-lg font-semibold">Color</h3>
+        <h3 className="text-lg font-semibold">{t('filter.color')}</h3>
         <Select value={selectedColor} onValueChange={setSelectedColor}>
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Select a color" />
+            <SelectValue placeholder={t('product.select_color')} />
           </SelectTrigger>
           <SelectContent>
             {Array.from(new Set(product.variants.map(variant => variant.colorName))).map(color => (
@@ -60,10 +61,10 @@ export default function ProductActions({ product }: ProductActionsProps) {
         </Select>
       </div>
       <div>
-        <h3 className="text-lg font-semibold">Size</h3>
+        <h3 className="text-lg font-semibold">{t('filter.size')}</h3>
         <Select value={selectedSize} onValueChange={setSelectedSize}>
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Select a size" />
+            <SelectValue placeholder={t('product.select_size')} />
           </SelectTrigger>
           <SelectContent>
             {availableSizes.map(size => (
@@ -72,7 +73,7 @@ export default function ProductActions({ product }: ProductActionsProps) {
           </SelectContent>
         </Select>
       </div>
-      <Button size="lg" className="w-full" onClick={handleAddToCart}>{t('product.add_to_cart')}</Button>
+      <Button size="lg" className="w-full" onClick={handleAddToCart} disabled={!selectedVariant}>{t('product.add_to_cart')}</Button>
     </div>
   );
 }

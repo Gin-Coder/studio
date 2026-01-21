@@ -102,7 +102,7 @@ const Filters = ({ filters, setFilters, categories, subCategories }: { filters: 
                     </AccordionContent>
                 </AccordionItem>
                 <AccordionItem value="subcategory">
-                    <AccordionTrigger>Sous-catégorie</AccordionTrigger>
+                    <AccordionTrigger>{t('filter.subcategory')}</AccordionTrigger>
                     <AccordionContent>
                         {!subCategories && <Loader2 className="h-5 w-5 animate-spin" />}
                         <div className="grid gap-2">
