@@ -1,84 +1,20 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useLanguage } from '@/hooks/use-language';
-import { useToast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
 import { Logo } from '@/components/ui/logo';
 import Link from 'next/link';
-import { useAuth, useFirestore, errorEmitter, FirestorePermissionError } from '@/firebase';
-import { GoogleAuthProvider, signInWithRedirect, getRedirectResult, AuthError } from 'firebase/auth';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
-
-const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" {...props}>
-        <title>Google</title>
-        <path d="M12.48 10.92v3.28h7.84c-.24 1.84-.85 3.18-1.73 4.1-1.05 1.05-2.86 2.25-4.82 2.25-4.04 0-7.3-3.35-7.3-7.4s3.26-7.4 7.3-7.4c2.28 0 3.68.92 4.5 1.75l2.7-2.7C18.44 2.16 15.87 1 12.48 1 7.02 1 3 5.02 3 10.5s4.02 9.5 9.48 9.5c2.9 0 5.08-1 6.8-2.62 1.8-1.62 2.7-4.12 2.7-7.12 0-.6-.05-1.18-.15-1.72z" fill="currentColor" />
-    </svg>
-);
-
+import { ArrowRight } from 'lucide-react';
 
 export default function LoginPage() {
-  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const { t } = useLanguage();
-  const auth = useAuth();
-  const firestore = useFirestore();
-  const { toast } = useToast();
-  
-  useEffect(() => {
-    if (!auth || !firestore) return;
-    setIsLoading(true);
-    getRedirectResult(auth)
-      .then((result) => {
-        if (result) {
-          const user = result.user;
-          const userRef = doc(firestore, 'users', user.uid);
-          const userProfileData = {
-            displayName: user.displayName,
-            email: user.email,
-            lastLogin: serverTimestamp()
-          };
 
-          return setDoc(userRef, userProfileData, { merge: true }).then(() => {
-            toast({
-              title: "Connexion réussie",
-              description: `Bienvenue, ${user.displayName || user.email}!`,
-            });
-            router.push('/admin');
-          });
-        }
-        setIsLoading(false);
-      })
-      .catch((error: AuthError) => {
-        console.error("Login redirect error:", error);
-        toast({
-          variant: "destructive",
-          title: "Erreur de connexion",
-          description: "La connexion avec Google a échoué. Veuillez réessayer.",
-        });
-        setIsLoading(false);
-      });
-  }, [auth, firestore, router, toast]);
-
-
-  const handleGoogleLogin = async () => {
-    if (!auth) {
-        toast({
-            variant: "destructive",
-            title: "Erreur",
-            description: "Les services d'authentification ne sont pas disponibles.",
-        });
-        return;
-    }
-    setIsLoading(true);
-    
-    const provider = new GoogleAuthProvider();
-    await signInWithRedirect(auth, provider);
+  const handleAccessAdmin = () => {
+    router.push('/admin');
   };
 
   return (
@@ -88,18 +24,14 @@ export default function LoginPage() {
             <Link href="/" className="mb-4 inline-block">
                 <Logo className="mx-auto" />
             </Link>
-          <CardTitle className="text-2xl font-bold">{t('login.title')}</CardTitle>
-          <CardDescription>{t('login.google_description')}</CardDescription>
+          <CardTitle className="text-2xl font-bold">Panneau d'Administration</CardTitle>
+          <CardDescription>L'authentification est temporairement désactivée pour le développement.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <Button onClick={handleGoogleLogin} className="w-full" disabled={isLoading}>
-              {isLoading ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <GoogleIcon className="mr-2 h-4 w-4" />
-              )}
-              {isLoading ? t('login.logging_in') : t('login.google_button')}
+            <Button onClick={handleAccessAdmin} className="w-full">
+              Accéder au tableau de bord
+              <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </div>
         </CardContent>

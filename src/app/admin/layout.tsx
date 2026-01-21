@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { Home, ShoppingCart, FileText, Settings, LogOut, PanelLeft, ExternalLink, Shapes, ClipboardList, Warehouse, Spline, Network, Users } from 'lucide-react';
+import { Home, ShoppingCart, FileText, Settings, PanelLeft, ExternalLink, Shapes, ClipboardList, Warehouse, Spline, Network, Users } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -9,8 +9,6 @@ import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/s
 import { Logo } from '@/components/ui/logo';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
-import { useAuth } from '@/firebase';
-import { signOut } from 'firebase/auth';
 
 const AdminSidebarNav = () => {
     const pathname = usePathname();
@@ -81,15 +79,6 @@ const SidebarItems = ({ isMobile = false }: { isMobile?: boolean }) => {
 
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-    const router = useRouter();
-    const auth = useAuth();
-
-    const handleLogout = async () => {
-        if (auth) {
-            await signOut(auth);
-        }
-        router.push('/login');
-    };
 
     return (
         <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">
@@ -105,12 +94,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         <div className="grid items-start p-2 text-sm font-medium lg:p-4">
                             <SidebarItems />
                         </div>
-                    </div>
-                    <div className="mt-auto border-t p-4">
-                        <Button size="sm" variant="ghost" className="w-full justify-start" onClick={handleLogout}>
-                            <LogOut className="mr-2 h-4 w-4" />
-                            Déconnexion
-                        </Button>
                     </div>
                 </div>
             </div>
@@ -138,12 +121,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                             </div>
                             <div className="flex-1 overflow-auto p-2">
                                 <SidebarItems isMobile />
-                            </div>
-                             <div className="mt-auto p-4 border-t">
-                                <Button size="sm" variant="ghost" className="w-full justify-start" onClick={handleLogout}>
-                                    <LogOut className="mr-2 h-4 w-4" />
-                                    Déconnexion
-                                </Button>
                             </div>
                         </SheetContent>
                     </Sheet>
