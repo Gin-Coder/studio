@@ -1,34 +1,12 @@
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Public read access for store content
-    match /products/{productId} {
-      allow read: if true;
-      allow write: if request.auth != null;
-    }
-    match /categories/{categoryId} {
-      allow read: if true;
-      allow write: if request.auth != null;
-    }
-    match /subcategories/{subcategoryId} {
-      allow read: if true;
-      allow write: if request.auth != null;
-    }
-
-    // Admin-only access for users, orders, and settings
-    match /users/{userId} {
-      // Allow authenticated users to read and list the users collection
-      allow read: if request.auth != null;
-      // Only the user themselves can create or update their own profile
-      allow write: if request.auth != null && request.auth.uid == userId;
-    }
-    
-    match /orders/{orderId} {
-      allow read, write: if request.auth != null;
-    }
-
-    match /settings/{settingId} {
+    // Règle de diagnostic temporaire :
+    // Autorise la lecture et l'écriture sur toute la base de données
+    // si l'utilisateur est authentifié.
+    // AVERTISSEMENT : Ne pas utiliser en production.
+    match /{document=**} {
       allow read, write: if request.auth != null;
     }
   }
