@@ -18,6 +18,7 @@ import { Loader2, PlusCircle, MoreHorizontal, Pencil, Trash2, Eye } from 'lucide
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { slugify } from '@/lib/utils';
 import type { Category } from '@/lib/types';
+import { setDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 // The state for the category form
 type CategoryFormState = {
@@ -102,7 +103,6 @@ export default function AdminCategoriesPage() {
     }
     setIsSaving(true);
 
-    let categoryData: any;
     let categoryId = currentCategory.id || slugify(currentCategory.nameKey);
 
     try {
@@ -113,35 +113,26 @@ export default function AdminCategoriesPage() {
 
         const categoryRef = doc(firestore, 'categories', categoryId);
 
-        categoryData = {
+        const categoryData = {
             nameKey: currentCategory.nameKey,
             imageUrl: finalImageUrl || `https://picsum.photos/seed/${categoryId}/600/400`,
             imageHint: currentCategory.imageHint || currentCategory.nameKey,
         };
 
-        const operationPromise = isEditing 
-            ? setDoc(categoryRef, categoryData, { merge: true })
-            : setDoc(categoryRef, categoryData);
+        await setDoc(categoryRef, categoryData, { merge: true });
 
-        operationPromise.then(() => {
-            toast({ title: isEditing ? 'Catégorie mise à jour' : 'Catégorie créée' });
-            setDialogOpen(false);
-        }).catch((error) => {
-            console.error("Error saving category:", error);
-            toast({ variant: 'destructive', title: "Erreur lors de l'enregistrement", description: error.message });
-            errorEmitter.emit('permission-error', new FirestorePermissionError({
-                path: categoryRef.path,
-                operation: isEditing ? 'update' : 'create',
-                requestResourceData: categoryData,
-            }));
-        }).finally(() => {
-            setIsSaving(false);
-        });
+        toast({ title: isEditing ? 'Catégorie mise à jour' : 'Catégorie créée' });
+        setDialogOpen(false);
 
     } catch (error: any) {
-        // Catches errors from uploadCategoryImage
-        console.error("Error preparing to save category:", error);
-        toast({ variant: 'destructive', title: "Erreur d'image", description: error.message });
+        console.error("Error saving category:", error);
+        const categoryRef = doc(firestore, 'categories', categoryId);
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: categoryRef.path,
+            operation: isEditing ? 'update' : 'create',
+            requestResourceData: currentCategory,
+        }));
+    } finally {
         setIsSaving(false);
     }
   };
@@ -151,18 +142,18 @@ export default function AdminCategoriesPage() {
     
     const categoryRef = doc(firestore, 'categories', categoryIdToDelete);
     
-    deleteDoc(categoryRef).then(() => {
-        toast({ title: "Catégorie supprimée" });
-    }).catch((error: any) => {
+    try {
+      await deleteDoc(categoryRef)
+      toast({ title: "Catégorie supprimée" });
+    } catch(error: any) {
         console.error("Error deleting category:", error);
-        toast({ variant: 'destructive', title: "Erreur de suppression", description: error.message });
         errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: categoryRef.path,
             operation: 'delete',
         }));
-    }).finally(() => {
+    } finally {
       setCategoryIdToDelete(null);
-    });
+    }
   };
 
   return (
@@ -220,6 +211,9 @@ export default function AdminCategoriesPage() {
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>{isEditing ? 'Modifier la catégorie' : 'Ajouter une catégorie'}</DialogTitle>
+            <DialogDescription>
+                {isEditing ? "Modifiez les détails de la catégorie." : "Ajoutez une nouvelle catégorie à votre boutique."}
+            </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
@@ -246,6 +240,9 @@ export default function AdminCategoriesPage() {
                               <DialogContent className="max-w-3xl">
                                   <DialogHeader>
                                       <DialogTitle>Aperçu de l'image</DialogTitle>
+                                      <DialogDescription>
+                                          Aperçu de l'image de la catégorie.
+                                      </DialogDescription>
                                   </DialogHeader>
                                   <div className="relative aspect-video mt-4">
                                       <Image src={currentCategory.imageUrl} alt="Aperçu en grand" fill className="rounded-md object-contain"/>

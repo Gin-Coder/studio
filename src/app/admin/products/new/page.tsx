@@ -20,7 +20,7 @@ import { addDoc, collection, doc, setDoc, serverTimestamp } from 'firebase/fires
 import type { Category, SubCategory } from '@/lib/types';
 import { getStorage, ref, uploadString, getDownloadURL } from 'firebase/storage';
 import { slugify, stringToColor } from '@/lib/utils';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 
 type VariantFormState = {
     id: number;
@@ -99,7 +99,7 @@ export default function NewProductPage() {
         }
     };
 
-    const handleAddNewCategory = () => {
+    const handleAddNewCategory = async () => {
         if (newCategoryName.trim() === '') {
             toast({ variant: 'destructive', title: "Erreur", description: "Le nom de la catégorie ne peut pas être vide." });
             return;
@@ -109,9 +109,15 @@ export default function NewProductPage() {
              toast({ variant: 'destructive', title: "Erreur", description: "Cette catégorie existe déjà." });
              return;
         }
+        
+        if (!firestore) {
+            toast({ variant: "destructive", title: "Erreur de connexion", description: "La base de données n'est pas disponible." });
+            return;
+        }
 
         setIsSavingCategory(true);
         const newCategoryId = slugify(newCategoryName);
+        const categoryRef = doc(firestore, "categories", newCategoryId);
         
         const newCategoryData = {
             nameKey: newCategoryName,
@@ -119,31 +125,21 @@ export default function NewProductPage() {
             imageHint: 'placeholder'
         };
 
-        if (!firestore) {
-            toast({ variant: "destructive", title: "Erreur de connexion", description: "La base de données n'est pas disponible." });
-            setIsSavingCategory(false);
-            return;
-        }
-
-        const categoryRef = doc(firestore, "categories", newCategoryId);
-        setDoc(categoryRef, newCategoryData)
-          .then(() => {
+        try {
+            await setDoc(categoryRef, newCategoryData);
             setCategoryId(newCategoryId);
             setNewCategoryName('');
             toast({ title: "Catégorie ajoutée", description: `La catégorie "${newCategoryName}" a été ajoutée.` });
-          })
-          .catch((error) => {
+        } catch(error) {
             console.error("Error adding category to Firestore:", error);
-            toast({ variant: "destructive", title: "Erreur d'enregistrement", description: "Impossible d'ajouter la catégorie." });
             errorEmitter.emit('permission-error', new FirestorePermissionError({
                 path: categoryRef.path,
                 operation: 'create',
                 requestResourceData: newCategoryData,
             }));
-          })
-          .finally(() => {
+        } finally {
             setIsSavingCategory(false);
-          });
+        }
     };
 
 
@@ -199,24 +195,18 @@ export default function NewProductPage() {
             };
             
             const productsCollection = collection(firestore, "products");
-            addDoc(productsCollection, newProduct).then(() => {
-                toast({ title: "Produit enregistré !", description: `Le produit "${name}" a été enregistré avec succès.` });
-                router.push('/admin/products');
-            }).catch((error) => {
-                console.error("Failed to save product:", error);
-                toast({ variant: "destructive", title: "Uh oh! Something went wrong.", description: error.message || "Impossible d'enregistrer le produit." });
-                errorEmitter.emit('permission-error', new FirestorePermissionError({
-                    path: productsCollection.path,
-                    operation: 'create',
-                    requestResourceData: newProduct
-                }));
-            }).finally(() => {
-                setIsSaving(false);
-            });
+            await addDoc(productsCollection, newProduct);
+            toast({ title: "Produit enregistré !", description: `Le produit "${name}" a été enregistré avec succès.` });
+            router.push('/admin/products');
 
         } catch (error: any) {
-            console.error("Failed to upload images:", error);
-            toast({ variant: "destructive", title: "Erreur d'image", description: error.message || "Impossible de téléverser les images." });
+            console.error("Failed to save product:", error);
+            const productsCollection = collection(firestore, "products");
+            errorEmitter.emit('permission-error', new FirestorePermissionError({
+                path: productsCollection.path,
+                operation: 'create'
+            }));
+        } finally {
             setIsSaving(false);
         }
     };
@@ -300,6 +290,7 @@ export default function NewProductPage() {
                                                             <DialogContent className="max-w-3xl">
                                                                 <DialogHeader>
                                                                     <DialogTitle>Aperçu de l'image principale</DialogTitle>
+                                                                    <DialogDescription>Aperçu de l'image principale du produit.</DialogDescription>
                                                                 </DialogHeader>
                                                                 <div className="relative aspect-video mt-4">
                                                                     <Image src={imageUrl} alt="Aperçu en grand" fill className="rounded-md object-contain"/>
@@ -365,6 +356,7 @@ export default function NewProductPage() {
                                                                 <DialogContent className="max-w-3xl">
                                                                     <DialogHeader>
                                                                         <DialogTitle>Aperçu de l'image de la variante</DialogTitle>
+                                                                        <DialogDescription>Aperçu de l'image de la variante.</DialogDescription>
                                                                     </DialogHeader>
                                                                     <div className="relative aspect-video mt-4">
                                                                         <Image src={variant.imageUrl} alt="Aperçu en grand" fill className="rounded-md object-contain"/>

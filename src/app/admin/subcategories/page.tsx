@@ -7,7 +7,7 @@ import { collection, doc, setDoc, deleteDoc } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -78,7 +78,7 @@ export default function AdminSubCategoriesPage() {
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!firestore || !currentSubCategory || !currentSubCategory.nameKey || !currentSubCategory.parentCategory) {
         toast({ variant: 'destructive', title: "Champs requis manquants", description: "Le nom et la catégorie parente sont requis." });
         return;
@@ -93,42 +93,38 @@ export default function AdminSubCategoriesPage() {
     const id = currentSubCategory.id || slugify(`${subCategoryData.nameKey}-${subCategoryData.parentCategory}`);
     const subCategoryRef = doc(firestore, 'subcategories', id);
 
-    const operationPromise = isEditing
-        ? setDoc(subCategoryRef, subCategoryData, { merge: true })
-        : setDoc(subCategoryRef, subCategoryData);
-
-    operationPromise.then(() => {
+    try {
+        await setDoc(subCategoryRef, subCategoryData, { merge: true });
         toast({ title: isEditing ? 'Sous-catégorie mise à jour' : 'Sous-catégorie créée' });
         setDialogOpen(false);
-    }).catch((error: any) => {
+    } catch (error: any) {
         console.error("Error saving subcategory:", error);
-        toast({ variant: 'destructive', title: "Erreur lors de l'enregistrement", description: error.message });
         errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: subCategoryRef.path,
             operation: isEditing ? 'update' : 'create',
             requestResourceData: subCategoryData,
         }));
-    }).finally(() => {
+    } finally {
         setIsSaving(false);
-    });
+    }
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!firestore || !subCategoryIdToDelete) return;
     
     const subCategoryRef = doc(firestore, 'subcategories', subCategoryIdToDelete);
-    deleteDoc(subCategoryRef).then(() => {
+    try {
+        await deleteDoc(subCategoryRef);
         toast({ title: "Sous-catégorie supprimée" });
-    }).catch((error: any) => {
+    } catch(error: any) {
         console.error("Error deleting subcategory:", error);
-        toast({ variant: 'destructive', title: "Erreur de suppression", description: error.message });
         errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: subCategoryRef.path,
             operation: 'delete',
         }));
-    }).finally(() => {
+    } finally {
         setSubCategoryIdToDelete(null);
-    });
+    }
   };
   
   const isLoading = isLoadingSubCategories || isLoadingCategories;
@@ -186,6 +182,9 @@ export default function AdminSubCategoriesPage() {
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>{isEditing ? 'Modifier la sous-catégorie' : 'Ajouter une sous-catégorie'}</DialogTitle>
+            <DialogDescription>
+                {isEditing ? "Modifiez les détails de la sous-catégorie." : "Ajoutez une nouvelle sous-catégorie et liez-la à une catégorie parente."}
+            </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
