@@ -2,40 +2,38 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Default security rule: Deny all reads and writes.
+    // This is not explicitly needed as rules are deny-by-default, but good for clarity.
+    match /{document=**} {
+      allow read, write: if false;
+    }
 
-    // ===== PUBLIC COLLECTIONS =====
-    // Anyone can read these collections. Only authenticated users (admins) can write.
+    // Publicly readable collections for the storefront
     match /products/{productId} {
-      allow read: if true;
-      allow write: if request.auth != null;
+      allow get: if true;
+    }
+    match /products/{productId}/{subcollection=**} {
+       allow read: if true;
     }
 
     match /categories/{categoryId} {
       allow read: if true;
-      allow write: if request.auth != null;
+    }
+     match /categories/{categoryId}/{subcollection=**} {
+      allow read: if true;
     }
 
     match /subcategories/{subcategoryId} {
       allow read: if true;
-      allow write: if request.auth != null;
     }
-
-    // ===== ADMIN-ONLY & USER-SPECIFIC COLLECTIONS =====
-    match /users/{userId} {
-      // Admins (any authenticated user) can read and list all user profiles.
-      allow read, list: if request.auth != null;
-      
-      // A user can only write to their own profile.
-      allow write: if request.auth != null && request.auth.uid == userId;
+    match /subcategories/{subcategoryId}/{subcollection=**} {
+       allow read: if true;
     }
-
-    match /orders/{orderId} {
-      // Only admins can manage orders.
-      allow read, write: if request.auth != null;
-    }
-
-    match /settings/{settingId} {
-      // Only admins can manage settings.
+    
+    // Authenticated access for admin panel operations
+    // This single rule covers reads and writes for all collections for logged-in users.
+    // It is simpler and less error-prone than per-collection rules for the admin section.
+    match /{path=**} {
       allow read, write: if request.auth != null;
     }
   }
