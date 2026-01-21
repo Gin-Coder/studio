@@ -1,28 +1,46 @@
 
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    // Helper function to check if a user is authenticated.
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Public collections that anyone can read.
+    // Only authenticated users (admins) can write to them.
     match /products/{productId} {
       allow read: if true;
-      allow write: if request.auth != null;
+      allow write: if isAuthenticated();
     }
+
     match /categories/{categoryId} {
       allow read: if true;
-      allow write: if request.auth != null;
+      allow write: if isAuthenticated();
     }
+    
     match /subcategories/{subcategoryId} {
       allow read: if true;
-      allow write: if request.auth != null;
+      allow write: if isAuthenticated();
     }
+
+    // The 'users' collection.
+    // Any authenticated user (an admin) can list and read all user profiles.
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow list, get: if isAuthenticated();
+      // A user can create or update their own profile upon signing in.
+      allow create, update: if isAuthenticated() && request.auth.uid == userId;
     }
-    match /settings/storeConfig {
-      allow read: if true;
-      allow write: if request.auth != null;
-    }
+
+    // Collections that are only accessible by authenticated admins.
     match /orders/{orderId} {
-      allow read, write: if request.auth != null;
+      allow read, write: if isAuthenticated();
+    }
+
+    match /settings/{settingId} {
+      allow read, write: if isAuthenticated();
     }
   }
 }
