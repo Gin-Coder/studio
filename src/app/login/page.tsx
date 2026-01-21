@@ -4,13 +4,11 @@
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { useLanguage } from '@/hooks/use-language';
 import { Logo } from '@/components/ui/logo';
 import Link from 'next/link';
 import { useAuth, useFirebase } from '@/firebase';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { GoogleAuthProvider, signInWithRedirect, getRedirectResult } from 'firebase/auth';
 import { useState, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -23,45 +21,61 @@ export default function LoginPage() {
   const auth = useAuth();
   const { toast } = useToast();
   
-  const [isLoggingIn, setIsLoggingIn] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [isProcessing, setIsProcessing] = useState(true);
 
   useEffect(() => {
-    if (auth?.currentUser) {
-      router.push('/admin');
-    }
-  }, [auth, router]);
+    if (!auth || !firestore) return;
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email || !password || !firestore) return;
-
-    setIsLoggingIn(true);
-    
-    try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-      
-      const userRef = doc(firestore, 'users', user.uid);
-      await setDoc(userRef, {
-        displayName: user.displayName || email.split('@')[0],
-        email: user.email,
-        lastLogin: serverTimestamp(),
-      }, { merge: true });
-
-      router.push('/admin');
-
-    } catch (error: any) {
-      console.error("Login Error:", error.code);
-      toast({
-        variant: 'destructive',
-        title: t('login.title'),
-        description: t('login.error.invalid_credentials'),
+    getRedirectResult(auth)
+      .then(async (result) => {
+        if (result) {
+          const user = result.user;
+          const userRef = doc(firestore, 'users', user.uid);
+          await setDoc(userRef, {
+            displayName: user.displayName || user.email?.split('@')[0],
+            email: user.email,
+            lastLogin: serverTimestamp(),
+          }, { merge: true });
+          
+          router.push('/admin');
+        } else {
+          if (auth.currentUser) {
+            router.push('/admin');
+          } else {
+            setIsProcessing(false);
+          }
+        }
+      })
+      .catch((error) => {
+        console.error("Google Login Redirect Error:", error);
+        toast({
+          variant: 'destructive',
+          title: "Erreur de connexion",
+          description: "Une erreur est survenue lors de la connexion avec Google. Assurez-vous que les pop-ups sont autorisées.",
+        });
+        setIsProcessing(false);
       });
-      setIsLoggingIn(false);
-    }
+  }, [auth, firestore, router, toast]);
+
+  const handleGoogleLogin = () => {
+    if (!auth) return;
+    setIsProcessing(true);
+    const provider = new GoogleAuthProvider();
+    signInWithRedirect(auth, provider);
   };
+  
+  const loginButtonContent = () => {
+    if (isProcessing) {
+      return (
+        <>
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          Vérification en cours...
+        </>
+      );
+    }
+    return t('login.google_button');
+  };
+
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
@@ -71,38 +85,12 @@ export default function LoginPage() {
                 <Logo className="mx-auto" />
             </Link>
           <CardTitle className="text-2xl font-bold">{t('login.title')}</CardTitle>
-          <CardDescription>{t('login.email_description')}</CardDescription>
+          <CardDescription>{t('login.google_description')}</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div className="grid gap-2">
-              <Label htmlFor="email">{t('login.email')}</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="admin@example.com"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={isLoggingIn}
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="password">{t('login.password')}</Label>
-              <Input
-                id="password"
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={isLoggingIn}
-              />
-            </div>
-            <Button type="submit" className="w-full" disabled={isLoggingIn}>
-              {isLoggingIn && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isLoggingIn ? t('login.logging_in') : t('login.button')}
-            </Button>
-          </form>
+          <Button onClick={handleGoogleLogin} className="w-full" disabled={isProcessing}>
+            {loginButtonContent()}
+          </Button>
         </CardContent>
       </Card>
     </div>

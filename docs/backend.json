@@ -18,6 +18,10 @@
         "lastLogin": {
             "type": "string",
             "format": "date-time"
+        },
+        "role": {
+            "type": "string",
+            "enum": ["admin"]
         }
       }
     },
@@ -275,7 +279,7 @@
   },
   "auth": {
     "providers": [
-      "password"
+      "google"
     ]
   },
   "firestore": {
