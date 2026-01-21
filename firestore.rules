@@ -1,39 +1,34 @@
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Default security rule: Deny all reads and writes.
-    // This is not explicitly needed as rules are deny-by-default, but good for clarity.
-    match /{document=**} {
-      allow read, write: if false;
-    }
-
-    // Publicly readable collections for the storefront
+    
+    // Public collections are readable by anyone.
+    // Writing to them requires authentication.
     match /products/{productId} {
-      allow get: if true;
+      allow read: if true;
+      allow write: if request.auth != null;
     }
-    match /products/{productId}/{subcollection=**} {
-       allow read: if true;
-    }
-
     match /categories/{categoryId} {
       allow read: if true;
+      allow write: if request.auth != null;
     }
-     match /categories/{categoryId}/{subcollection=**} {
-      allow read: if true;
-    }
-
     match /subcategories/{subcategoryId} {
       allow read: if true;
+      allow write: if request.auth != null;
     }
-    match /subcategories/{subcategoryId}/{subcollection=**} {
-       allow read: if true;
+
+    // Users page: Admins (any authenticated user) can read anyone's profile.
+    // Users can only update their own profile.
+    match /users/{userId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == userId;
     }
-    
-    // Authenticated access for admin panel operations
-    // This single rule covers reads and writes for all collections for logged-in users.
-    // It is simpler and less error-prone than per-collection rules for the admin section.
-    match /{path=**} {
+
+    // Orders and Settings are admin-only (any authenticated user).
+    match /orders/{orderId} {
+      allow read, write: if request.auth != null;
+    }
+    match /settings/{settingId} {
       allow read, write: if request.auth != null;
     }
   }
