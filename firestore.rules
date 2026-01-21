@@ -1,56 +1,76 @@
-
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // == Helper Functions ==
-    // This function now checks for a specific, hardcoded admin UID.
-    // This is a direct and guaranteed way to grant admin access to the specified user.
-    function isAdmin() {
-      return request.auth.uid == 'rJ7tKCMSWjaaUJckNw5Air1muMp2';
+
+    /* =========================
+       Fonctions utilitaires
+    ========================== */
+
+    function isAuthenticated() {
+      return request.auth != null;
     }
 
-    // == Public Collections ==
-    // Anyone can read products, categories, and subcategories. Only admins can write to them.
+    function isAdmin() {
+      return isAuthenticated()
+        && get(/databases/$(database)/documents/users/$(request.auth.uid))
+             .data.role == "admin";
+    }
+
+    /* =========================
+       Collection USERS
+    ========================== */
+
+    match /users/{userId} {
+
+      // Lire son propre profil
+      allow get: if isAuthenticated() && request.auth.uid == userId;
+
+      // Admin peut lire tous les profils (LIST + GET)
+      allow list: if isAdmin();
+      allow get: if isAdmin();
+
+      // Création : utilisateur crée son propre document
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+
+      // Modification : soi-même ou admin
+      allow update: if isAuthenticated()
+        && (request.auth.uid == userId || isAdmin());
+
+      // Suppression : admin uniquement
+      allow delete: if isAdmin();
+    }
+
+    /* =========================
+       AUTRES COLLECTIONS (exemple)
+    ========================== */
+
     match /products/{productId} {
-      allow read: if true;
-      allow write: if isAdmin();
+      allow read: if true; // visible côté client
+      allow write: if isAdmin(); // admin seulement
     }
 
     match /categories/{categoryId} {
       allow read: if true;
       allow write: if isAdmin();
     }
-    
+
     match /subcategories/{subcategoryId} {
       allow read: if true;
       allow write: if isAdmin();
     }
-    
-    // == Admin & User-Specific Collections ==
-    match /users/{userId} {
-      // LIST: This is the critical rule. Only an admin can list all users.
-      allow list: if isAdmin();
-      
-      // GET: An admin OR the user themself can read a specific user profile.
-      allow get: if isAdmin() || request.auth.uid == userId;
-      
-      // UPDATE: An admin OR the user themself can update a profile.
-      allow update: if isAdmin() || request.auth.uid == userId;
-      
-      // No one can create or delete users directly for now.
-      allow create, delete: if false;
-    }
 
     match /orders/{orderId} {
-      // Only admins can read or write to the orders collection.
-      allow read, write: if isAdmin();
-    }
+      allow read: if isAuthenticated()
+        && (get(/databases/$(database)/documents/orders/$(orderId)).data.customer.email == request.auth.email || isAdmin());
 
+      allow create: if isAuthenticated();
+      allow update, delete: if isAdmin();
+    }
+    
     match /settings/{settingId} {
-      // Only admins can read or write to the settings collection.
-      allow read, write: if isAdmin();
+        allow read: if true;
+        allow write: if isAdmin();
     }
   }
 }
