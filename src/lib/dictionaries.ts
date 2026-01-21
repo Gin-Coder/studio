@@ -1,3 +1,4 @@
+
 type Dictionary = {
   [key: string]: string;
 };
@@ -183,7 +184,8 @@ export const dictionaries: Dictionaries = {
     'login.logging_in': 'Logging in...',
     'login.error.invalid_credentials': 'Invalid email or password. Please try again.',
     'login.google_button': 'Sign in with Google',
-    'login.google_description': 'Use your Google account to access the dashboard.'
+    'login.google_description': 'Use your Google account to access the dashboard.',
+    'login.email_description': 'Use your email and password to access the dashboard.'
   },
   fr: {
     'nav.home': 'Accueil',
@@ -361,7 +363,8 @@ export const dictionaries: Dictionaries = {
     'login.logging_in': 'Connexion en cours...',
     'login.error.invalid_credentials': 'E-mail ou mot de passe invalide. Veuillez réessayer.',
     'login.google_button': 'Se connecter avec Google',
-    'login.google_description': 'Utilisez votre compte Google pour accéder au tableau de bord.'
+    'login.google_description': 'Utilisez votre compte Google pour accéder au tableau de bord.',
+    'login.email_description': 'Utilisez votre email et mot de passe pour accéder au tableau de bord.'
   },
   ht: {
     'nav.home': 'Akèy',
@@ -539,6 +542,7 @@ export const dictionaries: Dictionaries = {
     'login.logging_in': 'Koneksyon an ap fèt...',
     'login.error.invalid_credentials': 'Imèl oswa modpas pa kòrèk. Tanpri eseye ankò.',
     'login.google_button': 'Konekte ak Google',
-    'login.google_description': 'Sèvi ak kont Google ou pou jwenn aksè nan tablodbò a.'
+    'login.google_description': 'Sèvi ak kont Google ou pou jwenn aksè nan tablodbò a.',
+    'login.email_description': 'Sèvi ak imèl ak modpas ou pou jwenn aksè nan tablodbò a.'
   },
 };
