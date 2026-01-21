@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useRouter } from 'next/navigation';
@@ -21,8 +22,9 @@ export default function CustomerLoginPage() {
   
   const [isPopupProcessing, setIsPopupProcessing] = useState(false);
 
+  // This effect handles redirecting the user once they are successfully logged in.
+  // It listens for changes to the `user` object provided by the global auth hook.
   useEffect(() => {
-    // If auth state is determined and there is a user, redirect them.
     if (!isUserLoading && user) {
       toast({
           title: t('login.customer.success_title'),
@@ -38,33 +40,33 @@ export default function CustomerLoginPage() {
     setIsPopupProcessing(true);
     const provider = new GoogleAuthProvider();
     
-    // Fire-and-forget. Let the global onAuthStateChanged listener handle success.
-    // We catch errors here just to update the UI and inform the user.
     signInWithPopup(auth, provider)
       .catch((error: any) => {
         console.error("Google Popup Login Error:", error);
-        // Only show a toast for errors other than the user closing the popup.
+        
+        // Only show a toast and stop the spinner for critical errors.
+        // We specifically ignore 'auth/popup-closed-by-user' because in some environments,
+        // this error is thrown even on a successful login. We'll let the onAuthStateChanged
+        // listener handle the success case, and we keep the spinner active for a better UX.
         if (error.code !== 'auth/popup-closed-by-user') {
             toast({
                 variant: 'destructive',
                 title: t('login.error_title'),
                 description: error.message || t('login.error_desc'),
             });
+            // For a real error, we stop the processing indicator.
+            setIsPopupProcessing(false);
         }
-      })
-      .finally(() => {
-        // This will run whether it succeeds or fails.
-        // If it succeeds, the useEffect above will redirect.
-        // If it fails, we stop the spinner.
-        setIsPopupProcessing(false);
       });
   };
   
+  // The user is in a loading state if we're checking the initial auth state,
+  // or if the popup login process has been initiated.
   const isLoading = isUserLoading || isPopupProcessing;
 
-  // The main loading spinner logic. This will show a spinner while checking initial auth state,
-  // AND after the login button is clicked. It will continue to show until the user is redirected.
-  if (isLoading) {
+  // Show a full-page loader if we're in any loading state.
+  // This prevents the user from seeing a flash of the login page if redirection is slow.
+  if (isLoading || (!isUserLoading && user)) {
      return (
         <div className="container flex min-h-[60vh] items-center justify-center py-12">
             <Loader2 className="h-16 w-16 animate-spin text-primary" />
@@ -72,17 +74,7 @@ export default function CustomerLoginPage() {
      );
   }
 
-  // If we are done loading and there is a user, we should be redirecting.
-  // This helps prevent a flash of the login page if redirection is slow.
-  if (!isUserLoading && user) {
-      return (
-        <div className="container flex min-h-[60vh] items-center justify-center py-12">
-            <Loader2 className="h-16 w-16 animate-spin text-primary" />
-        </div>
-     );
-  }
-
-
+  // If we are done loading and there's no user, show the login form.
   return (
     <div className="container flex min-h-[60vh] items-center justify-center py-12">
       <Card className="w-full max-w-sm">
