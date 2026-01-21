@@ -9,8 +9,9 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import { Logo } from '@/components/ui/logo';
 import Link from 'next/link';
-import { useAuth } from '@/firebase';
+import { useAuth, useFirestore } from '@/firebase';
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" {...props}>
@@ -25,14 +26,15 @@ export default function LoginPage() {
   const router = useRouter();
   const { t } = useLanguage();
   const auth = useAuth();
+  const firestore = useFirestore();
   const { toast } = useToast();
 
   const handleGoogleLogin = async () => {
-    if (!auth) {
+    if (!auth || !firestore) {
         toast({
             variant: "destructive",
             title: "Erreur",
-            description: "Le service d'authentification n'est pas disponible.",
+            description: "Les services d'authentification ne sont pas disponibles.",
         });
         return;
     }
@@ -41,7 +43,22 @@ export default function LoginPage() {
     const provider = new GoogleAuthProvider();
 
     try {
-      await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+
+      // Create or update user profile in Firestore
+      const userRef = doc(firestore, 'users', user.uid);
+      await setDoc(userRef, {
+        displayName: user.displayName,
+        email: user.email,
+        lastLogin: serverTimestamp()
+      }, { merge: true });
+      
+      toast({
+        title: "Connexion réussie",
+        description: `Bienvenue, ${user.displayName || user.email}!`,
+      });
+
       router.push('/admin');
     } catch (error: any) {
       console.error("Google sign-in failed", error);

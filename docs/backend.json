@@ -8,6 +8,15 @@
         "displayName": {
           "type": "string",
           "description": "The user's display name."
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "The user's email address."
+        },
+        "lastLogin": {
+            "type": "string",
+            "format": "date-time"
         }
       }
     },
@@ -273,7 +282,7 @@
       "schema": {
         "$ref": "#/entities/UserProfile"
       },
-      "description": "Stores user profiles."
+      "description": "Stores user profiles. Only admins can read all profiles. Users can read their own."
     },
     "/products/{productId}": {
       "schema": {

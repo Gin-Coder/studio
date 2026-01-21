@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { Home, ShoppingCart, FileText, Settings, LogOut, PanelLeft, ExternalLink, Shapes, ClipboardList, Warehouse, Spline, Network } from 'lucide-react';
+import { Home, ShoppingCart, FileText, Settings, LogOut, PanelLeft, ExternalLink, Shapes, ClipboardList, Warehouse, Spline, Network, Users } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,8 @@ import { Sheet, SheetContent, SheetTrigger, SheetClose } from '@/components/ui/s
 import { Logo } from '@/components/ui/logo';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
+import { useAuth } from '@/firebase';
+import { signOut } from 'firebase/auth';
 
 const AdminSidebarNav = () => {
     const pathname = usePathname();
@@ -17,6 +19,7 @@ const AdminSidebarNav = () => {
         { href: '/admin/products', label: 'Produits', icon: ShoppingCart },
         { href: '/admin/categories', label: 'Catégories', icon: Shapes },
         { href: '/admin/subcategories', label: 'Sous-catégories', icon: Network },
+        { href: '/admin/users', label: 'Utilisateurs', icon: Users },
         { href: '/admin/pages', label: 'Pages', icon: FileText },
         { href: '/admin/settings', label: 'Paramètres', icon: Settings },
         { href: '/admin/orders', label: 'Gestion des commandes', icon: ClipboardList },
@@ -79,9 +82,12 @@ const SidebarItems = ({ isMobile = false }: { isMobile?: boolean }) => {
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const router = useRouter();
+    const auth = useAuth();
 
-    const handleLogout = () => {
-        // When auth is re-enabled: await auth.signOut();
+    const handleLogout = async () => {
+        if (auth) {
+            await signOut(auth);
+        }
         router.push('/login');
     };
 
