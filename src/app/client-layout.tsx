@@ -11,6 +11,7 @@ import Footer from '@/components/layout/Footer';
 import { Toaster } from '@/components/ui/toaster';
 import { CurrencyProvider } from '@/hooks/use-currency';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
+import { UserDocumentManager } from '@/components/auth/UserDocumentManager';
 
 // This component updates the `lang` attribute on the `<html>` tag.
 // It must be a child of LanguageProvider.
@@ -32,6 +33,7 @@ export function ClientLayout({ children }: { children: ReactNode }) {
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
         <CurrencyProvider>
           <FirebaseClientProvider>
+            <UserDocumentManager />
             <WishlistProvider>
               <CartProvider>
                 <div className="flex min-h-screen flex-col">

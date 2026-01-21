@@ -6,17 +6,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useLanguage } from '@/hooks/use-language';
 import { Logo } from '@/components/ui/logo';
 import Link from 'next/link';
-import { useAuth, useFirebase, useUser } from '@/firebase';
+import { useAuth, useUser } from '@/firebase';
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 import { useState, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { doc, setDoc, serverTimestamp, getDoc } from 'firebase/firestore';
 
 export default function CustomerLoginPage() {
   const router = useRouter();
   const { t } = useLanguage();
-  const { firestore } = useFirebase();
   const auth = useAuth();
   const { user, isUserLoading } = useUser();
   const { toast } = useToast();
@@ -26,40 +24,26 @@ export default function CustomerLoginPage() {
   useEffect(() => {
     // If auth state is determined and there is a user, redirect them.
     if (!isUserLoading && user) {
+      toast({
+          title: t('login.customer.success_title'),
+          description: t('login.customer.success_desc', { name: user.displayName || user.email || '' }),
+      });
       router.push('/account');
     }
-  }, [user, isUserLoading, router]);
+  }, [user, isUserLoading, router, t, toast]);
 
-  const handleGoogleLogin = async () => {
-    if (!auth || !firestore) return;
+  const handleGoogleLogin = () => {
+    if (!auth) return;
     
     setIsPopupProcessing(true);
     const provider = new GoogleAuthProvider();
     
-    try {
-        const result = await signInWithPopup(auth, provider);
-        const loggedInUser = result.user;
-        const userRef = doc(firestore, 'users', loggedInUser.uid);
-
-        const userData = {
-            displayName: loggedInUser.displayName || loggedInUser.email?.split('@')[0],
-            email: loggedInUser.email,
-            lastLogin: serverTimestamp(),
-        };
-
-        // Use setDoc with merge:true to create or update.
-        // This is safe and won't overwrite existing fields like 'role'.
-        await setDoc(userRef, userData, { merge: true });
-
-        toast({
-            title: t('login.customer.success_title'),
-            description: t('login.customer.success_desc', { name: loggedInUser.displayName || loggedInUser.email || '' }),
-        });
-        
-        router.push('/account');
-
-    } catch (error: any) {
+    // Fire-and-forget. Let the global onAuthStateChanged listener handle success.
+    // We catch errors here just to update the UI and inform the user.
+    signInWithPopup(auth, provider)
+      .catch((error: any) => {
         console.error("Google Popup Login Error:", error);
+        // Only show a toast for errors other than the user closing the popup.
         if (error.code !== 'auth/popup-closed-by-user') {
             toast({
                 variant: 'destructive',
@@ -67,20 +51,37 @@ export default function CustomerLoginPage() {
                 description: error.message || t('login.error_desc'),
             });
         }
-    } finally {
+      })
+      .finally(() => {
+        // This will run whether it succeeds or fails.
+        // If it succeeds, the useEffect above will redirect.
+        // If it fails, we stop the spinner.
         setIsPopupProcessing(false);
-    }
+      });
   };
   
   const isLoading = isUserLoading || isPopupProcessing;
 
-  if (isUserLoading || (!isUserLoading && user)) {
+  // The main loading spinner logic. This will show a spinner while checking initial auth state,
+  // AND after the login button is clicked. It will continue to show until the user is redirected.
+  if (isLoading) {
      return (
         <div className="container flex min-h-[60vh] items-center justify-center py-12">
             <Loader2 className="h-16 w-16 animate-spin text-primary" />
         </div>
      );
   }
+
+  // If we are done loading and there is a user, we should be redirecting.
+  // This helps prevent a flash of the login page if redirection is slow.
+  if (!isUserLoading && user) {
+      return (
+        <div className="container flex min-h-[60vh] items-center justify-center py-12">
+            <Loader2 className="h-16 w-16 animate-spin text-primary" />
+        </div>
+     );
+  }
+
 
   return (
     <div className="container flex min-h-[60vh] items-center justify-center py-12">
