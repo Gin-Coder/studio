@@ -103,6 +103,7 @@ export default function AdminCategoriesPage() {
     setIsSaving(true);
 
     let categoryData: any;
+    let categoryId = currentCategory.id || slugify(currentCategory.nameKey);
 
     try {
         let finalImageUrl = currentCategory.imageUrl;
@@ -110,7 +111,6 @@ export default function AdminCategoriesPage() {
             finalImageUrl = await uploadCategoryImage(currentCategory.imageUrl);
         }
 
-        const categoryId = currentCategory.id || slugify(currentCategory.nameKey);
         const categoryRef = doc(firestore, 'categories', categoryId);
 
         categoryData = {
@@ -119,26 +119,29 @@ export default function AdminCategoriesPage() {
             imageHint: currentCategory.imageHint || currentCategory.nameKey,
         };
 
-        if (isEditing) {
-            await setDoc(categoryRef, categoryData, { merge: true });
-            toast({ title: 'Catégorie mise à jour' });
-        } else {
-            await setDoc(categoryRef, categoryData);
-            toast({ title: 'Catégorie créée' });
-        }
-        setDialogOpen(false);
-    } catch (error: any) {
-        console.error("Error saving category:", error);
-        toast({ variant: 'destructive', title: "Erreur lors de l'enregistrement", description: error.message });
-        if (error.code === 'permission-denied' && currentCategory) {
-            const categoryRef = doc(firestore, 'categories', currentCategory.id || 'new');
+        const operationPromise = isEditing 
+            ? setDoc(categoryRef, categoryData, { merge: true })
+            : setDoc(categoryRef, categoryData);
+
+        operationPromise.then(() => {
+            toast({ title: isEditing ? 'Catégorie mise à jour' : 'Catégorie créée' });
+            setDialogOpen(false);
+        }).catch((error) => {
+            console.error("Error saving category:", error);
+            toast({ variant: 'destructive', title: "Erreur lors de l'enregistrement", description: error.message });
             errorEmitter.emit('permission-error', new FirestorePermissionError({
                 path: categoryRef.path,
                 operation: isEditing ? 'update' : 'create',
                 requestResourceData: categoryData,
             }));
-        }
-    } finally {
+        }).finally(() => {
+            setIsSaving(false);
+        });
+
+    } catch (error: any) {
+        // Catches errors from uploadCategoryImage
+        console.error("Error preparing to save category:", error);
+        toast({ variant: 'destructive', title: "Erreur d'image", description: error.message });
         setIsSaving(false);
     }
   };
@@ -148,21 +151,18 @@ export default function AdminCategoriesPage() {
     
     const categoryRef = doc(firestore, 'categories', categoryIdToDelete);
     
-    try {
-        await deleteDoc(categoryRef);
+    deleteDoc(categoryRef).then(() => {
         toast({ title: "Catégorie supprimée" });
-    } catch (error: any) {
+    }).catch((error: any) => {
         console.error("Error deleting category:", error);
         toast({ variant: 'destructive', title: "Erreur de suppression", description: error.message });
-        if (error.code === 'permission-denied') {
-            errorEmitter.emit('permission-error', new FirestorePermissionError({
-                path: categoryRef.path,
-                operation: 'delete',
-            }));
-        }
-    } finally {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: categoryRef.path,
+            operation: 'delete',
+        }));
+    }).finally(() => {
       setCategoryIdToDelete(null);
-    }
+    });
   };
 
   return (

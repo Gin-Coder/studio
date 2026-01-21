@@ -134,6 +134,7 @@ export default function NewProductPage() {
           })
           .catch((error) => {
             console.error("Error adding category to Firestore:", error);
+            toast({ variant: "destructive", title: "Erreur d'enregistrement", description: "Impossible d'ajouter la catégorie." });
             errorEmitter.emit('permission-error', new FirestorePermissionError({
                 path: categoryRef.path,
                 operation: 'create',
@@ -198,23 +199,24 @@ export default function NewProductPage() {
             };
             
             const productsCollection = collection(firestore, "products");
-            await addDoc(productsCollection, newProduct);
-
-            toast({ title: "Produit enregistré !", description: `Le produit "${name}" a été enregistré avec succès.` });
-            router.push('/admin/products');
-
-        } catch (error: any) {
-            console.error("Failed to upload images or prepare product data:", error);
-            if (error.code === 'permission-denied' && error.message.includes('firestore')) {
-                 const productsCollection = collection(firestore, "products");
-                 errorEmitter.emit('permission-error', new FirestorePermissionError({
+            addDoc(productsCollection, newProduct).then(() => {
+                toast({ title: "Produit enregistré !", description: `Le produit "${name}" a été enregistré avec succès.` });
+                router.push('/admin/products');
+            }).catch((error) => {
+                console.error("Failed to save product:", error);
+                toast({ variant: "destructive", title: "Uh oh! Something went wrong.", description: error.message || "Impossible d'enregistrer le produit." });
+                errorEmitter.emit('permission-error', new FirestorePermissionError({
                     path: productsCollection.path,
                     operation: 'create',
+                    requestResourceData: newProduct
                 }));
-             } else {
-                toast({ variant: "destructive", title: "Uh oh! Something went wrong.", description: error.message || "Impossible d'enregistrer le produit." });
-             }
-        } finally {
+            }).finally(() => {
+                setIsSaving(false);
+            });
+
+        } catch (error: any) {
+            console.error("Failed to upload images:", error);
+            toast({ variant: "destructive", title: "Erreur d'image", description: error.message || "Impossible de téléverser les images." });
             setIsSaving(false);
         }
     };

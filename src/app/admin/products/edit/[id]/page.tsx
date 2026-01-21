@@ -143,7 +143,7 @@ export default function EditProductPage() {
         }
     };
     
-    const handleAddNewCategory = async () => {
+    const handleAddNewCategory = () => {
         if (newCategoryName.trim() === '') {
             toast({ variant: 'destructive', title: "Erreur", description: "Le nom de la catégorie ne peut pas être vide." });
             return;
@@ -171,21 +171,21 @@ export default function EditProductPage() {
         
         const categoryRef = doc(firestore, "categories", newCategoryId);
         
-        try {
-            await setDoc(categoryRef, newCategoryData);
+        setDoc(categoryRef, newCategoryData).then(() => {
             setCategoryId(newCategoryId);
             setNewCategoryName('');
             toast({ title: "Catégorie ajoutée", description: `La catégorie "${newCategoryName}" a été ajoutée.` });
-        } catch (error) {
+        }).catch((error) => {
             console.error("Error adding category to Firestore:", error);
+            toast({ variant: "destructive", title: "Erreur d'enregistrement", description: "Impossible d'ajouter la catégorie." });
             errorEmitter.emit('permission-error', new FirestorePermissionError({
                 path: categoryRef.path,
                 operation: 'create',
                 requestResourceData: newCategoryData,
             }));
-        } finally {
+        }).finally(() => {
             setIsSavingCategory(false);
-        }
+        });
     };
 
 
@@ -239,25 +239,26 @@ export default function EditProductPage() {
             };
             
             const productRef = doc(firestore, "products", id);
-            await setDoc(productRef, productDataForFirestore, { merge: true });
             
-            toast({ title: "Produit mis à jour !", description: `Le produit "${name}" a été mis à jour avec succès.` });
-            router.push('/admin/products');
-
-        } catch (error: any) {
-            console.error("Failed to upload images or save product:", error);
-             if (error.code === 'permission-denied' && error.message.includes('firestore')) {
-                 const productRef = doc(firestore, "products", id);
+            setDoc(productRef, productDataForFirestore, { merge: true }).then(() => {
+                toast({ title: "Produit mis à jour !", description: `Le produit "${name}" a été mis à jour avec succès.` });
+                router.push('/admin/products');
+            }).catch((error) => {
+                 console.error("Failed to save product:", error);
+                 toast({ variant: "destructive", title: "Uh oh! Something went wrong.", description: error.message || "Impossible de mettre à jour le produit." });
                  errorEmitter.emit('permission-error', new FirestorePermissionError({
                     path: productRef.path,
                     operation: 'update',
                     requestResourceData: productDataForFirestore,
                 }));
-             } else {
-                toast({ variant: "destructive", title: "Uh oh! Something went wrong.", description: error.message || "Impossible de mettre à jour le produit." });
-             }
-        } finally {
-            setIsSaving(false);
+            }).finally(() => {
+                setIsSaving(false);
+            });
+
+        } catch (error: any) {
+             console.error("Failed to upload images:", error);
+             toast({ variant: "destructive", title: "Erreur d'image", description: error.message || "Impossible de téléverser les images." });
+             setIsSaving(false);
         }
     };
 

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -54,8 +55,8 @@ export default function AdminSettingsPage() {
     }
   }, [settings]);
 
-  const handleSave = async () => {
-    if (!firestore) return;
+  const handleSave = () => {
+    if (!firestore || !settingsRef) return;
     setIsSaving(true);
     
     const settingsData: StoreSettings = {
@@ -65,22 +66,19 @@ export default function AdminSettingsPage() {
       defaultLanguage,
     };
 
-    try {
-      await setDoc(settingsRef!, settingsData, { merge: true });
+    setDoc(settingsRef, settingsData, { merge: true }).then(() => {
       toast({ title: 'Paramètres sauvegardés', description: 'Vos modifications ont été enregistrées avec succès.' });
-    } catch (error: any) {
+    }).catch((error: any) => {
       console.error("Error saving settings:", error);
       toast({ variant: 'destructive', title: "Erreur d'enregistrement", description: error.message });
-      if (error.code === 'permission-denied') {
-          errorEmitter.emit('permission-error', new FirestorePermissionError({
-              path: settingsRef!.path,
-              operation: 'update',
-              requestResourceData: settingsData,
-          }));
-      }
-    } finally {
+      errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: settingsRef.path,
+          operation: 'update',
+          requestResourceData: settingsData,
+      }));
+    }).finally(() => {
       setIsSaving(false);
-    }
+    });
   };
 
   return (

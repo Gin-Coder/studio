@@ -18,7 +18,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useCollection, useFirestore, useMemoFirebase, errorEmitter, FirestorePermissionError } from "@/firebase";
-import { collection, deleteDoc, doc, getDocs, writeBatch } from "firebase/firestore";
+import { collection, deleteDoc, doc, getDocs, writeBatch, serverTimestamp } from "firebase/firestore";
 import type { Product, Category } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useMemo } from "react";
@@ -58,31 +58,30 @@ export default function AdminProductsPage() {
   const isLoading = isLoadingProducts || isLoadingCategories;
 
 
-  const handleDeleteProduct = async () => {
+  const handleDeleteProduct = () => {
     if (!productIdToDelete || !firestore) return;
     const idToDelete = productIdToDelete;
+    const productDocRef = doc(firestore, 'products', idToDelete);
     
-    try {
-        await deleteDoc(doc(firestore, 'products', idToDelete));
+    deleteDoc(productDocRef).then(() => {
         toast({
           title: "Produit supprimé",
           description: `Le produit a été supprimé avec succès.`,
         });
-    } catch (error) {
+    }).catch((error) => {
         console.error("Error deleting product:", error);
         toast({
           variant: "destructive",
           title: "Erreur",
           description: "La suppression du produit a échoué.",
         });
-         if (error.code === 'permission-denied') {
-            const productDocRef = doc(firestore, 'products', idToDelete);
-            errorEmitter.emit('permission-error', new FirestorePermissionError({
-                path: productDocRef.path,
-                operation: 'delete',
-            }));
-        }
-    }
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: productDocRef.path,
+            operation: 'delete',
+        }));
+    }).finally(() => {
+        setProductIdToDelete(null);
+    })
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -142,6 +141,8 @@ export default function AdminProductsPage() {
                 tags: productData.tags || [],
                 variants: productData.variants || [],
                 images: productData.images || ['https://placehold.co/600x800'],
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp(),
             });
         });
 

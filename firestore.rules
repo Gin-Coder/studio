@@ -1,41 +1,28 @@
-rules_version = '2';
 
+rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Publicly readable collections
     match /products/{productId} {
-      allow get, list: if true;
-      // Admin-only write access
-      allow create, update, delete: if request.auth != null; // Simplified rule for now
+      allow read: if true;
+      allow write: if request.auth != null;
     }
-
     match /categories/{categoryId} {
-      allow get, list: if true;
-      // Admin-only write access
-      allow create, update, delete: if request.auth != null; // Simplified rule for now
+      allow read: if true;
+      allow write: if request.auth != null;
     }
-
     match /subcategories/{subcategoryId} {
-      allow get, list: if true;
-      // Admin-only write access
-      allow create, update, delete: if request.auth != null; // Simplified rule for now
+      allow read: if true;
+      allow write: if request.auth != null;
     }
-
-    // Settings should be publicly readable but only writable by admins
-    match /settings/storeConfig {
-        allow get: if true;
-        allow write: if request.auth != null; // Simplified rule for now
-    }
-
-    // User-specific data
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
-
-    // Orders should only be accessible by admins
+    match /settings/storeConfig {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
     match /orders/{orderId} {
-      allow read, create, update: if request.auth != null; // Simplified rule for now
+      allow read, write: if request.auth != null;
     }
   }
 }

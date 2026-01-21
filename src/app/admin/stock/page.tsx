@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -32,7 +33,7 @@ export default function AdminStockPage() {
     }
   };
 
-  const saveStock = async (productId: string, variantId: string, newStock: number) => {
+  const saveStock = (productId: string, variantId: string, newStock: number) => {
     if (!firestore) return;
     
     const updateKey = `${productId}-${variantId}`;
@@ -46,22 +47,19 @@ export default function AdminStockPage() {
       v.id === variantId ? { ...v, stock: newStock } : v
     );
 
-    try {
-      await updateDoc(productRef, { variants: newVariants });
-      setSavingStatus(prev => ({ ...prev, [updateKey]: 'saved' }));
-      setTimeout(() => setSavingStatus(prev => ({ ...prev, [updateKey]: undefined })), 2000); // Reset after 2s
-    } catch (error: any) {
-      console.error("Error updating stock:", error);
-      toast({ variant: 'destructive', title: "Erreur de mise à jour", description: `Le stock pour la variante ${variantId} n'a pas pu être mis à jour.` });
-      setSavingStatus(prev => ({ ...prev, [updateKey]: 'error' }));
-      if (error.code === 'permission-denied') {
-          errorEmitter.emit('permission-error', new FirestorePermissionError({
-              path: productRef.path,
-              operation: 'update',
-              requestResourceData: { variants: newVariants },
-          }));
-      }
-    }
+    updateDoc(productRef, { variants: newVariants }).then(() => {
+        setSavingStatus(prev => ({ ...prev, [updateKey]: 'saved' }));
+        setTimeout(() => setSavingStatus(prev => ({ ...prev, [updateKey]: undefined })), 2000); // Reset after 2s
+    }).catch((error: any) => {
+        console.error("Error updating stock:", error);
+        toast({ variant: 'destructive', title: "Erreur de mise à jour", description: `Le stock pour la variante ${variantId} n'a pas pu être mis à jour.` });
+        setSavingStatus(prev => ({ ...prev, [updateKey]: 'error' }));
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: productRef.path,
+            operation: 'update',
+            requestResourceData: { variants: newVariants },
+        }));
+    });
   };
 
   const debouncedSaveStock = debounce(saveStock, 1000);
