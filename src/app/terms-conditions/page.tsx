@@ -1,9 +1,20 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+
 export default function TermsConditionsPage() {
+  const [lastUpdated, setLastUpdated] = useState('');
+
+  useEffect(() => {
+    // This will only run on the client, after hydration, to avoid mismatch
+    setLastUpdated(new Date().toLocaleDateString());
+  }, []); // Empty dependency array ensures this runs once on mount
+  
   return (
     <div className="container mx-auto max-w-3xl py-16">
       <div className="prose dark:prose-invert">
         <h1 className="font-headline text-4xl font-bold text-primary">Terms and Conditions</h1>
-        <p className="text-muted-foreground">Last updated: {new Date().toLocaleDateString()}</p>
+        <p className="text-muted-foreground">Last updated: {lastUpdated || '...'}</p>
         
         <p>
           Please read these Terms and Conditions carefully before using the Danny Store website. Your access to and use of the Service is conditioned on your acceptance of and compliance with these Terms.

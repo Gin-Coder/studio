@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,6 +7,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Loader2, Users, AlertCircle } from "lucide-react";
 import { useCollection, useFirestore, useMemoFirebase, useUser } from "@/firebase";
 import { collection, query, orderBy } from 'firebase/firestore';
+import { useLanguage } from "@/hooks/use-language";
 
 type UserProfile = {
     id: string;
@@ -21,6 +21,7 @@ type UserProfile = {
 export default function AdminUsersPage() {
   const firestore = useFirestore();
   const { isUserLoading } = useUser();
+  const { language } = useLanguage();
 
   const usersQuery = useMemoFirebase(() => {
     if (!firestore || isUserLoading) return null;
@@ -85,7 +86,7 @@ export default function AdminUsersPage() {
                     <TableRow key={user.id}>
                     <TableCell className="font-medium">{user.displayName || "N/A"}</TableCell>
                     <TableCell>{user.email}</TableCell>
-                    <TableCell>{user.lastLogin ? user.lastLogin.toDate().toLocaleString() : 'Jamais'}</TableCell>
+                    <TableCell>{user.lastLogin ? user.lastLogin.toDate().toLocaleString(language) : 'Jamais'}</TableCell>
                     <TableCell><Badge variant="outline">{user.id}</Badge></TableCell>
                     </TableRow>
                 ))

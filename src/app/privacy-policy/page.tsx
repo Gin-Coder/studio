@@ -1,17 +1,23 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+
 export default function PrivacyPolicyPage() {
+  const [lastUpdated, setLastUpdated] = useState('');
+
+  useEffect(() => {
+    // This will only run on the client, after hydration, to avoid mismatch
+    setLastUpdated(new Date().toLocaleDateString());
+  }, []); // Empty dependency array ensures this runs once on mount
+
   return (
     <div className="container mx-auto max-w-3xl py-16">
       <div className="prose dark:prose-invert">
         <h1 className="font-headline text-4xl font-bold text-primary">Privacy Policy</h1>
-        <p className="text-muted-foreground">Last updated: {new Date().toLocaleDateString()}</p>
+        <p className="text-muted-foreground">Last updated: {lastUpdated || '...'}</p>
         
         <p>
           Welcome to Danny Store. We are committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website.
-        </p>
-
-        <h2 className="font-headline">1. Information We Collect</h2>
-        <p>
-          We may collect personal information such as your name, email address, and WhatsApp number when you create an account, place an order, or contact us for support. We also collect non-personal information, such as browser type and pages visited, to improve our service.
         </p>
 
         <h2 className="font-headline">2. How We Use Your Information</h2>
