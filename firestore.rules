@@ -3,74 +3,73 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    /* =========================
-       Fonctions utilitaires
-    ========================== */
-
+    // ========================
+    // Fonctions
+    // ========================
     function isAuthenticated() {
       return request.auth != null;
     }
 
     function isAdmin() {
-      return isAuthenticated()
-        && get(/databases/$(database)/documents/users/$(request.auth.uid))
-             .data.role == "admin";
+      return isAuthenticated() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
     }
 
-    /* =========================
-       Collection USERS
-    ========================== */
-
+    // ========================
+    // USERS (dashboard admin)
+    // ========================
     match /users/{userId} {
-
-      // Lire son propre profil
-      allow get: if isAuthenticated() && request.auth.uid == userId;
-
-      // Admin peut lire tous les profils (LIST + GET)
+      // Admin : lister tous les users
       allow list: if isAdmin();
-      allow get: if isAdmin();
-
-      // Création : utilisateur crée son propre document
-      allow create: if isAuthenticated() && request.auth.uid == userId;
-
-      // Modification : soi-même ou admin
-      allow update: if isAuthenticated()
-        && (request.auth.uid == userId || isAdmin());
-
-      // Suppression : admin uniquement
+      // Lire : admin ou soi-même
+      allow get: if isAdmin() || request.auth.uid == userId;
+      // Créer son propre profil
+      allow create: if request.auth.uid == userId;
+      // Modifier : admin ou soi-même
+      allow update: if isAdmin() || request.auth.uid == userId;
+      // Supprimer : admin uniquement
       allow delete: if isAdmin();
     }
 
-    /* =========================
-       AUTRES COLLECTIONS (exemple)
-    ========================== */
-
+    // ========================
+    // PRODUCTS
+    // ========================
     match /products/{productId} {
-      allow read: if true; // visible côté client
-      allow write: if isAdmin(); // admin seulement
-    }
-
-    match /categories/{categoryId} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
+    // ========================
+    // CATEGORIES
+    // ========================
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
     match /subcategories/{subcategoryId} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
-    match /orders/{orderId} {
-      allow read: if isAuthenticated()
-        && (get(/databases/$(database)/documents/orders/$(orderId)).data.customer.email == request.auth.email || isAdmin());
-
-      allow create: if isAuthenticated();
-      allow update, delete: if isAdmin();
+    // ========================
+    // STORE SETTINGS
+    // ========================
+    match /settings/storeConfig {
+      allow read: if true;
+      allow write: if isAdmin();
     }
-    
-    match /settings/{settingId} {
-        allow read: if true;
-        allow write: if isAdmin();
+
+    // ========================
+    // ORDERS
+    // ========================
+    match /orders/{orderId} {
+      // Client : lire ses commandes
+      allow get: if isAuthenticated() && request.auth.uid == resource.data.userId;
+      // Admin : tout voir
+      allow list, get: if isAdmin();
+      // Créer une commande
+      allow create: if isAuthenticated();
+      // Modifier / supprimer : admin
+      allow update, delete: if isAdmin();
     }
   }
 }
