@@ -502,7 +502,15 @@ export const dictionaries: Dictionaries = {
     'product.watch.long_desc': 'Cette montre analogique dorée magnifiquement conçue est un symbole d\'élégance intemporelle. Elle est dotée d\'un boîtier en acier inoxydable poli couleur or, d\'un cadran minimaliste avec des index épurés et d\'un bracelet en maille confortable. C\'est un accessoire sophistiqué pour toutes les occasions.',
     'product.headphones.name': 'Casque Audio Sans Fil Circum-aural',
     'product.headphones.desc': 'Plongez dans un son haute-fidélité avec ce casque sans fil confortable.',
-    'product.headphones.long_desc': 'Profitez d\'une qualité sonore supérieure et d\'un confort tout au long de la journée avec ce casque sans fil circum-aural. Il est doté d\'une technologie de réduction de bruit, d\'une batterie longue durée et d\'oreillettes moelleuses. Que vous écoutiez de la musique, des podcasts ou que vous preniez des appels, ce casque offre une expérience audio exceptionnelle.'
+    'product.headphones.long_desc': 'Profitez d\'une qualité sonore supérieure et d\'un confort tout au long de la journée avec ce casque sans fil circum-aural. Il est doté d\'une technologie de réduction de bruit, d\'une batterie longue durée et d\'oreillettes moelleuses. Que vous écoutiez de la musique, des podcasts ou que vous preniez des appels, ce casque offre une expérience audio exceptionnelle.',
+    // Fallback translations for raw category names
+    'Accessorie': 'Accessoires',
+    'Accessories': 'Accessoires',
+    'Bags': 'Sacs',
+    'Clothing': 'Vêtements',
+    'Electronics': 'Électronique',
+    'Home': 'Maison',
+    'Shoes': 'Chaussures'
   },
   ht: {
     'store.name': 'Danny Store',
@@ -750,6 +758,16 @@ export const dictionaries: Dictionaries = {
     'product.watch.long_desc': 'Mont analòg an lò sa a, ki fèt ak anpil swen, se yon senbòl elegans ki pa janm pase mòd. Li gen yon bwat an asye inoksidab poli koulè lò, yon kadran senp ak makè lè ki fin, ansanm ak yon braslè an may ki konfòtab. Se yon akseswa sofistike pou tout okazyon.',
     'product.headphones.name': 'Kask Odyo San Fil',
     'product.headphones.desc': 'Plonje tèt ou nan yon son bon kalite ak kask san fil konfòtab sa yo.',
-    'product.headphones.long_desc': 'Fè eksperyans yon kalite son siperyè ak yon konfò pou tout jounen an ak kask odyo san fil sa yo. Yo gen teknoloji pou anile bri, yon batri ki dire lontan, ak kousen zòrèy ki mou. Kit w ap koute mizik, pòdkas, oswa w ap pran apèl, kask sa yo ofri yon eksperyans odyo eksepsyonèl.'
+    'product.headphones.long_desc': 'Fè eksperyans yon kalite son siperyè ak yon konfò pou tout jounen an ak kask odyo san fil sa yo. Yo gen teknoloji pou anile bri, yon batri ki dire lontan, ak kousen zòrèy ki mou. Kit w ap koute mizik, pòdkas, oswa w ap pran apèl, kask sa yo ofri yon eksperyans odyo eksepsyonèl.',
+    // Fallback translations for raw category names
+    'Accessorie': 'Akseswa',
+    'Accessories': 'Akseswa',
+    'Bags': 'Sak',
+    'Clothing': 'Rad',
+    'Electronics': 'Elektwonik',
+    'Home': 'Kay',
+    'Shoes': 'Soulye'
   },
 };
+
+    
