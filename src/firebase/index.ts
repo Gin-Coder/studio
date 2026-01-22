@@ -1,8 +1,9 @@
+
 'use client';
 
 import { firebaseConfig } from '@/firebase/config';
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import { getAuth, initializeAuth, browserLocalPersistence } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore'
 
 // IMPORTANT: DO NOT MODIFY THIS FUNCTION
@@ -33,11 +34,27 @@ export function initializeFirebase() {
 }
 
 export function getSdks(firebaseApp: FirebaseApp) {
-  return {
-    firebaseApp,
-    auth: getAuth(firebaseApp),
-    firestore: getFirestore(firebaseApp)
-  };
+  // Use initializeAuth to set persistence. It should be called only once.
+  // Since getSdks is inside the initializeFirebase function which has a
+  // singleton guard, this is safe on first load.
+  // For subsequent calls (e.g. HMR), we get the existing auth instance.
+  try {
+    return {
+      firebaseApp,
+      auth: initializeAuth(firebaseApp, { persistence: browserLocalPersistence }),
+      firestore: getFirestore(firebaseApp)
+    };
+  } catch (error: any) {
+    if (error.code === 'auth/already-initialized') {
+      return {
+        firebaseApp,
+        auth: getAuth(firebaseApp),
+        firestore: getFirestore(firebaseApp)
+      };
+    }
+    // Re-throw other errors
+    throw error;
+  }
 }
 
 export * from './provider';

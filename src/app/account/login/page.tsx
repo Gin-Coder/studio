@@ -44,19 +44,18 @@ export default function CustomerLoginPage() {
       .catch((error: any) => {
         console.error("Google Popup Login Error:", error);
         
-        // Only show a toast and stop the spinner for critical errors.
-        // We specifically ignore 'auth/popup-closed-by-user' because in some environments,
-        // this error is thrown even on a successful login. We'll let the onAuthStateChanged
-        // listener handle the success case, and we keep the spinner active for a better UX.
+        // Don't show an error toast if the user simply closed the popup.
         if (error.code !== 'auth/popup-closed-by-user') {
             toast({
                 variant: 'destructive',
                 title: t('login.error_title'),
                 description: error.message || t('login.error_desc'),
             });
-            // For a real error, we stop the processing indicator.
-            setIsPopupProcessing(false);
         }
+      })
+      .finally(() => {
+        // Always stop the processing indicator once the flow is complete.
+        setIsPopupProcessing(false);
       });
   };
   
