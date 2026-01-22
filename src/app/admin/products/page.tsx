@@ -137,14 +137,14 @@ export default function AdminProductsPage() {
         
         const productsCollection = collection(firestore, 'products');
         productsToImport.forEach(productData => {
-            if (!productData.name || !productData.price || !productData.category) {
+            if (!productData.nameKey || !productData.price || !productData.category) {
                 console.warn("Skipping invalid product data:", productData);
                 return; 
             }
             const newProductRef = doc(productsCollection); 
             const completeProductData = {
                 ...productData,
-                slug: productData.slug || slugify(productData.name),
+                slug: productData.slug || slugify(productData.nameKey),
                 rating: productData.rating ?? 0,
                 reviewCount: productData.reviewCount ?? 0,
                 status: productData.status || 'draft',
@@ -300,14 +300,14 @@ export default function AdminProductsPage() {
                   </TableCell>
                   <TableCell className="hidden sm:table-cell">
                     <Image
-                      alt={product.name}
+                      alt={t(product.nameKey)}
                       className="aspect-square rounded-md object-cover"
                       height="64"
                       src={product.images[0] || 'https://placehold.co/64x64'}
                       width="64"
                     />
                   </TableCell>
-                  <TableCell className="font-medium">{product.name}</TableCell>
+                  <TableCell className="font-medium">{t(product.nameKey)}</TableCell>
                   <TableCell>
                     <Badge variant="outline">{product.status}</Badge>
                   </TableCell>
@@ -351,7 +351,7 @@ export default function AdminProductsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
             <AlertDialogDescription>
-              Cette action est irréversible. Le produit "{productToDelete?.name}" sera définitivement supprimé.
+              Cette action est irréversible. Le produit "{productToDelete ? t(productToDelete.nameKey) : ''}" sera définitivement supprimé.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

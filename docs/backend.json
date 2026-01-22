@@ -68,16 +68,16 @@
       "title": "Product",
       "type": "object",
       "properties": {
-        "name": {
+        "nameKey": {
           "type": "string"
         },
         "slug": {
           "type": "string"
         },
-        "description": {
+        "descriptionKey": {
           "type": "string"
         },
-        "longDescription": {
+        "longDescriptionKey": {
           "type": "string"
         },
         "images": {
@@ -166,7 +166,7 @@
         }
       },
       "required": [
-        "name",
+        "nameKey",
         "slug",
         "price",
         "category",

@@ -73,9 +73,9 @@ export default function EditProductPage() {
     const subCategoriesQuery = useMemoFirebase(() => (firestore ? collection(firestore, 'subcategories') : null), [firestore]);
     const { data: subCategories, isLoading: isLoadingSubCategories } = useCollection<SubCategory>(subCategoriesQuery);
 
-    const [name, setName] = useState('');
-    const [description, setDescription] = useState('');
-    const [longDescription, setLongDescription] = useState('');
+    const [nameKey, setNameKey] = useState('');
+    const [descriptionKey, setDescriptionKey] = useState('');
+    const [longDescriptionKey, setLongDescriptionKey] = useState('');
     const [variants, setVariants] = useState<VariantFormState[]>([]);
     const [imageUrl, setImageUrl] = useState('');
     const [status, setStatus] = useState('draft');
@@ -91,9 +91,9 @@ export default function EditProductPage() {
 
     useEffect(() => {
         if (product) {
-            setName(product.name);
-            setDescription(product.description || '');
-            setLongDescription(product.longDescription || '');
+            setNameKey(product.nameKey);
+            setDescriptionKey(product.descriptionKey || '');
+            setLongDescriptionKey(product.longDescriptionKey || '');
             setPrice(product.price.toString());
             setPriceCurrency('USD');
             setStatus(product.status);
@@ -189,13 +189,12 @@ export default function EditProductPage() {
 
 
     const handleSaveProduct = async () => {
-        if (!firestore || !name || !price || !categoryId || !subCategoryId) {
-            toast({ variant: "destructive", title: "Champs requis manquants", description: "Veuillez remplir le nom, le prix, la catégorie et la sous-catégorie." });
+        if (!firestore || !nameKey || !price || !categoryId || !subCategoryId) {
+            toast({ variant: "destructive", title: "Champs requis manquants", description: "Veuillez remplir la clé du nom, le prix, la catégorie et la sous-catégorie." });
             return;
         }
         setIsSaving(true);
         
-        // This part can remain async as it deals with client-side processing before Firestore
         let finalImageUrl = imageUrl;
         if (imageUrl.startsWith('data:')) {
             finalImageUrl = await uploadImage(imageUrl);
@@ -207,7 +206,7 @@ export default function EditProductPage() {
                 variantImageUrl = await uploadImage(v.imageUrl);
             }
             return {
-                id: `${slugify(name)}-${slugify(v.size)}-${slugify(v.color)}`,
+                id: `${slugify(t(nameKey))}-${slugify(v.size)}-${slugify(v.color)}`,
                 size: v.size,
                 color: stringToColor(v.color),
                 colorName: v.color,
@@ -221,10 +220,10 @@ export default function EditProductPage() {
         const priceInUSD = parseFloat(price) / rate;
 
         const productDataForFirestore = {
-            name,
-            slug: slugify(name),
-            description: description,
-            longDescription: longDescription,
+            nameKey,
+            slug: slugify(t(nameKey)),
+            descriptionKey: descriptionKey,
+            longDescriptionKey: longDescriptionKey,
             price: priceInUSD,
             category: categoryId,
             subCategory: subCategoryId,
@@ -240,7 +239,7 @@ export default function EditProductPage() {
         
         setDoc(productRef, productDataForFirestore, { merge: true })
           .then(() => {
-            toast({ title: "Produit mis à jour !", description: `Le produit "${name}" a été mis à jour avec succès.` });
+            toast({ title: "Produit mis à jour !", description: `Le produit "${t(nameKey)}" a été mis à jour avec succès.` });
             router.push('/admin/products');
           })
           .catch(error => {
@@ -298,22 +297,22 @@ export default function EditProductPage() {
                                 <CardHeader>
                                     <CardTitle>Détails du produit</CardTitle>
                                     <CardDescription>
-                                        Informations générales et image principale du produit.
+                                        Clés de traduction et image principale du produit.
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent>
                                     <div className="grid gap-6">
                                         <div className="grid gap-3">
-                                            <Label htmlFor="name">Nom</Label>
-                                            <Input id="name" type="text" className="w-full" placeholder="Ex: T-shirt en coton" value={name} onChange={(e) => setName(e.target.value)} />
+                                            <Label htmlFor="nameKey">Clé de traduction du nom</Label>
+                                            <Input id="nameKey" type="text" className="w-full" placeholder="Ex: product.dress.name" value={nameKey} onChange={(e) => setNameKey(e.target.value)} />
                                         </div>
                                         <div className="grid gap-3">
-                                            <Label htmlFor="description">Description courte</Label>
-                                            <Textarea id="description" placeholder="Courte description pour la liste des produits." className="min-h-24" value={description} onChange={(e) => setDescription(e.target.value)} />
+                                            <Label htmlFor="descriptionKey">Clé de traduction (courte)</Label>
+                                            <Textarea id="descriptionKey" placeholder="Ex: product.dress.desc" className="min-h-24" value={descriptionKey} onChange={(e) => setDescriptionKey(e.target.value)} />
                                         </div>
                                         <div className="grid gap-3">
-                                            <Label htmlFor="long-description">Description longue</Label>
-                                            <Textarea id="long-description" placeholder="Description détaillée pour la page du produit." className="min-h-32" value={longDescription} onChange={(e) => setLongDescription(e.target.value)} />
+                                            <Label htmlFor="longDescriptionKey">Clé de traduction (longue)</Label>
+                                            <Textarea id="longDescriptionKey" placeholder="Ex: product.dress.long_desc" className="min-h-32" value={longDescriptionKey} onChange={(e) => setLongDescriptionKey(e.target.value)} />
                                         </div>
                                         <div className="grid gap-3">
                                             <Label>Image principale</Label>

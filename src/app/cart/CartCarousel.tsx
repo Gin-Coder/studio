@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -47,7 +48,7 @@ export default function CartCarousel({ items, onUpdateQuantity, onRemoveItem }: 
                     <div className="relative aspect-[3/4] md:w-1/3 flex-shrink-0">
                       <Image
                         src={item.image}
-                        alt={item.name}
+                        alt={t(item.nameKey)}
                         fill
                         className="rounded-md object-cover"
                       />
@@ -55,7 +56,7 @@ export default function CartCarousel({ items, onUpdateQuantity, onRemoveItem }: 
                     <div className="flex flex-grow flex-col justify-between">
                       <div>
                         <div className="flex justify-between items-start">
-                            <h2 className="font-headline text-2xl font-bold">{item.name}</h2>
+                            <h2 className="font-headline text-2xl font-bold">{t(item.nameKey)}</h2>
                              <Button variant="ghost" size="icon" onClick={() => onRemoveItem(item.variantId)} aria-label={t('cart.remove_item')} className="-mt-2 -mr-2">
                                 <Trash2 className="h-5 w-5 text-muted-foreground hover:text-destructive" />
                             </Button>

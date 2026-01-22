@@ -38,7 +38,7 @@ export default function ProductCard({ product, categoryMap }: ProductCardProps) 
       addToCart(product, firstVariant, 1);
       toast({
         title: t('toast.cart.added.title'),
-        description: t('toast.cart.added.description', { itemName: product.name }),
+        description: t('toast.cart.added.description', { itemName: t(product.nameKey) }),
         action: (
           <ToastAction altText={t('cart.title')} asChild>
             <Link href="/cart">{t('toast.cart.view_cart')}</Link>
@@ -57,13 +57,13 @@ export default function ProductCard({ product, categoryMap }: ProductCardProps) 
       removeFromWishlist(product.id);
       toast({
         title: t('toast.wishlist.removed.title'),
-        description: t('toast.wishlist.removed.description', { itemName: product.name }),
+        description: t('toast.wishlist.removed.description', { itemName: t(product.nameKey) }),
       });
     } else {
       addToWishlist(product.id);
       toast({
         title: t('toast.wishlist.added.title'),
-        description: t('toast.wishlist.added.description', { itemName: product.name }),
+        description: t('toast.wishlist.added.description', { itemName: t(product.nameKey) }),
       });
     }
   };
@@ -76,7 +76,7 @@ export default function ProductCard({ product, categoryMap }: ProductCardProps) 
         <CardContent className="relative aspect-[3/4] p-0">
           <Image
             src={product.images[0]}
-            alt={product.name}
+            alt={t(product.nameKey)}
             fill
             sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
             className="object-cover transition-transform duration-300 group-hover:scale-105"
@@ -95,7 +95,7 @@ export default function ProductCard({ product, categoryMap }: ProductCardProps) 
         </CardContent>
       </Link>
       <div className="p-2 md:p-4 flex-shrink-0">
-        <h3 className="truncate font-headline text-base md:text-lg font-semibold">{product.name}</h3>
+        <h3 className="truncate font-headline text-base md:text-lg font-semibold">{t(product.nameKey)}</h3>
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 mt-2">
             <p className="font-semibold text-sm md:text-base">{formatPrice(displayPrice, language, currency)}</p>
             <Button

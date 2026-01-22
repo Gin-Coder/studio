@@ -50,7 +50,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           productId: product.id,
           variantId: variant.id,
           quantity,
-          name: product.name,
+          nameKey: product.nameKey,
           price: product.price, // Always store the base price (USD)
           image: product.images[0],
           color: variant.colorName,

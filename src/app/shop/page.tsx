@@ -274,8 +274,8 @@ function ShopPageContent() {
 
     return products.filter(product => {
         const searchMatch = searchQuery === '' || 
-                            product.name.toLowerCase().includes(lowercasedQuery) ||
-                            product.description.toLowerCase().includes(lowercasedQuery) ||
+                            t(product.nameKey).toLowerCase().includes(lowercasedQuery) ||
+                            t(product.descriptionKey).toLowerCase().includes(lowercasedQuery) ||
                             (t(categoryMap.get(product.category) || '')).toLowerCase().includes(lowercasedQuery) ||
                             product.tags.some(t => t.toLowerCase().includes(lowercasedQuery));
 

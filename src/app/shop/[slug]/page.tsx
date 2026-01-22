@@ -71,7 +71,7 @@ function ProductDetailClient({ product }: { product: Product }) {
         <div className="aspect-[3/4] relative">
            <Image
             src={product.images[0]}
-            alt={product.name}
+            alt={t(product.nameKey)}
             fill
             className="rounded-lg object-cover shadow-lg"
             data-ai-hint={product.imageHints[0]}
@@ -80,7 +80,7 @@ function ProductDetailClient({ product }: { product: Product }) {
 
         {/* Product Info */}
         <div className="flex flex-col">
-          <h1 className="font-headline text-3xl font-bold lg:text-4xl">{product.name}</h1>
+          <h1 className="font-headline text-3xl font-bold lg:text-4xl">{t(product.nameKey)}</h1>
           <div className="mt-2 flex items-center gap-4">
             <div className="flex items-center">
               {[...Array(5)].map((_, i) => (
@@ -99,7 +99,7 @@ function ProductDetailClient({ product }: { product: Product }) {
             </a>
           </div>
           <ProductPrice price={product.price} />
-          <p className="mt-4 text-muted-foreground">{product.description}</p>
+          <p className="mt-4 text-muted-foreground">{t(product.descriptionKey)}</p>
           
           <ProductActions product={product} />
           
@@ -118,7 +118,7 @@ function ProductDetailClient({ product }: { product: Product }) {
             <Accordion type="single" collapsible defaultValue="description">
               <AccordionItem value="description">
                 <AccordionTrigger>{t('product.description')}</AccordionTrigger>
-                <AccordionContent>{product.longDescription}</AccordionContent>
+                <AccordionContent>{t(product.longDescriptionKey)}</AccordionContent>
               </AccordionItem>
               <AccordionItem value="details">
                 <AccordionTrigger>{t('product.details_care')}</AccordionTrigger>

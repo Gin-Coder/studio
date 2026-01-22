@@ -39,7 +39,7 @@ export default function CartPage() {
         
         cartItems.forEach(item => {
             const itemDisplayPrice = convertPrice(item.price * item.quantity);
-            message += `- ${item.name} (${item.color}, ${item.size}) x ${item.quantity} - ${formatPrice(itemDisplayPrice, language, currency)}\n`;
+            message += `- ${t(item.nameKey)} (${item.color}, ${item.size}) x ${item.quantity} - ${formatPrice(itemDisplayPrice, language, currency)}\n`;
         });
 
         message += `\n*${t('cart.subtotal')}:* ${formatPrice(displayTotalPrice, language, currency)}\n`;

@@ -43,7 +43,7 @@ export default function WishlistPage() {
         addToCart(product, firstVariant, 1);
         toast({
             title: t('toast.cart.added.title'),
-            description: t('toast.cart.added.description', { itemName: product.name }),
+            description: t('toast.cart.added.description', { itemName: t(product.nameKey) }),
             action: (
                 <ToastAction altText={t('cart.title')} asChild>
                     <Link href="/cart">{t('toast.cart.view_cart')}</Link>
@@ -53,11 +53,11 @@ export default function WishlistPage() {
     }
   };
 
-  const handleRemoveFromWishlist = (productId: string, productName: string) => {
+  const handleRemoveFromWishlist = (productId: string, productNameKey: string) => {
       removeFromWishlist(productId);
       toast({
           title: t('toast.wishlist.removed.title'),
-          description: t('toast.wishlist.removed.description', { itemName: productName }),
+          description: t('toast.wishlist.removed.description', { itemName: t(productNameKey) }),
       });
   }
 
@@ -97,20 +97,20 @@ export default function WishlistPage() {
                 <div className="relative aspect-[3/4]">
                     <Image
                         src={product.images[0]}
-                        alt={product.name}
+                        alt={t(product.nameKey)}
                         fill
                         className="object-cover"
                     />
                 </div>
             </Link>
             <CardContent className="p-4">
-                <h2 className="font-semibold truncate">{product.name}</h2>
+                <h2 className="font-semibold truncate">{t(product.nameKey)}</h2>
                 <p className="font-bold text-lg mt-1">{formatPrice(convertPrice(product.price), language, currency)}</p>
                 <div className="mt-4 flex flex-col gap-2">
                     <Button className="w-full" onClick={() => handleAddToCart(product)}>
                         <ShoppingBag className="mr-2 h-4 w-4" /> {t('wishlist.add_to_cart')}
                     </Button>
-                    <Button variant="outline" className="w-full" onClick={() => handleRemoveFromWishlist(product.id, product.name)}>
+                    <Button variant="outline" className="w-full" onClick={() => handleRemoveFromWishlist(product.id, product.nameKey)}>
                         <Trash2 className="mr-2 h-4 w-4" /> {t('wishlist.remove')}
                     </Button>
                 </div>

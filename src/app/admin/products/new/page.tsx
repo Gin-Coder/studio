@@ -50,9 +50,9 @@ export default function NewProductPage() {
     const subCategoriesQuery = useMemoFirebase(() => (firestore ? collection(firestore, 'subcategories') : null), [firestore]);
     const { data: subCategories, isLoading: isLoadingSubCategories } = useCollection<SubCategory>(subCategoriesQuery);
     
-    const [name, setName] = useState('');
-    const [description, setDescription] = useState('');
-    const [longDescription, setLongDescription] = useState('');
+    const [nameKey, setNameKey] = useState('');
+    const [descriptionKey, setDescriptionKey] = useState('');
+    const [longDescriptionKey, setLongDescriptionKey] = useState('');
     const [variants, setVariants] = useState<VariantFormState[]>([{ id: 1, size: '', color: '', stock: '10', imageUrl: '' }]);
     const [imageUrl, setImageUrl] = useState('');
     const [status, setStatus] = useState('draft');
@@ -145,13 +145,12 @@ export default function NewProductPage() {
 
 
     const handleSaveProduct = async () => {
-        if (!firestore || !name || !price || !categoryId || !subCategoryId) {
-            toast({ variant: 'destructive', title: "Champs requis manquants", description: "Veuillez remplir le nom, le prix, la catégorie et la sous-catégorie." });
+        if (!firestore || !nameKey || !price || !categoryId || !subCategoryId) {
+            toast({ variant: 'destructive', title: "Champs requis manquants", description: "Veuillez remplir la clé du nom, le prix, la catégorie et la sous-catégorie." });
             return;
         }
         setIsSaving(true);
         
-        // This part can remain async as it deals with client-side processing before Firestore
         let finalImageUrl = imageUrl;
         if (imageUrl.startsWith('data:')) {
             finalImageUrl = await uploadImage(imageUrl);
@@ -163,7 +162,7 @@ export default function NewProductPage() {
                 variantImageUrl = await uploadImage(v.imageUrl);
             }
             return {
-                id: `${slugify(name)}-${slugify(v.size)}-${slugify(v.color)}`,
+                id: `${slugify(nameKey)}-${slugify(v.size)}-${slugify(v.color)}`,
                 size: v.size,
                 color: stringToColor(v.color),
                 colorName: v.color,
@@ -177,10 +176,10 @@ export default function NewProductPage() {
         const priceInUSD = parseFloat(price) / rate;
 
         const newProduct = {
-            name,
-            slug: slugify(name),
-            description: description,
-            longDescription: longDescription,
+            nameKey,
+            slug: slugify(t(nameKey)),
+            descriptionKey: descriptionKey,
+            longDescriptionKey: longDescriptionKey,
             price: priceInUSD,
             category: categoryId,
             subCategory: subCategoryId,
@@ -198,7 +197,7 @@ export default function NewProductPage() {
         const productsCollection = collection(firestore, "products");
         addDoc(productsCollection, newProduct)
           .then(() => {
-            toast({ title: "Produit enregistré !", description: `Le produit "${name}" a été enregistré avec succès.` });
+            toast({ title: "Produit enregistré !", description: `Le produit "${t(nameKey)}" a été enregistré avec succès.` });
             router.push('/admin/products');
           })
           .catch(error => {
@@ -248,22 +247,22 @@ export default function NewProductPage() {
                                 <CardHeader>
                                     <CardTitle>Détails du produit</CardTitle>
                                     <CardDescription>
-                                        Informations générales et image principale du produit.
+                                        Clés de traduction et image principale du produit.
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent>
                                     <div className="grid gap-6">
                                         <div className="grid gap-3">
-                                            <Label htmlFor="name">Nom</Label>
-                                            <Input id="name" type="text" className="w-full" placeholder="Ex: T-shirt en coton" value={name} onChange={(e) => setName(e.target.value)} />
+                                            <Label htmlFor="name">Clé de traduction du nom</Label>
+                                            <Input id="name" type="text" className="w-full" placeholder="Ex: product.dress.name" value={nameKey} onChange={(e) => setNameKey(e.target.value)} />
                                         </div>
                                         <div className="grid gap-3">
-                                            <Label htmlFor="description">Description courte</Label>
-                                            <Textarea id="description" placeholder="Courte description pour la liste des produits." className="min-h-24" value={description} onChange={(e) => setDescription(e.target.value)} />
+                                            <Label htmlFor="description">Clé de traduction (courte)</Label>
+                                            <Textarea id="description" placeholder="Ex: product.dress.desc" className="min-h-24" value={descriptionKey} onChange={(e) => setDescriptionKey(e.target.value)} />
                                         </div>
                                         <div className="grid gap-3">
-                                            <Label htmlFor="long-description">Description longue</Label>
-                                            <Textarea id="long-description" placeholder="Description détaillée pour la page du produit." className="min-h-32" value={longDescription} onChange={(e) => setLongDescription(e.target.value)} />
+                                            <Label htmlFor="long-description">Clé de traduction (longue)</Label>
+                                            <Textarea id="long-description" placeholder="Ex: product.dress.long_desc" className="min-h-32" value={longDescriptionKey} onChange={(e) => setLongDescriptionKey(e.target.value)} />
                                         </div>
                                         <div className="grid gap-3">
                                             <Label>Image principale</Label>

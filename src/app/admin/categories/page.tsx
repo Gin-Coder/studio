@@ -19,6 +19,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Checkbox } from '@/components/ui/checkbox';
 import { slugify } from '@/lib/utils';
 import type { Category } from '@/lib/types';
+import { useLanguage } from '@/hooks/use-language';
 
 // The state for the category form
 type CategoryFormState = {
@@ -40,6 +41,7 @@ async function uploadCategoryImage(imageAsDataUrl: string): Promise<string> {
 export default function AdminCategoriesPage() {
   const firestore = useFirestore();
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const categoriesQuery = useMemoFirebase(() => (firestore ? collection(firestore, 'categories') : null), [firestore]);
   const { data: categories, isLoading } = useCollection<Category>(categoriesQuery);
@@ -253,9 +255,9 @@ export default function AdminCategoriesPage() {
                     />
                   </TableCell>
                   <TableCell className="hidden sm:table-cell">
-                    <Image alt={cat.nameKey} className="aspect-square rounded-md object-cover" height="64" src={cat.imageUrl || 'https://placehold.co/64x64'} width="64" />
+                    <Image alt={t(cat.nameKey)} className="aspect-square rounded-md object-cover" height="64" src={cat.imageUrl || 'https://placehold.co/64x64'} width="64" />
                   </TableCell>
-                  <TableCell className="font-medium">{cat.nameKey}</TableCell>
+                  <TableCell className="font-medium">{t(cat.nameKey)}</TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild><Button aria-haspopup="true" size="icon" variant="ghost"><MoreHorizontal className="h-4 w-4" /><span className="sr-only">Ouvrir menu</span></Button></DropdownMenuTrigger>
@@ -284,8 +286,8 @@ export default function AdminCategoriesPage() {
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="name">Nom de la catégorie</Label>
-              <Input id="name" value={currentCategory?.nameKey || ''} onChange={(e) => handleFieldChange('nameKey', e.target.value)} placeholder="Ex: Vêtements pour hommes" />
+              <Label htmlFor="name">Clé de traduction de la catégorie</Label>
+              <Input id="name" value={currentCategory?.nameKey || ''} onChange={(e) => handleFieldChange('nameKey', e.target.value)} placeholder="Ex: filter.clothing" />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="imageUrl">URL de l'image</Label>
@@ -344,7 +346,7 @@ export default function AdminCategoriesPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
             <AlertDialogDescription>
-              Cette action est irréversible. La catégorie "{categoryToDelete?.nameKey}" sera définitivement supprimée.
+              Cette action est irréversible. La catégorie "{t(categoryToDelete?.nameKey || '')}" sera définitivement supprimée.
               Les produits associés ne seront pas supprimés mais devront être réassignés à une autre catégorie.
             </AlertDialogDescription>
           </AlertDialogHeader>

@@ -1,12 +1,13 @@
+
 export type Language = 'en' | 'fr' | 'ht';
 export type Currency = 'USD' | 'EUR' | 'HTG';
 
 export type Product = {
   id: string;
   slug: string;
-  name: string;
-  description: string;
-  longDescription: string;
+  nameKey: string;
+  descriptionKey: string;
+  longDescriptionKey: string;
   images: string[];
   imageHints: string[];
   price: number;
@@ -57,7 +58,7 @@ export type CartItem = {
   productId: string;
   variantId: string;
   quantity: number;
-  name: string;
+  nameKey: string;
   price: number;
   image: string;
   color: string;
