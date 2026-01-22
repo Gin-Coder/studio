@@ -275,6 +275,67 @@
         "defaultCurrency",
         "defaultLanguage"
       ]
+    },
+     "Review": {
+      "title": "Review",
+      "type": "object",
+      "description": "Represents a customer review for a product.",
+      "properties": {
+        "productId": {
+          "type": "string",
+          "description": "The ID of the product being reviewed."
+        },
+        "userId": {
+          "type": "string",
+          "description": "The ID of the user who wrote the review."
+        },
+        "userName": {
+          "type": "string",
+          "description": "The name of the user at the time of review."
+        },
+        "userAvatarUrl": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL to the user's avatar image."
+        },
+        "rating": {
+          "type": "number",
+          "description": "Rating from 1 to 5.",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "title": {
+          "type": "string",
+          "description": "The title of the review."
+        },
+        "comment": {
+          "type": "string",
+          "description": "The main body of the review."
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "pending",
+            "approved",
+            "rejected"
+          ],
+          "description": "Moderation status of the review."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp of when the review was created."
+        }
+      },
+      "required": [
+        "productId",
+        "userId",
+        "userName",
+        "rating",
+        "comment",
+        "status",
+        "createdAt"
+      ]
     }
   },
   "auth": {
@@ -318,6 +379,12 @@
         "$ref": "#/entities/StoreSettings"
       },
       "description": "Stores global settings for the store. Should only be writable by admins."
+    },
+    "/reviews/{reviewId}": {
+      "schema": {
+        "$ref": "#/entities/Review"
+      },
+      "description": "Stores product reviews. Publicly readable if 'approved'. Writable by authenticated users. Status can only be changed by admins."
     }
   }
 }

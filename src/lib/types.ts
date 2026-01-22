@@ -47,11 +47,14 @@ export type SubCategory = {
 export type Review = {
   id: string;
   productId: string;
-  author: string;
-  avatarUrl: string;
+  userId: string;
+  userName: string;
+  userAvatarUrl?: string;
   rating: number;
-  textKey: string;
-  date: string;
+  title: string;
+  comment: string;
+  status: 'pending' | 'approved' | 'rejected';
+  createdAt: any; // Firestore Timestamp
 };
 
 export type CartItem = {

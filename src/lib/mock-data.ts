@@ -1,4 +1,4 @@
-import type { Category, Review, Avatar } from './types';
+import type { Category, Avatar } from './types';
 import { PlaceHolderImages } from './placeholder-images';
 
 const getImage = (id: string) => {
@@ -12,36 +12,6 @@ export const categories: Category[] = [
   { id: 'shoes', nameKey: 'filter.shoes', imageUrl: getImage('cat-shoes').url, imageHint: getImage('cat-shoes').hint },
   { id: 'accessories', nameKey: 'filter.accessories', imageUrl: getImage('cat-accessories').url, imageHint: getImage('cat-accessories').hint },
   { id: 'tech', nameKey: 'filter.tech', imageUrl: getImage('cat-tech').url, imageHint: getImage('cat-tech').hint },
-];
-
-export const reviews: Review[] = [
-  {
-    id: '1',
-    productId: 'elegant-white-summer-dress',
-    author: 'Sophie L.',
-    avatarUrl: getImage('review-avatar-1').url,
-    rating: 5,
-    textKey: 'review.product1.sophie',
-    date: '2023-08-15',
-  },
-  {
-    id: '2',
-    productId: 'classic-black-leather-jacket',
-    author: 'Marc-Antoine P.',
-    avatarUrl: getImage('review-avatar-2').url,
-    rating: 5,
-    textKey: 'review.product2.marc',
-    date: '2023-09-01',
-  },
-  {
-    id: '3',
-    productId: 'white-leather-sneakers',
-    author: 'Jessica B.',
-    avatarUrl: getImage('review-avatar-3').url,
-    rating: 4,
-    textKey: 'review.product7.jessica',
-    date: '2023-08-22',
-  },
 ];
 
 export const avatars: Avatar[] = [

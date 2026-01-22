@@ -10,14 +10,13 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Star, Truck, ShieldCheck, Gem, Loader2, Search } from 'lucide-react';
-import { reviews } from '@/lib/mock-data';
 import ProductCard from '@/components/ProductCard';
 import { useLanguage } from '@/hooks/use-language';
 import { Logo } from '@/components/ui/logo';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import type { Product, Category } from '@/lib/types';
-import { collection, limit, query, where } from 'firebase/firestore';
+import type { Product, Category, Review } from '@/lib/types';
+import { collection, limit, query, where, orderBy } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
 
@@ -72,12 +71,19 @@ export default function Home() {
   const { data: bestSellers, isLoading: isLoadingBestSellers } = useCollection<Product>(publishedProductsQuery);
   const { data: newArrivals, isLoading: isLoadingNewArrivals } = useCollection<Product>(publishedProductsQuery);
 
+  const reviewsQuery = useMemoFirebase(
+    () => (firestore ? query(collection(firestore, 'reviews'), where('status', '==', 'approved'), orderBy('createdAt', 'desc'), limit(5)) : null),
+    [firestore]
+  );
+  const { data: reviews, isLoading: isLoadingReviews } = useCollection<Review>(reviewsQuery);
+
+
   const categoryMap = useMemo(() => {
     if (!categories) return new Map<string, string>();
     return new Map(categories.map(cat => [cat.id, cat.nameKey]));
   }, [categories]);
   
-  const isLoading = isLoadingCategories || isLoadingBestSellers || isLoadingNewArrivals;
+  const isLoading = isLoadingCategories || isLoadingBestSellers || isLoadingNewArrivals || isLoadingReviews;
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -290,61 +296,64 @@ export default function Home() {
       </section>
 
       {/* Customer Reviews Section */}
-      <section className="py-12 md:py-20 overflow-hidden">
-        <div className="container mx-auto px-4">
-          <h2 className="mb-8 text-center font-headline text-3xl font-bold md:mb-12 md:text-4xl">
-            {t('home.reviews.title')}
-          </h2>
-          <Carousel
-            plugins={[continuousAutoplay.current]}
-            opts={{ align: 'start', loop: true }}
-            className="w-full max-w-4xl mx-auto"
-          >
-            <CarouselContent className="-ml-1">
-              {reviews.map((review) => (
-                <CarouselItem key={review.id} className="pl-1 md:basis-1/2">
-                  <div className="p-4">
-                    <Card>
-                      <CardContent className="p-6">
-                        <div className="flex items-center mb-2">
-                          {Array(5)
-                            .fill(0)
-                            .map((_, i) => (
-                              <Star
-                                key={i}
-                                className={`h-5 w-5 ${
-                                  i < review.rating
-                                    ? 'fill-accent text-accent'
-                                    : 'fill-muted text-muted-foreground'
-                                }`}
-                              />
-                            ))}
-                        </div>
-                        <p className="mb-4 italic text-muted-foreground">
-                          "{t(review.textKey)}"
-                        </p>
-                        <div className="flex items-center">
-                          <Image
-                            src={review.avatarUrl}
-                            alt={review.author}
-                            width={40}
-                            height={40}
-                            className="rounded-full"
-                            data-ai-hint="person portrait"
-                          />
-                          <p className="ml-4 font-semibold">{review.author}</p>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            <CarouselPrevious />
-            <CarouselNext />
-          </Carousel>
-        </div>
-      </section>
+      {!isLoading && reviews && reviews.length > 0 && (
+        <section className="py-12 md:py-20 overflow-hidden">
+          <div className="container mx-auto px-4">
+            <h2 className="mb-8 text-center font-headline text-3xl font-bold md:mb-12 md:text-4xl">
+              {t('home.reviews.title')}
+            </h2>
+            <Carousel
+              plugins={[continuousAutoplay.current]}
+              opts={{ align: 'start', loop: true }}
+              className="w-full max-w-4xl mx-auto"
+            >
+              <CarouselContent className="-ml-1">
+                {reviews.map((review) => (
+                  <CarouselItem key={review.id} className="pl-1 md:basis-1/2">
+                    <div className="p-4">
+                      <Card>
+                        <CardContent className="p-6">
+                          <div className="flex items-center mb-2">
+                            {Array(5)
+                              .fill(0)
+                              .map((_, i) => (
+                                <Star
+                                  key={i}
+                                  className={`h-5 w-5 ${
+                                    i < review.rating
+                                      ? 'fill-accent text-accent'
+                                      : 'fill-muted text-muted-foreground'
+                                  }`}
+                                />
+                              ))}
+                          </div>
+                          <p className="font-semibold">{review.title}</p>
+                          <p className="mb-4 italic text-muted-foreground">
+                            "{review.comment}"
+                          </p>
+                          <div className="flex items-center">
+                            <Image
+                              src={review.userAvatarUrl || '/default-avatar.png'}
+                              alt={review.userName}
+                              width={40}
+                              height={40}
+                              className="rounded-full bg-muted"
+                              data-ai-hint="person portrait"
+                            />
+                            <p className="ml-4 font-semibold">{review.userName}</p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious />
+              <CarouselNext />
+            </Carousel>
+          </div>
+        </section>
+      )}
     </div>
   );
 }
